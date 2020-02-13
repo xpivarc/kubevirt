@@ -71,6 +71,10 @@ dockerizied environment, clone the KubeVirt repository, `cd` into it, and:
 ```bash
 # Build and deploy KubeVirt on Kubernetes in our vms inside containers
 export KUBEVIRT_PROVIDER=k8s-1.13.3 # this is also the default if no KUBEVIRT_PROVIDER is set
+
+Providers can be found in [env-provides](https://github.com/kubevirt/kubevirt/blob/master/docs/env-providers.md).
+
+
 make cluster-up
 make cluster-sync
 ```
@@ -85,8 +89,8 @@ export KUBEVIRT_NUM_NODES=2 # schedulable master + one additional node
 make cluster-up
 ```
 
-You can use the `KUBEVIRT_MEMORY_SIZE` environment 
-variable to increase memory size per node. Normally you don't need it, 
+You can use the `KUBEVIRT_MEMORY_SIZE` environment
+variable to increase memory size per node. Normally you don't need it,
 because default node memory size is set.
 
 ```bash
