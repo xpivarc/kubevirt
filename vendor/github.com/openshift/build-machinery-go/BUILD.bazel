@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["doc.go"],
+    importmap = "kubevirt.io/kubevirt/vendor/github.com/openshift/build-machinery-go",
+    importpath = "github.com/openshift/build-machinery-go",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/openshift/build-machinery-go/make:go_default_library",
+        "//vendor/github.com/openshift/build-machinery-go/make/lib:go_default_library",
+        "//vendor/github.com/openshift/build-machinery-go/make/targets:go_default_library",
+        "//vendor/github.com/openshift/build-machinery-go/make/targets/golang:go_default_library",
+        "//vendor/github.com/openshift/build-machinery-go/make/targets/openshift:go_default_library",
+        "//vendor/github.com/openshift/build-machinery-go/make/targets/openshift/operator:go_default_library",
+        "//vendor/github.com/openshift/build-machinery-go/scripts:go_default_library",
+    ],
+)

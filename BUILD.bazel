@@ -344,6 +344,7 @@ go_library(
     ],
     importpath = "kubevirt.io/kubevirt",
     visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/openshift/build-machinery-go:go_default_library"],
 )
 
 genrule(

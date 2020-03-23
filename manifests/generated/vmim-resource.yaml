@@ -1,0 +1,80 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    kubevirt.io: ""
+  name: virtualmachineinstancemigrations.kubevirt.io
+spec:
+  group: kubevirt.io
+  names:
+    categories:
+    - all
+    kind: VirtualMachineInstanceMigration
+    plural: virtualmachineinstancemigrations
+    shortNames:
+    - vmim
+    - vmims
+    singular: virtualmachineinstancemigration
+  preserveUnknownFields: false
+  scope: Namespaced
+  version: v1alpha3
+  versions:
+  - name: v1alpha3
+    served: true
+    storage: true
+  "validation":
+    "openAPIV3Schema":
+      description: VirtualMachineInstanceMigration represents the object tracking
+        a VMI's migration to another host in the cluster ---
+      type: object
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: '---'
+          type: object
+          properties:
+            vmiName:
+              description: The name of the VMI to perform the migration on. VMI must
+                exist in the migration objects namespace
+              type: string
+        status:
+          description: VirtualMachineInstanceMigration reprents information pertaining
+            to a VMI's migration. ---
+          type: object
+          properties:
+            conditions:
+              type: array
+              items:
+                description: '---'
+                type: object
+                properties:
+                  lastProbeTime:
+                    type: string
+                    format: date-time
+                  lastTransitionTime:
+                    type: string
+                    format: date-time
+                  message:
+                    type: string
+                  reason:
+                    type: string
+                  status:
+                    type: string
+                  type:
+                    type: string
+            phase:
+              description: VirtualMachineInstanceMigrationPhase is a label for the
+                condition of a VirtualMachineInstanceMigration at the current time.
+                ---
+              type: string
