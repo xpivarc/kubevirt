@@ -32,7 +32,7 @@ spec:
     - vmirs
     - vmirss
     singular: virtualmachineinstancereplicaset
-  preserveUnknownFields: false
+  preserveUnknownFields: true
   scope: Namespaced
   subresources:
     scale:
@@ -48,7 +48,6 @@ spec:
     "openAPIV3Schema":
       description: VirtualMachineInstance is *the* VirtualMachineInstance Definition.
         It represents a virtual machine in the runtime environment of kubernetes.
-        ---
       type: object
       properties:
         apiVersion:
@@ -126,6 +125,8 @@ spec:
               properties:
                 metadata:
                   type: object
+                  nullable: true
+                  x-kubernetes-preserve-unknown-fields: true
                 spec:
                   description: VirtualMachineInstance Spec contains the VirtualMachineInstance
                     specification.
@@ -938,7 +939,6 @@ spec:
                               type: array
                               items:
                                 description: CPUFeature allows specifying a CPU feature.
-                                  ---
                                 type: object
                                 properties:
                                   name:
@@ -983,7 +983,7 @@ spec:
                               format: int32
                         devices:
                           description: Devices allows adding disks, network interfaces,
-                            ...
+                            and others
                           type: object
                           properties:
                             autoattachGraphicsDevice:
@@ -1009,7 +1009,6 @@ spec:
                                 luns which are connected to the vmi.
                               type: array
                               items:
-                                description: '---'
                                 type: object
                                 properties:
                                   bootOrder:
@@ -1103,7 +1102,6 @@ spec:
                               description: Whether to attach a GPU device to the vmi.
                               type: array
                               items:
-                                description: '---'
                                 type: object
                                 properties:
                                   deviceName:
@@ -1116,7 +1114,6 @@ spec:
                               description: Inputs describe input devices
                               type: array
                               items:
-                                description: '---'
                                 type: object
                                 properties:
                                   bus:
@@ -1135,7 +1132,6 @@ spec:
                                 which are added to the vmi.
                               type: array
                               items:
-                                description: '---'
                                 type: object
                                 properties:
                                   bootOrder:
@@ -1147,7 +1143,6 @@ spec:
                                       tried.
                                     type: integer
                                   bridge:
-                                    description: '---'
                                     type: object
                                   dhcpOptions:
                                     description: If specified the network interface
@@ -1190,7 +1185,6 @@ spec:
                                       de:ad:00:00:be:af or DE-AD-00-00-BE-AF.'
                                     type: string
                                   masquerade:
-                                    description: '---'
                                     type: object
                                   model:
                                     description: 'Interface model. One of: e1000,
@@ -1216,7 +1210,7 @@ spec:
                                     items:
                                       description: Port repesents a port to expose
                                         from the virtual machine. Default protocol
-                                        TCP. The port field is mandatory ---
+                                        TCP. The port field is mandatory
                                       type: object
                                       properties:
                                         name:
@@ -1237,10 +1231,8 @@ spec:
                                             UDP or TCP. Defaults to "TCP".
                                           type: string
                                   slirp:
-                                    description: '---'
                                     type: object
                                   sriov:
-                                    description: '---'
                                     type: object
                             networkInterfaceMultiqueue:
                               description: If specified, virtual network interfaces
@@ -1557,7 +1549,7 @@ spec:
                     evictionStrategy:
                       description: EvictionStrategy can be set to "LiveMigrate" if
                         the VirtualMachineInstance should be migrated instead of shut-off
-                        in case of a node drain. ---
+                        in case of a node drain.
                       type: string
                     hostname:
                       description: Specifies the hostname of the vmi If not specified,
@@ -1667,18 +1659,18 @@ spec:
                       type: array
                       items:
                         description: Network represents a network type and a resource
-                          that should be connected to the vm. ---
+                          that should be connected to the vm.
                         type: object
                         properties:
                           genie:
-                            description: Represents the genie cni network. ---
+                            description: Represents the genie cni network.
                             type: object
                             properties:
                               networkName:
                                 description: References the CNI plugin name.
                                 type: string
                           multus:
-                            description: Represents the multus cni network. ---
+                            description: Represents the multus cni network.
                             type: object
                             properties:
                               default:
@@ -1697,7 +1689,6 @@ spec:
                             type: string
                           pod:
                             description: Represents the stock pod network interface.
-                              ---
                             type: object
                             properties:
                               vmNetworkCIDR:
@@ -1875,7 +1866,7 @@ spec:
                         to the vmi.
                       type: array
                       items:
-                        description: Volume represents a named volume in a vmi. ---
+                        description: Volume represents a named volume in a vmi.
                         type: object
                         properties:
                           cloudInitConfigDrive:
@@ -2122,15 +2113,16 @@ spec:
             conditions:
               type: array
               items:
-                description: '---'
                 type: object
                 properties:
                   lastProbeTime:
                     type: string
                     format: date-time
+                    nullable: true
                   lastTransitionTime:
                     type: string
                     format: date-time
+                    nullable: true
                   message:
                     type: string
                   reason:
@@ -2138,7 +2130,6 @@ spec:
                   status:
                     type: string
                   type:
-                    description: '---'
                     type: string
             labelSelector:
               description: Canonical form of the label selector for HPA which consumes

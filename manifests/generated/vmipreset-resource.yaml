@@ -15,7 +15,7 @@ spec:
     - vmipreset
     - vmipresets
     singular: virtualmachineinstancepreset
-  preserveUnknownFields: false
+  preserveUnknownFields: true
   scope: Namespaced
   version: v1alpha3
   versions:
@@ -24,7 +24,6 @@ spec:
     storage: true
   "validation":
     "openAPIV3Schema":
-      description: '---'
       type: object
       properties:
         apiVersion:
@@ -165,7 +164,7 @@ spec:
                         the VMI.
                       type: array
                       items:
-                        description: CPUFeature allows specifying a CPU feature. ---
+                        description: CPUFeature allows specifying a CPU feature.
                         type: object
                         properties:
                           name:
@@ -207,7 +206,8 @@ spec:
                       type: integer
                       format: int32
                 devices:
-                  description: Devices allows adding disks, network interfaces, ...
+                  description: Devices allows adding disks, network interfaces, and
+                    others
                   type: object
                   properties:
                     autoattachGraphicsDevice:
@@ -233,7 +233,6 @@ spec:
                         which are connected to the vmi.
                       type: array
                       items:
-                        description: '---'
                         type: object
                         properties:
                           bootOrder:
@@ -318,7 +317,6 @@ spec:
                       description: Whether to attach a GPU device to the vmi.
                       type: array
                       items:
-                        description: '---'
                         type: object
                         properties:
                           deviceName:
@@ -331,7 +329,6 @@ spec:
                       description: Inputs describe input devices
                       type: array
                       items:
-                        description: '---'
                         type: object
                         properties:
                           bus:
@@ -350,7 +347,6 @@ spec:
                         added to the vmi.
                       type: array
                       items:
-                        description: '---'
                         type: object
                         properties:
                           bootOrder:
@@ -361,7 +357,6 @@ spec:
                               order are not tried.
                             type: integer
                           bridge:
-                            description: '---'
                             type: object
                           dhcpOptions:
                             description: If specified the network interface will pass
@@ -404,7 +399,6 @@ spec:
                               or DE-AD-00-00-BE-AF.'
                             type: string
                           masquerade:
-                            description: '---'
                             type: object
                           model:
                             description: 'Interface model. One of: e1000, e1000e,
@@ -429,7 +423,7 @@ spec:
                             items:
                               description: Port repesents a port to expose from the
                                 virtual machine. Default protocol TCP. The port field
-                                is mandatory ---
+                                is mandatory
                               type: object
                               properties:
                                 name:
@@ -449,10 +443,8 @@ spec:
                                     Defaults to "TCP".
                                   type: string
                           slirp:
-                            description: '---'
                             type: object
                           sriov:
-                            description: '---'
                             type: object
                     networkInterfaceMultiqueue:
                       description: If specified, virtual network interfaces configured

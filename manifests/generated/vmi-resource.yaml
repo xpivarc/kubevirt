@@ -43,7 +43,6 @@ spec:
     "openAPIV3Schema":
       description: VirtualMachineInstance is *the* VirtualMachineInstance Definition.
         It represents a virtual machine in the runtime environment of kubernetes.
-        ---
       type: object
       properties:
         apiVersion:
@@ -799,7 +798,7 @@ spec:
                         the VMI.
                       type: array
                       items:
-                        description: CPUFeature allows specifying a CPU feature. ---
+                        description: CPUFeature allows specifying a CPU feature.
                         type: object
                         properties:
                           name:
@@ -841,7 +840,8 @@ spec:
                       type: integer
                       format: int32
                 devices:
-                  description: Devices allows adding disks, network interfaces, ...
+                  description: Devices allows adding disks, network interfaces, and
+                    others
                   type: object
                   properties:
                     autoattachGraphicsDevice:
@@ -867,7 +867,6 @@ spec:
                         which are connected to the vmi.
                       type: array
                       items:
-                        description: '---'
                         type: object
                         properties:
                           bootOrder:
@@ -952,7 +951,6 @@ spec:
                       description: Whether to attach a GPU device to the vmi.
                       type: array
                       items:
-                        description: '---'
                         type: object
                         properties:
                           deviceName:
@@ -965,7 +963,6 @@ spec:
                       description: Inputs describe input devices
                       type: array
                       items:
-                        description: '---'
                         type: object
                         properties:
                           bus:
@@ -984,7 +981,6 @@ spec:
                         added to the vmi.
                       type: array
                       items:
-                        description: '---'
                         type: object
                         properties:
                           bootOrder:
@@ -995,7 +991,6 @@ spec:
                               order are not tried.
                             type: integer
                           bridge:
-                            description: '---'
                             type: object
                           dhcpOptions:
                             description: If specified the network interface will pass
@@ -1038,7 +1033,6 @@ spec:
                               or DE-AD-00-00-BE-AF.'
                             type: string
                           masquerade:
-                            description: '---'
                             type: object
                           model:
                             description: 'Interface model. One of: e1000, e1000e,
@@ -1063,7 +1057,7 @@ spec:
                             items:
                               description: Port repesents a port to expose from the
                                 virtual machine. Default protocol TCP. The port field
-                                is mandatory ---
+                                is mandatory
                               type: object
                               properties:
                                 name:
@@ -1083,10 +1077,8 @@ spec:
                                     Defaults to "TCP".
                                   type: string
                           slirp:
-                            description: '---'
                             type: object
                           sriov:
-                            description: '---'
                             type: object
                     networkInterfaceMultiqueue:
                       description: If specified, virtual network interfaces configured
@@ -1368,7 +1360,7 @@ spec:
                         type: string
             evictionStrategy:
               description: EvictionStrategy can be set to "LiveMigrate" if the VirtualMachineInstance
-                should be migrated instead of shut-off in case of a node drain. ---
+                should be migrated instead of shut-off in case of a node drain.
               type: string
             hostname:
               description: Specifies the hostname of the vmi If not specified, the
@@ -1473,18 +1465,18 @@ spec:
               type: array
               items:
                 description: Network represents a network type and a resource that
-                  should be connected to the vm. ---
+                  should be connected to the vm.
                 type: object
                 properties:
                   genie:
-                    description: Represents the genie cni network. ---
+                    description: Represents the genie cni network.
                     type: object
                     properties:
                       networkName:
                         description: References the CNI plugin name.
                         type: string
                   multus:
-                    description: Represents the multus cni network. ---
+                    description: Represents the multus cni network.
                     type: object
                     properties:
                       default:
@@ -1501,7 +1493,7 @@ spec:
                       the vm. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
                     type: string
                   pod:
-                    description: Represents the stock pod network interface. ---
+                    description: Represents the stock pod network interface.
                     type: object
                     properties:
                       vmNetworkCIDR:
@@ -1668,7 +1660,7 @@ spec:
                 to the vmi.
               type: array
               items:
-                description: Volume represents a named volume in a vmi. ---
+                description: Volume represents a named volume in a vmi.
                 type: object
                 properties:
                   cloudInitConfigDrive:
@@ -1901,15 +1893,16 @@ spec:
                 pod runtime.
               type: array
               items:
-                description: '---'
                 type: object
                 properties:
                   lastProbeTime:
                     type: string
                     format: date-time
+                    nullable: true
                   lastTransitionTime:
                     type: string
                     format: date-time
+                    nullable: true
                   message:
                     type: string
                   reason:
@@ -1917,7 +1910,6 @@ spec:
                   status:
                     type: string
                   type:
-                    description: '---'
                     type: string
             guestOSInfo:
               description: Guest OS Information
@@ -1951,7 +1943,6 @@ spec:
               description: Interfaces represent the details of available network interfaces.
               type: array
               items:
-                description: '---'
                 type: object
                 properties:
                   interfaceName:

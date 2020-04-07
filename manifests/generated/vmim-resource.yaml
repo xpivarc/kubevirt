@@ -15,7 +15,7 @@ spec:
     - vmim
     - vmims
     singular: virtualmachineinstancemigration
-  preserveUnknownFields: false
+  preserveUnknownFields: true
   scope: Namespaced
   version: v1alpha3
   versions:
@@ -25,7 +25,7 @@ spec:
   "validation":
     "openAPIV3Schema":
       description: VirtualMachineInstanceMigration represents the object tracking
-        a VMI's migration to another host in the cluster ---
+        a VMI's migration to another host in the cluster
       type: object
       properties:
         apiVersion:
@@ -41,7 +41,6 @@ spec:
         metadata:
           type: object
         spec:
-          description: '---'
           type: object
           properties:
             vmiName:
@@ -50,21 +49,22 @@ spec:
               type: string
         status:
           description: VirtualMachineInstanceMigration reprents information pertaining
-            to a VMI's migration. ---
+            to a VMI's migration.
           type: object
           properties:
             conditions:
               type: array
               items:
-                description: '---'
                 type: object
                 properties:
                   lastProbeTime:
                     type: string
                     format: date-time
+                    nullable: true
                   lastTransitionTime:
                     type: string
                     format: date-time
+                    nullable: true
                   message:
                     type: string
                   reason:
@@ -76,5 +76,4 @@ spec:
             phase:
               description: VirtualMachineInstanceMigrationPhase is a label for the
                 condition of a VirtualMachineInstanceMigration at the current time.
-                ---
               type: string

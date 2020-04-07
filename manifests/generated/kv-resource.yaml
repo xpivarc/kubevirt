@@ -22,7 +22,6 @@ spec:
     - kv
     - kvs
     singular: kubevirt
-  preserveUnknownFields: false
   scope: Namespaced
   subresources:
     status: {}
@@ -34,7 +33,6 @@ spec:
   "validation":
     "openAPIV3Schema":
       description: KubeVirt represents the object deploying all KubeVirt resources
-        ---
       type: object
       properties:
         apiVersion:
@@ -50,7 +48,6 @@ spec:
         metadata:
           type: object
         spec:
-          description: '---'
           type: object
           properties:
             imagePullPolicy:
@@ -77,22 +74,24 @@ spec:
               type: string
         status:
           description: KubeVirtStatus represents information pertaining to a KubeVirt
-            deployment. ---
+            deployment.
           type: object
           properties:
             conditions:
               type: array
               items:
                 description: KubeVirtCondition represents a condition of a KubeVirt
-                  deployment ---
+                  deployment
                 type: object
                 properties:
                   lastProbeTime:
                     type: string
                     format: date-time
+                    nullable: true
                   lastTransitionTime:
                     type: string
                     format: date-time
+                    nullable: true
                   message:
                     type: string
                   reason:
@@ -100,7 +99,6 @@ spec:
                   status:
                     type: string
                   type:
-                    description: '---'
                     type: string
             observedDeploymentConfig:
               type: string
@@ -114,7 +112,7 @@ spec:
               type: string
             phase:
               description: KubeVirtPhase is a label for the phase of a KubeVirt deployment
-                at the current time. ---
+                at the current time.
               type: string
             targetDeploymentConfig:
               type: string
