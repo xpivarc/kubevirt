@@ -39,6 +39,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
+
 	v1 "kubevirt.io/client-go/api/v1"
 	"kubevirt.io/client-go/kubecli"
 	"kubevirt.io/client-go/log"
@@ -175,7 +177,10 @@ func dumpInstallStrategyToBytes(strategy *InstallStrategy) []byte {
 		marshalutil.MarshallObject(entry, writer)
 	}
 	for _, entry := range strategy.crds {
-		marshalutil.MarshallObject(entry, writer)
+		b, _ := yaml.Marshal(entry)
+		writer.Write([]byte("---\n"))
+		writer.Write(b)
+		// marshalutil.MarshallObject(entry, writer)
 	}
 	for _, entry := range strategy.services {
 		marshalutil.MarshallObject(entry, writer)
@@ -218,15 +223,26 @@ func dumpInstallStrategyToBytes(strategy *InstallStrategy) []byte {
 	return b.Bytes()
 }
 
+func patchValidation(crd *extv1beta1.CustomResourceDefinition, name string) *extv1beta1.CustomResourceDefinition {
+	if name != "vmi" && name != "vm" {
+		return crd
+	}
+	validation := resources[name]
+	crvalidation := extv1beta1.CustomResourceValidation{}
+	k8syaml.NewYAMLToJSONDecoder(strings.NewReader(validation)).Decode(&crvalidation)
+	crd.Spec.Validation = &crvalidation
+	return crd
+}
+
 func GenerateCurrentInstallStrategy(config *operatorutil.KubeVirtDeploymentConfig, addMonitorServiceResources bool, operatorNamespace string) (*InstallStrategy, error) {
 
 	strategy := &InstallStrategy{}
 
-	strategy.crds = append(strategy.crds, components.NewVirtualMachineInstanceCrd())
-	strategy.crds = append(strategy.crds, components.NewPresetCrd())
-	strategy.crds = append(strategy.crds, components.NewReplicaSetCrd())
-	strategy.crds = append(strategy.crds, components.NewVirtualMachineCrd())
-	strategy.crds = append(strategy.crds, components.NewVirtualMachineInstanceMigrationCrd())
+	strategy.crds = append(strategy.crds, patchValidation(components.NewVirtualMachineInstanceCrd(), "vmi"))
+	strategy.crds = append(strategy.crds, patchValidation(components.NewPresetCrd(), "vmipreset"))
+	strategy.crds = append(strategy.crds, patchValidation(components.NewReplicaSetCrd(), "vmirs"))
+	strategy.crds = append(strategy.crds, patchValidation(components.NewVirtualMachineCrd(), "vm"))
+	strategy.crds = append(strategy.crds, patchValidation(components.NewVirtualMachineInstanceMigrationCrd(), "vmim"))
 	strategy.crds = append(strategy.crds, components.NewVirtualMachineSnapshotCrd())
 	strategy.crds = append(strategy.crds, components.NewVirtualMachineSnapshotContentCrd())
 
