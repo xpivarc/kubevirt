@@ -716,6 +716,7 @@ const (
 //
 // +k8s:openapi-gen=true
 type VirtualMachineInstanceTemplateSpec struct {
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +nullable
 	ObjectMeta metav1.ObjectMeta `json:"metadata,omitempty"`
 	// VirtualMachineInstance Spec contains the VirtualMachineInstance specification.
