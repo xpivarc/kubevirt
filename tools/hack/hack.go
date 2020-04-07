@@ -32,7 +32,7 @@ func main() {
 	os.Remove(filename)
 
 	file, _ = os.OpenFile(filename, os.O_CREATE|os.O_RDWR, 0644)
-	defer file.close()
+	defer file.Close()
 	jsonBytes, err := json.Marshal(crd)
 	if err != nil {
 		panic(err)
@@ -43,7 +43,8 @@ func main() {
 		panic(err)
 	}
 
-	// remove status
+	// remove status and creationTimestamp
+	unstructured.RemoveNestedField(r.Object, "metadata", "creationTimestamp")
 	unstructured.RemoveNestedField(r.Object, "status")
 
 	b, _ := yaml.Marshal(r.Object)
