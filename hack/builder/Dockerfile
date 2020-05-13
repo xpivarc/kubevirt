@@ -57,38 +57,51 @@ RUN \
     git checkout v2.5.0 && \
     go get mvdan.cc/sh/cmd/shfmt && \
     go install && \
-    go get -u -d k8s.io/code-generator/cmd/deepcopy-gen && \
-    go get -u -d k8s.io/code-generator/cmd/defaulter-gen && \
-    go get -u -d k8s.io/kube-openapi/cmd/openapi-gen && \
-    go get -u -d github.com/golang/protobuf/protoc-gen-go && \
+    echo "I instaled shfmr?" && \
+    GO111MODULE=on go get  k8s.io/code-generator/cmd/deepcopy-gen@v0.18.2 && \
+    echo "I got deepcopy?" && \
+    export GO111MODULE=on && \
+    go get -u  k8s.io/code-generator/cmd/defaulter-gen@v0.15.12  && \
+    echo "we don't make it here" && \
+    go get   k8s.io/kube-openapi/cmd/openapi-gen && \
+    echo "we don't make it here2" && \
+    go get -u  github.com/golang/protobuf/protoc-gen-go && \
+    echo "we don't make it here3" && \
+    go get k8s.io/code-generator/cmd/client-gen && \
+    #go get -u -d github.com/kubernetes-sigs/controller-tools/cmd/controller-gen && \
+    # # Install controller-gen
+    # cd $GOPATH/src/github.com/kubernetes-sigs/controller-tools/cmd/controller-gen &&\
+    # git checkout v0.3.0 && \
+    # go install && \
     # Install deepcopy-gen
-    cd $GOPATH/src/k8s.io/code-generator/cmd/deepcopy-gen && \
-    git checkout v0.16.4 && \
-    go install && \
-    # Install defaulter-gen
-    cd $GOPATH/src/k8s.io/code-generator/cmd/defaulter-gen && \
-    git checkout v0.16.4 && \
-    go install && \
-     # Install client-gen
-    cd $GOPATH/src/k8s.io/code-generator/cmd/client-gen && \
-    git checkout v0.16.4 && \
-    go install && \
-    # Install client-gen
-    cd $GOPATH/src/k8s.io/code-generator/cmd/client-gen && \
-    git checkout v0.16.4 && \
-    go install && \
-    # Install openapi-gen
-    cd $GOPATH/src/k8s.io/kube-openapi/cmd/openapi-gen && \
-    git checkout 30be4d16710ac61bce31eb28a01054596fe6a9f1 && \
-    go install && \
-    # Install protoc-gen-go
-    cd $GOPATH/src/github.com/golang/protobuf/protoc-gen-go && \
-    git checkout 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9 && \
-    go install && \
+    # cd $GOPATH/src/k8s.io/code-generator/cmd/deepcopy-gen && \
+    # git checkout v0.16.4 && \
+    # go install && \
+    # # Install defaulter-gen
+    # cd $GOPATH/src/k8s.io/code-generator/cmd/defaulter-gen && \
+    # git checkout v0.16.4 && \
+    # go install && \
+    #  # Install client-gen
+    # cd $GOPATH/src/k8s.io/code-generator/cmd/client-gen && \
+    # git checkout v0.16.4 && \
+    # go install && \
+    # # Install client-gen
+    # cd $GOPATH/src/k8s.io/code-generator/cmd/client-gen && \
+    # git checkout v0.16.4 && \
+    # go install && \
+    # # Install openapi-gen
+    # cd $GOPATH/src/k8s.io/kube-openapi/cmd/openapi-gen && \
+    # git checkout 30be4d16710ac61bce31eb28a01054596fe6a9f1 && \
+    # go install && \
+    # # Install protoc-gen-go
+    # cd $GOPATH/src/github.com/golang/protobuf/protoc-gen-go && \
+    # git checkout 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9 && \
+    # go install && \
     cd /go && \
     go clean -cache -modcache -r && \
     rm -rf /go && mkdir /go
 
+RUN export GO111MODULE=off
 RUN \
     mkdir -p /go && \
     source /etc/profile.d/gimme.sh && \

@@ -40,12 +40,44 @@ ${KUBEVIRT_DIR}/tools/openapispec/openapispec --dump-api-spec-path ${KUBEVIRT_DI
 
 (cd ${KUBEVIRT_DIR}/tools/resource-generator/ && go_build)
 (cd ${KUBEVIRT_DIR}/tools/csv-generator/ && go_build)
-rm -f ${KUBEVIRT_DIR}/manifests/generated/*
+rm -f ${KUBEVIRT_DIR}/manifests/generated/*.yaml*
 rm -f ${KUBEVIRT_DIR}/examples/*
 ${KUBEVIRT_DIR}/tools/resource-generator/resource-generator --type=priorityclass >${KUBEVIRT_DIR}/manifests/generated/kubevirt-priority-class.yaml
 ${KUBEVIRT_DIR}/tools/resource-generator/resource-generator --type=kv >${KUBEVIRT_DIR}/manifests/generated/kv-resource.yaml
 ${KUBEVIRT_DIR}/tools/resource-generator/resource-generator --type=kv-cr --namespace={{.Namespace}} --pullPolicy={{.ImagePullPolicy}} >${KUBEVIRT_DIR}/manifests/generated/kubevirt-cr.yaml.in
 ${KUBEVIRT_DIR}/tools/resource-generator/resource-generator --type=operator-rbac --namespace={{.Namespace}} >${KUBEVIRT_DIR}/manifests/generated/rbac-operator.authorization.k8s.yaml.in
+
+# # generate openapi and merge it to existing crds
+# API_DIR=${KUBEVIRT_DIR}/staging/src/kubevirt.io/client-go/
+# mv ${KUBEVIRT_DIR}/manifests/generated/*.yaml ${API_DIR}/api/v1/
+
+# # staging/src/kubevirt.io/client-go/api/v1/types.go:347:37: map keys must be strings, not int
+# # will fail make so we supress this as it correctly(or seems like it) genererate validation for crd
+# (cd ${API_DIR} && make GO_REQUIRED_MIN_VERSION:=1.12.8 update-codegen-crds || true)
+# (cd ${API_DIR} && make GO_REQUIRED_MIN_VERSION:=1.12.8 clean)
+
+# mv ${API_DIR}/api/v1/*.yaml ${KUBEVIRT_DIR}/manifests/generated/
+# # removing anyOf as openshift/build-machinary-go is not updated
+# (cd ${KUBEVIRT_DIR}/manifests/generated && sed -z 's/- type: integer\n/x-kubernetes-int-or-string: true\n/g' -i vmi-resource.yaml)
+# (cd ${KUBEVIRT_DIR}/manifests/generated && sed -z 's/- type: integer\n/x-kubernetes-int-or-string: true\n/g' -i vm-resource.yaml)
+# (cd ${KUBEVIRT_DIR}/manifests/generated && sed -z 's/- type: integer\n/x-kubernetes-int-or-string: true\n/g' -i vmirs-resource.yaml)
+
+# (cd ${KUBEVIRT_DIR}/manifests/generated && sed -z 's/- type: string\n/\n/g' -i vmi-resource.yaml)
+# (cd ${KUBEVIRT_DIR}/manifests/generated && sed -z 's/- type: string\n/\n/g' -i vm-resource.yaml)
+# (cd ${KUBEVIRT_DIR}/manifests/generated && sed -z 's/- type: string\n/\n/g' -i vmirs-resource.yaml)
+
+# #The following fields are removed as they aren’t supported by OpenAPI v2
+# (cd ${KUBEVIRT_DIR}/manifests/generated && sed -z 's/anyOf:\n/\n/g' -i vmi-resource.yaml)
+# (cd ${KUBEVIRT_DIR}/manifests/generated && sed -z 's/anyOf:\n/\n/g' -i vm-resource.yaml)
+# (cd ${KUBEVIRT_DIR}/manifests/generated && sed -z 's/anyOf:\n/\n/g' -i vmirs-resource.yaml)
+
+# (cd ${KUBEVIRT_DIR}/tools/hack && go_build)
+# (cd ${KUBEVIRT_DIR} && ./tools/hack/hack)
+# (cd ${KUBEVIRT_DIR} && rm ./tools/hack/hack)
+
+# (cd ${KUBEVIRT_DIR}/tools/crd-validation-generator && go_build)
+# (cd ${KUBEVIRT_DIR} && ./tools/crd-validation-generator/crd-validation-generator)
+# (cd ${KUBEVIRT_DIR} && rm ./tools/crd-validation-generator/crd-validation-generator)
 
 # used for Image fields in manifests
 function getVersion() {

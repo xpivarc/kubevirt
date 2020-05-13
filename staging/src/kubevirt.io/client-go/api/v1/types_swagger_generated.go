@@ -102,7 +102,7 @@ func (VirtualMachineInstanceMigrationState) SwaggerDoc() map[string]string {
 		"endTimestamp":                   "The time the migration action ended",
 		"targetNodeDomainDetected":       "The Target Node has seen the Domain Start Event",
 		"targetNodeAddress":              "The address of the target node to use for the migration",
-		"targetDirectMigrationNodePorts": "The list of ports opened for live migration on the destination node",
+		"targetDirectMigrationNodePorts": "+kubebuilder:validation:Type=object\nThe list of ports opened for live migration on the destination node",
 		"targetNode":                     "The target node that the VMI is moving to",
 		"targetPod":                      "The target pod that the VMI is moving to",
 		"sourceNode":                     "The source node that the VMI originated on",
