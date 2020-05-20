@@ -1781,7 +1781,13 @@ func (d *VirtualMachineController) processVmUpdate(origVMI *v1.VirtualMachineIns
 
 			}
 			d.recorder.Event(vmi, k8sv1.EventTypeNormal, v1.PreparingTarget.String(), "VirtualMachineInstance Migration Target Prepared.")
-
+			if vmi.ObjectMeta.OwnerReferences != nil {
+				vm, err := d.clientset.VirtualMachine(vmi.Namespace).Get(vmi.Name, &v12.GetOptions{})
+				if err != nil {
+					log.Log.Errorf("Error retriving VirutalMachine %s: %v", vmi.Name, err)
+				}
+				d.recorder.Event(vm, k8sv1.EventTypeNormal, v1.PreparingTarget.String(), "VirtualMachineInstance Migration Target Prepared.")
+			}
 			err = d.handlePostSyncMigrationProxy(vmi)
 			if err != nil {
 				return fmt.Errorf("failed to handle post sync migration proxy: %v", err)
