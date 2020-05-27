@@ -412,6 +412,7 @@ func (c *MigrationController) createTargetPod(migration *virtv1.VirtualMachineIn
 		return fmt.Errorf("failed to create vmi migration target pod: %v", err)
 	}
 	c.recorder.Eventf(migration, k8sv1.EventTypeNormal, SuccessfulCreatePodReason, "Created migration target pod %s", pod.Name)
+	c.recorder.Eventf(vmi, k8sv1.EventTypeNormal, SuccessfulCreatePodReason, "Created migration target pod %s", pod.Name)
 	return nil
 }
 
