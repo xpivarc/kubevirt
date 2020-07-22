@@ -3897,7 +3897,6 @@ func RenderHostPathJob(jobName string, dir string, hostPathType k8sv1.HostPathTy
 func NewHelloWorldJob(host string, port string) *k8sv1.Pod {
 	check := []string{fmt.Sprintf(`set -x; x="$(head -n 1 < <(nc %s %s -i 3 -w 3))"; echo "$x" ; if [ "$x" = "Hello World!" ]; then echo "succeeded"; exit 0; else echo "failed"; exit 1; fi`, host, port)}
 	job := RenderJob("netcat", []string{"/bin/bash", "-c"}, check)
-
 	return job
 }
 

@@ -36,6 +36,20 @@ func newLabeledVMI(label string, virtClient kubecli.KubevirtClient, createVMI bo
 	return
 }
 
+func waitForJobToSucceed(virtClient *kubecli.KubevirtClient, jobPod *k8sv1.Pod, timeoutSec time.Duration) {
+	fail := false
+	EventuallyWithOffset(1, func() bool {
+		pod, err := (*virtClient).CoreV1().Pods(jobPod.Namespace).Get(jobPod.Name, k8smetav1.GetOptions{})
+		ExpectWithOffset(1, err).ToNot(HaveOccurred())
+		if pod.Status.Phase == k8sv1.PodFailed {
+			fail = true
+			return true
+		}
+		return pod.Status.Phase == k8sv1.PodSucceeded
+	}, timeoutSec*time.Second, 1*time.Second).Should(Equal(true))
+	Expect(fail).To(BeFalse(), "Job was expected to succeed but failed")
+}
+
 func waitForJobToCompleteWithStatus(virtClient *kubecli.KubevirtClient, jobPod *k8sv1.Pod, expectedResult k8sv1.PodPhase, timeoutSec time.Duration) {
 	EventuallyWithOffset(1, func() k8sv1.PodPhase {
 		pod, err := (*virtClient).CoreV1().Pods(jobPod.Namespace).Get(jobPod.Name, k8smetav1.GetOptions{})
@@ -81,7 +95,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Waiting for the pod to report a successful connection attempt")
-				waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 420)
+				waitForJobToSucceed(&virtClient, job, 420)
 			})
 		})
 
@@ -171,7 +185,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 					Expect(err).ToNot(HaveOccurred())
 
 					By("Waiting for the pod to report a successful connection attempt")
-					waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 420)
+					waitForJobToSucceed(&virtClient, job, 420)
 				}
 			})
 		})
@@ -208,7 +222,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Waiting for the pod to report a successful connection attempt")
-				waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 420)
+				waitForJobToSucceed(&virtClient, job, 420)
 			})
 		})
 
@@ -235,7 +249,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				job := tests.NewHelloWorldJobUDP(serviceIP, servicePort)
 				job, err = virtClient.CoreV1().Pods(udpVM.Namespace).Create(job)
 				Expect(err).ToNot(HaveOccurred())
-				waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 120)
+				waitForJobToSucceed(&virtClient, job, 120)
 
 				By("Getting the node IP from all nodes")
 				nodes, err := virtClient.CoreV1().Nodes().List(k8smetav1.ListOptions{})
@@ -251,7 +265,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 					Expect(err).ToNot(HaveOccurred())
 
 					By("Waiting for the pod to report a successful connection attempt")
-					waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 420)
+					waitForJobToSucceed(&virtClient, job, 420)
 				}
 			})
 		})
@@ -313,7 +327,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Waiting for the pod to report a successful connection attempt")
-				waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 420)
+				waitForJobToSucceed(&virtClient, job, 420)
 			})
 		})
 	})
@@ -377,7 +391,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Waiting for the pod to report a successful connection attempt")
-				waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 120)
+				waitForJobToSucceed(&virtClient, job, 120)
 
 				By("Starting a pod which tries to reach the VMI again via the same ClusterIP, this time over HTTP.")
 				job = tests.NewHelloWorldJobHttp(serviceIP, servicePort)
@@ -385,7 +399,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Waiting for the HTTP job pod to report a successful connection attempt.")
-				waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 120)
+				waitForJobToSucceed(&virtClient, job, 120)
 			})
 
 			It("[test_id:345][label:masquerade_binding_connectivity]Should verify the exposed service is functional before and after VM restart.", func() {
@@ -402,7 +416,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Waiting for the pod to report a successful connection attempt.")
-				waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 120)
+				waitForJobToSucceed(&virtClient, job, 120)
 
 				// Retrieve the current VMI UID, to be compared with the new UID after restart.
 				var vmi *v1.VirtualMachineInstance
@@ -437,7 +451,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Waiting for the pod to report a successful connection attempt.")
-				waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 120)
+				waitForJobToSucceed(&virtClient, job, 120)
 			})
 
 			It("[test_id:343][label:masquerade_binding_connectivity]Should Verify an exposed service of a VM is not functional after VM deletion.", func() {
@@ -452,7 +466,7 @@ var _ = Describe("[rfe_id:253][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Waiting for the pod to report a successful connection attempt")
-				waitForJobToCompleteWithStatus(&virtClient, job, k8sv1.PodSucceeded, 120)
+				waitForJobToSucceed(&virtClient, job, 120)
 
 				By("Comparing the service's endpoints IP address to the VM pod IP address.")
 				// Get the IP address of the VM pod.
