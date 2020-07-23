@@ -426,6 +426,27 @@ var _ = Describe("[rfe_id:1177][crit:medium][vendor:cnv-qe@redhat.com][level:com
 				return vmi.Annotations
 			}, 300*time.Second, 1*time.Second).Should(HaveKeyWithValue("testannotation", "test"), "VM should start normaly.")
 		})
+		FIt("Nice place with helper func", func() {
+			template, dv := newVirtualMachineInstanceWithContainerDisk()
+			defer deleteDataVolume(dv)
+			vm := createVirtualMachine(true, template)
+			Eventually(func() bool {
+				Evm, err := virtClient.VirtualMachine(tests.NamespaceTestDefault).Get(vm.Name, &v12.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				return Evm.Status.Ready
+			}, 300*time.Second, 1*time.Second).Should(BeTrue())
+			vmG, err := virtClient.VirtualMachine(vm.Namespace).Get(vm.Name, &v12.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			vmU, err := virtClient.VirtualMachine(vm.Namespace).Update(vmG)
+			fmt.Fprintln(GinkgoWriter, vmG.Status.Ready)
+			fmt.Fprintln(GinkgoWriter, vmU.Status.Ready)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(vmU.Status.Ready).To(Equal(vmG.Status.Ready))
+
+			Expect(vm.ResourceVersion).To(Equal(vmU.ResourceVersion), "this actaully shouldn't equal")
+
+		})
 
 		It("[test_id:3162]should ignore kubernetes and kubevirt annotations to VMI", func() {
 			annotations := map[string]string{
