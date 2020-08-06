@@ -7,23 +7,38 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 # Additional bazel rules
 
-# fix for https://github.com/bazelbuild/rules_go/issues/1999 will be included in > v0.20.3
+#http_archive(
+#    name = "io_bazel_rules_go",
+#    sha256 = "2d536797707dd1697441876b2e862c58839f975c8fc2f0f96636cbd428f45866",
+#    urls = [
+#        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.23.5/rules_go-v0.23.5.tar.gz",
+#        "https://github.com/bazelbuild/rules_go/releases/download/v0.23.5/rules_go-v0.23.5.tar.gz",
+#    ],
+#)
+
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "aca4d0081b8bf96dce8f1395904ab1f21f5fea9c08afb9a9c67358982d4491eb",
-    strip_prefix = "rules_go-b2c7df325cf96bf8daa9c5d329baf85df4b405eb",
+    sha256 = "38392eb0617c1a9fdff17c4a284f012da13e4feefbaf87d04b3579b107902e9b",
     urls = [
-        "https://github.com/bazelbuild/rules_go/archive/b2c7df325cf96bf8daa9c5d329baf85df4b405eb.tar.gz",
-        "https://storage.googleapis.com/builddeps/aca4d0081b8bf96dce8f1395904ab1f21f5fea9c08afb9a9c67358982d4491eb",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.8/rules_go-v0.22.8.tar.gz",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.22.8/rules_go-v0.22.8.tar.gz",
     ],
 )
 
+#http_archive(
+#    name = "bazel_gazelle",
+#    sha256 = "41bff2a0b32b02f20c227d234aa25ef3783998e5453f7eade929704dcff7cd4b",
+#    urls = [
+#        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.0/bazel-gazelle-v0.19.0.tar.gz",
+#        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.0/bazel-gazelle-v0.19.0.tar.gz",
+#    ],
+#)
+
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "41bff2a0b32b02f20c227d234aa25ef3783998e5453f7eade929704dcff7cd4b",
+    sha256 = "86c6d481b3f7aedc1d60c1c211c6f76da282ae197c3b3160f54bd3a8f847896f",
     urls = [
-        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.0/bazel-gazelle-v0.19.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.0/bazel-gazelle-v0.19.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.1/bazel-gazelle-v0.19.1.tar.gz",
     ],
 )
 
@@ -601,3 +616,21 @@ go_repository(
 )
 
 register_toolchains("//:py_toolchain")
+
+go_repository(
+    name = "org_golang_x_mod",
+    build_file_generation = "on",
+    build_file_proto_mode = "disable",
+    importpath = "golang.org/x/mod",
+    sum = "h1:RM4zey1++hCTbCVQfnWeKs9/IEsaBLA8vTkd0WVtmH4=",
+    version = "v0.3.0",
+)
+
+go_repository(
+    name = "org_golang_x_xerrors",
+    build_file_generation = "on",
+    build_file_proto_mode = "disable",
+    importpath = "golang.org/x/xerrors",
+    sum = "h1:go1bK/D/BFZV2I8cIQd1NKEZ+0owSTG1fDTci4IqFcE=",
+    version = "v0.0.0-20200804184101-5ec99f83aff1",
+)
