@@ -224,15 +224,6 @@ github.com/opencontainers/selinux/go-selinux
 github.com/opencontainers/selinux/pkg/pwalk
 # github.com/openshift/api v0.0.0-20191219222812-2987a591a72c => github.com/openshift/api v0.0.0-20191219222812-2987a591a72c
 github.com/openshift/api/security/v1
-# github.com/openshift/build-machinery-go v0.0.0-20200211121458-5e3d6e570160
-github.com/openshift/build-machinery-go
-github.com/openshift/build-machinery-go/make
-github.com/openshift/build-machinery-go/make/lib
-github.com/openshift/build-machinery-go/make/targets
-github.com/openshift/build-machinery-go/make/targets/golang
-github.com/openshift/build-machinery-go/make/targets/openshift
-github.com/openshift/build-machinery-go/make/targets/openshift/operator
-github.com/openshift/build-machinery-go/scripts
 # github.com/openshift/client-go v0.0.0-20191125132246-f6563a70e19a => github.com/openshift/client-go v0.0.0-20191125132246-f6563a70e19a
 github.com/openshift/client-go/security/clientset/versioned/scheme
 github.com/openshift/client-go/security/clientset/versioned/typed/security/v1

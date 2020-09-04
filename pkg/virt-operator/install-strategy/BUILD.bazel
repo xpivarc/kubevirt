@@ -7,7 +7,6 @@ go_library(
         "delete.go",
         "generated_mock_create.go",
         "strategy.go",
-        "validations_generated.go",
     ],
     importpath = "kubevirt.io/kubevirt/pkg/virt-operator/install-strategy",
     visibility = ["//visibility:public"],

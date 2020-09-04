@@ -6,7 +6,6 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/cloudflare/cfssl v1.4.1 // indirect
 	github.com/containernetworking/plugins v0.8.2
 	github.com/coreos/go-iptables v0.4.3
 	github.com/coreos/go-semver v0.3.0
@@ -46,7 +45,6 @@ require (
 	github.com/onsi/gomega v1.7.0
 	github.com/opencontainers/selinux v1.6.0
 	github.com/openshift/api v0.0.0-20191219222812-2987a591a72c
-	github.com/openshift/build-machinery-go v0.0.0-20200211121458-5e3d6e570160
 	github.com/openshift/client-go v0.0.0-20191125132246-f6563a70e19a
 	github.com/operator-framework/go-appr v0.0.0-20180917210448-f2aef88446f2 // indirect
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20190128024246-5eb7ae5bdb7a

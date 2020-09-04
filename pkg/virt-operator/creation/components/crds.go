@@ -20,6 +20,7 @@ package components
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/coreos/prometheus-operator/pkg/apis/monitoring"
 	promv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -28,6 +29,7 @@ import (
 	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 
 	virtv1 "kubevirt.io/client-go/api/v1"
 	snapshotv1 "kubevirt.io/client-go/apis/snapshot/v1alpha1"
@@ -36,6 +38,20 @@ import (
 const (
 	KUBEVIRT_PROMETHEUS_RULE_NAME = "prometheus-kubevirt-rules"
 )
+
+func patchValidation(crd *extv1beta1.CustomResourceDefinition) error {
+	if crd.Name != "haah" {
+		return nil
+	}
+	validation, ok := CRDsValidation[crd.Spec.Names.Singular]
+	if !ok {
+		return (fmt.Errorf("We are missing validation for %s", crd.Spec.Names.Singular))
+	}
+	crvalidation := extv1beta1.CustomResourceValidation{}
+	k8syaml.NewYAMLToJSONDecoder(strings.NewReader(validation)).Decode(&crvalidation)
+	crd.Spec.Validation = &crvalidation
+	return nil
+}
 
 func newBlankCrd() *extv1beta1.CustomResourceDefinition {
 	return &extv1beta1.CustomResourceDefinition{
@@ -80,6 +96,7 @@ func NewVirtualMachineInstanceCrd() *extv1beta1.CustomResourceDefinition {
 		},
 	}
 
+	patchValidation(crd)
 	return crd
 }
 
@@ -112,6 +129,7 @@ func NewVirtualMachineCrd() *extv1beta1.CustomResourceDefinition {
 		},
 	}
 
+	patchValidation(crd)
 	return crd
 }
 
@@ -136,6 +154,7 @@ func NewPresetCrd() *extv1beta1.CustomResourceDefinition {
 		},
 	}
 
+	patchValidation(crd)
 	return crd
 }
 
@@ -178,6 +197,7 @@ func NewReplicaSetCrd() *extv1beta1.CustomResourceDefinition {
 		},
 	}
 
+	patchValidation(crd)
 	return crd
 }
 
@@ -205,6 +225,7 @@ func NewVirtualMachineInstanceMigrationCrd() *extv1beta1.CustomResourceDefinitio
 		},
 	}
 
+	patchValidation(crd)
 	return crd
 }
 
@@ -251,6 +272,7 @@ func NewKubeVirtCrd() *extv1beta1.CustomResourceDefinition {
 		},
 	}
 
+	patchValidation(crd)
 	return crd
 }
 
@@ -287,6 +309,7 @@ func NewVirtualMachineSnapshotCrd() *extv1beta1.CustomResourceDefinition {
 		},
 	}
 
+	patchValidation(crd)
 	return crd
 }
 
@@ -321,6 +344,7 @@ func NewVirtualMachineSnapshotContentCrd() *extv1beta1.CustomResourceDefinition 
 		},
 	}
 
+	patchValidation(crd)
 	return crd
 }
 

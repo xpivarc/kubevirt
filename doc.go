@@ -18,7 +18,4 @@
  */
 package root
 
-// for go.mod
-import _ "github.com/openshift/build-machinery-go"
-
 // This file only exists for the "dep" dependency manager, which needs a go file on the project root
