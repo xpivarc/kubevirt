@@ -39,6 +39,17 @@ const (
 	KUBEVIRT_PROMETHEUS_RULE_NAME = "prometheus-kubevirt-rules"
 )
 
+var (
+	VIRTUALMACHINE                   = "virtualmachines." + virtv1.VirtualMachineInstanceGroupVersionKind.Group
+	VIRTUALMACHINEINSTANCE           = "virtualmachineinstances." + virtv1.VirtualMachineInstanceGroupVersionKind.Group
+	VIRTUALMACHINEINSTANCEPRESET     = "virtualmachineinstancepresets." + virtv1.VirtualMachineInstancePresetGroupVersionKind.Group
+	VIRTUALMACHINEINSTANCEREPLICASET = "virtualmachineinstancereplicasets." + virtv1.VirtualMachineInstanceReplicaSetGroupVersionKind.Group
+	VIRTUALMACHINEINSTANCEMIGRATION  = "virtualmachineinstancemigrations." + virtv1.VirtualMachineInstanceMigrationGroupVersionKind.Group
+	KUBEVIRT                         = "kubevirts." + virtv1.KubeVirtGroupVersionKind.Group
+	VIRTUALMACHINESNAPSHOT           = "virtualmachinesnapshots." + snapshotv1.SchemeGroupVersion.Group
+	VIRTUALMACHINESNAPSHOTCONTENT    = "virtualmachinesnapshotcontents." + snapshotv1.SchemeGroupVersion.Group
+)
+
 func patchValidation(crd *extv1beta1.CustomResourceDefinition) error {
 	if crd.Name != "haah" {
 		return nil
@@ -70,7 +81,7 @@ func newBlankCrd() *extv1beta1.CustomResourceDefinition {
 func NewVirtualMachineInstanceCrd() *extv1beta1.CustomResourceDefinition {
 	crd := newBlankCrd()
 
-	crd.ObjectMeta.Name = "virtualmachineinstances." + virtv1.VirtualMachineInstanceGroupVersionKind.Group
+	crd.ObjectMeta.Name = VIRTUALMACHINEINSTANCE
 	crd.Spec = extv1beta1.CustomResourceDefinitionSpec{
 		Group:    virtv1.VirtualMachineInstanceGroupVersionKind.Group,
 		Version:  virtv1.ApiSupportedVersions[0].Name,
@@ -103,7 +114,7 @@ func NewVirtualMachineInstanceCrd() *extv1beta1.CustomResourceDefinition {
 func NewVirtualMachineCrd() *extv1beta1.CustomResourceDefinition {
 	crd := newBlankCrd()
 
-	crd.ObjectMeta.Name = "virtualmachines." + virtv1.VirtualMachineGroupVersionKind.Group
+	crd.ObjectMeta.Name = VIRTUALMACHINE
 	crd.Spec = extv1beta1.CustomResourceDefinitionSpec{
 		Group:    virtv1.VirtualMachineGroupVersionKind.Group,
 		Version:  virtv1.ApiSupportedVersions[0].Name,
@@ -136,7 +147,7 @@ func NewVirtualMachineCrd() *extv1beta1.CustomResourceDefinition {
 func NewPresetCrd() *extv1beta1.CustomResourceDefinition {
 	crd := newBlankCrd()
 
-	crd.ObjectMeta.Name = "virtualmachineinstancepresets." + virtv1.VirtualMachineInstancePresetGroupVersionKind.Group
+	crd.ObjectMeta.Name = VIRTUALMACHINEINSTANCEPRESET
 	crd.Spec = extv1beta1.CustomResourceDefinitionSpec{
 		Group:    virtv1.VirtualMachineInstancePresetGroupVersionKind.Group,
 		Version:  virtv1.ApiSupportedVersions[0].Name,
@@ -162,7 +173,7 @@ func NewReplicaSetCrd() *extv1beta1.CustomResourceDefinition {
 	crd := newBlankCrd()
 	labelSelector := ".status.labelSelector"
 
-	crd.ObjectMeta.Name = "virtualmachineinstancereplicasets." + virtv1.VirtualMachineInstanceReplicaSetGroupVersionKind.Group
+	crd.ObjectMeta.Name = VIRTUALMACHINEINSTANCEREPLICASET
 	crd.Spec = extv1beta1.CustomResourceDefinitionSpec{
 		Group:    virtv1.VirtualMachineInstanceReplicaSetGroupVersionKind.Group,
 		Version:  virtv1.ApiSupportedVersions[0].Name,
@@ -204,7 +215,7 @@ func NewReplicaSetCrd() *extv1beta1.CustomResourceDefinition {
 func NewVirtualMachineInstanceMigrationCrd() *extv1beta1.CustomResourceDefinition {
 	crd := newBlankCrd()
 
-	crd.ObjectMeta.Name = "virtualmachineinstancemigrations." + virtv1.VirtualMachineInstanceMigrationGroupVersionKind.Group
+	crd.ObjectMeta.Name = VIRTUALMACHINEINSTANCEMIGRATION
 	crd.Spec = extv1beta1.CustomResourceDefinitionSpec{
 		Group:    virtv1.VirtualMachineInstanceMigrationGroupVersionKind.Group,
 		Version:  virtv1.ApiSupportedVersions[0].Name,
@@ -247,7 +258,7 @@ func NewKubeVirtCrd() *extv1beta1.CustomResourceDefinition {
 		},
 	}
 
-	crd.ObjectMeta.Name = "kubevirts." + virtv1.KubeVirtGroupVersionKind.Group
+	crd.ObjectMeta.Name = KUBEVIRT
 	crd.Spec = extv1beta1.CustomResourceDefinitionSpec{
 		Group:    virtv1.KubeVirtGroupVersionKind.Group,
 		Version:  virtv1.ApiSupportedVersions[0].Name,
@@ -279,7 +290,7 @@ func NewKubeVirtCrd() *extv1beta1.CustomResourceDefinition {
 func NewVirtualMachineSnapshotCrd() *extv1beta1.CustomResourceDefinition {
 	crd := newBlankCrd()
 
-	crd.ObjectMeta.Name = "virtualmachinesnapshots." + snapshotv1.SchemeGroupVersion.Group
+	crd.ObjectMeta.Name = VIRTUALMACHINESNAPSHOT
 	crd.Spec = extv1beta1.CustomResourceDefinitionSpec{
 		Group:   snapshotv1.SchemeGroupVersion.Group,
 		Version: snapshotv1.SchemeGroupVersion.Version,
@@ -316,7 +327,7 @@ func NewVirtualMachineSnapshotCrd() *extv1beta1.CustomResourceDefinition {
 func NewVirtualMachineSnapshotContentCrd() *extv1beta1.CustomResourceDefinition {
 	crd := newBlankCrd()
 
-	crd.ObjectMeta.Name = "virtualmachinesnapshotcontents." + snapshotv1.SchemeGroupVersion.Group
+	crd.ObjectMeta.Name = VIRTUALMACHINESNAPSHOTCONTENT
 	crd.Spec = extv1beta1.CustomResourceDefinitionSpec{
 		Group:   snapshotv1.SchemeGroupVersion.Group,
 		Version: snapshotv1.SchemeGroupVersion.Version,
