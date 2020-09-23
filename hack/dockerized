@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -e
-
 source $(dirname "$0")/common.sh
 
 if [ "${KUBEVIRT_RUN_UNNESTED}" == "true" ]; then
@@ -22,7 +21,7 @@ if [ -z ${KUBEVIRT_CRI} ]; then
     fi
 fi
 
-KUBEVIRT_BUILDER_IMAGE="kubevirt/builder@sha256:d5dce6c29362025b69fd4c3fe77fcde5fd2ab95f92452c3d08113ecc0d395e90"
+KUBEVIRT_BUILDER_IMAGE="kubevirt/builder@sha256:355223990c1a51203b82f9bca844e4016bc8b7888f5d1b85c2de43e1c7a86f5b"
 
 SYNC_OUT=${SYNC_OUT:-true}
 

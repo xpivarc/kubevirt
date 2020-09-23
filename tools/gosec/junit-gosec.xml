@@ -1,0 +1,2821 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+	<testsuite name="Use of weak random number generator (math/rand instead of crypto/rand)" tests="1">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/controller/virtinformers.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/controller/virtinformers.go:495] - Use of weak random number generator (math/rand instead of crypto/rand) (Confidence: 1, Severity: 2, CWE: 338)
+> 494: func resyncPeriod(minResyncPeriod time.Duration) time.Duration {
+495: 	factor := rand.Float64() + 1
+496: 	return time.Duration(float64(minResyncPeriod.Nanoseconds()) * factor)
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Use of weak cryptographic primitive" tests="3">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/config.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/config.go:448] - Use of weak cryptographic primitive (Confidence: 2, Severity: 1, CWE: 326)
+> 447: 	// Calculate a sha over all those properties
+448: 	hasher := sha1.New()
+449: 	values := getStringFromFields(*c)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/patches.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/patches.go:158] - Use of weak cryptographic primitive (Confidence: 2, Severity: 1, CWE: 326)
+> 157: func getHash(customizations v1.CustomizeComponents) (string, error) {
+158: 	hasher := sha1.New()
+159: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk-utils/utils.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk-utils/utils.go:101] - Use of weak cryptographic primitive (Confidence: 2, Severity: 1, CWE: 326)
+> 100: 
+101: 	hash := md5.New()
+102: 	_, err = io.Copy(hash, file)
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Use of unsafe calls should be audited" tests="4">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/dhcp/ethtool.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/dhcp/ethtool.go:52] - Use of unsafe calls should be audited (Confidence: 2, Severity: 0, CWE: 242)
+> 51: 	value := EthtoolValue{Cmd: ETHTOOL_GTXCSUM}
+52: 	request := IFReqData{Data: uintptr(unsafe.Pointer(&amp;value))}
+53: 	copy(request.Name[:], name)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/dhcp/ethtool.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/dhcp/ethtool.go:55] - Use of unsafe calls should be audited (Confidence: 2, Severity: 0, CWE: 242)
+> 54: 
+55: 	if err := ioctlEthtool(socket, uintptr(unsafe.Pointer(&amp;request))); err != nil {
+56: 		return err
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/dhcp/ethtool.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/dhcp/ethtool.go:63] - Use of unsafe calls should be audited (Confidence: 2, Severity: 0, CWE: 242)
+> 62: 	value = EthtoolValue{ETHTOOL_STXCSUM, 0}
+63: 	return ioctlEthtool(socket, uintptr(unsafe.Pointer(&amp;request)))
+64: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go:147] - Use of unsafe calls should be audited (Confidence: 2, Severity: 0, CWE: 242)
+> 146: 		limit,
+147: 		uintptr(unsafe.Pointer(rlimit)),
+148: 		0, 0, 0)
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Subprocess launched with variable" tests="12">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/vnc/vnc.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/vnc/vnc.go:276] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 275: 		}
+276: 		cmnd := exec.Command(vncBin, args...)
+277: 		output, err := cmnd.CombinedOutput()
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:241] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 240: 			args = append(args, &#34;/etc/libvirt/virtlogd.conf&#34;)
+241: 			cmd := exec.Command(&#34;/usr/sbin/virtlogd&#34;, args...)
+242: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go:408] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 407: 	}
+408: 	cmd := exec.Command(&#34;virt-chroot&#34;, createTapDeviceArgs...)
+409: 	return &amp;tapDeviceMaker{
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go:237] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 236: 	cmd := append([]string{&#34;add&#34;, &#34;rule&#34;, Handler.GetNFTIPString(proto), table, chain}, rulespec...)
+237: 	output, err := exec.Command(&#34;nft&#34;, cmd...).CombinedOutput()
+238: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:1647-1649] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 1646: 
+1647: 	out, err := exec.Command(
+1648: 		&#34;/usr/bin/qemu-img&#34;, &#34;info&#34;, imagePath, &#34;--output&#34;, &#34;json&#34;,
+1649: 	).Output()
+1650: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/selinux/labels.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/selinux/labels.go:20] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 19: func defaultExecFunc(binary string, args ...string) ([]byte, error) {
+20: 	return exec.Command(binary, args...).CombinedOutput()
+21: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:339] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 338: 				log.DefaultLogger().Object(vmi).Infof(&#34;unmounting container disk at path %s&#34;, path)
+339: 				out, err := exec.Command(&#34;/usr/bin/virt-chroot&#34;, &#34;--mount&#34;, &#34;/proc/1/ns/mnt&#34;, &#34;umount&#34;, path).CombinedOutput()
+340: 				if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:296] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 295: 			} else if mounted {
+296: 				out, err := exec.Command(&#34;/usr/bin/virt-chroot&#34;, &#34;--mount&#34;, &#34;/proc/1/ns/mnt&#34;, &#34;umount&#34;, path).CombinedOutput()
+297: 				if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go:97] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 96: 
+97: 	cmd := exec.Command(&#34;qemu-img&#34;, args...)
+98: 	output, err := cmd.CombinedOutput()
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/emptydisk/emptydisk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/emptydisk/emptydisk.go:27] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 26: 			if _, err := os.Stat(file); os.IsNotExist(err) {
+27: 				if err := exec.Command(&#34;qemu-img&#34;, &#34;create&#34;, &#34;-f&#34;, &#34;qcow2&#34;, file, size).Run(); err != nil {
+28: 					return err
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/config/config.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/config/config.go:104] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 103: 
+104: 	cmd := exec.Command(&#34;genisoimage&#34;, args...)
+105: 	err := cmd.Run()
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:309] - Subprocess launched with variable (Confidence: 2, Severity: 1, CWE: 78)
+> 308: 
+309: 	cmd := exec.Command(&#34;genisoimage&#34;, args...)
+310: 
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Subprocess launched with function call as argument or cmd arguments" tests="4">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go:253] - Subprocess launched with function call as argument or cmd arguments (Confidence: 2, Severity: 1, CWE: 78)
+> 252: func (h *NetworkUtilsHandler) NftablesLoad(fnName string) error {
+253: 	output, err := exec.Command(&#34;nft&#34;, &#34;-f&#34;, fmt.Sprintf(&#34;/etc/nftables/%s.nft&#34;, fnName)).CombinedOutput()
+254: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go:227] - Subprocess launched with function call as argument or cmd arguments (Confidence: 2, Severity: 1, CWE: 78)
+> 226: func (h *NetworkUtilsHandler) NftablesNewChain(proto iptables.Protocol, table, chain string) error {
+227: 	output, err := exec.Command(&#34;nft&#34;, &#34;add&#34;, &#34;chain&#34;, Handler.GetNFTIPString(proto), table, chain).CombinedOutput()
+228: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/validation.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/validation.go:17-20] - Subprocess launched with function call as argument or cmd arguments (Confidence: 2, Severity: 1, CWE: 78)
+> 16: 
+17: 	out, err := exec.Command(
+18: 		&#34;/usr/bin/virt-chroot&#34;, &#34;--user&#34;, &#34;qemu&#34;, &#34;--memory&#34;, &#34;1000&#34;, &#34;--cpu&#34;, &#34;10&#34;, &#34;--mount&#34;, context.MountNamespace(), &#34;exec&#34;, &#34;--&#34;,
+19: 		QEMUIMGPath, &#34;info&#34;, imagePath, &#34;--output&#34;, &#34;json&#34;,
+20: 	).Output()
+21: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:253] - Subprocess launched with function call as argument or cmd arguments (Confidence: 2, Severity: 1, CWE: 78)
+> 252: 				log.DefaultLogger().Object(vmi).Infof(&#34;Bind mounting container disk at %s to %s&#34;, strings.TrimPrefix(sourceFile, nodeRes.MountRoot()), targetFile)
+253: 				out, err := exec.Command(&#34;/usr/bin/virt-chroot&#34;, &#34;--mount&#34;, &#34;/proc/1/ns/mnt&#34;, &#34;mount&#34;, &#34;-o&#34;, &#34;ro,bind&#34;, strings.TrimPrefix(sourceFile, nodeRes.MountRoot()), targetFile).CombinedOutput()
+254: 				if err != nil {
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Potential hardcoded credentials" tests="6">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/config.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/config.go:78] - Potential hardcoded credentials (Confidence: 0, Severity: 2, CWE: 798)
+> 77: 	// Prefix for env vars that will be passed along
+78: 	PassthroughEnvPrefix = &#34;KV_IO_EXTRA_ENV_&#34;
+79: )
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go:27] - Potential hardcoded credentials (Confidence: 0, Severity: 2, CWE: 798)
+> 26: 	VirtHandlerServerCertSecretName = &#34;kubevirt-virt-handler-server-certs&#34;
+27: 	VirtOperatorCertSecretName      = &#34;kubevirt-operator-certs&#34;
+28: 	VirtApiCertSecretName           = &#34;kubevirt-virt-api-certs&#34;
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go:24] - Potential hardcoded credentials (Confidence: 0, Severity: 2, CWE: 798)
+> 23: const (
+24: 	KubeVirtCASecretName            = &#34;kubevirt-ca&#34;
+25: 	VirtHandlerCertSecretName       = &#34;kubevirt-virt-handler-certs&#34;
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go:25] - Potential hardcoded credentials (Confidence: 0, Severity: 2, CWE: 798)
+> 24: 	KubeVirtCASecretName            = &#34;kubevirt-ca&#34;
+25: 	VirtHandlerCertSecretName       = &#34;kubevirt-virt-handler-certs&#34;
+26: 	VirtHandlerServerCertSecretName = &#34;kubevirt-virt-handler-server-certs&#34;
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go:26] - Potential hardcoded credentials (Confidence: 0, Severity: 2, CWE: 798)
+> 25: 	VirtHandlerCertSecretName       = &#34;kubevirt-virt-handler-certs&#34;
+26: 	VirtHandlerServerCertSecretName = &#34;kubevirt-virt-handler-server-certs&#34;
+27: 	VirtOperatorCertSecretName      = &#34;kubevirt-operator-certs&#34;
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/creation/components/secrets.go:28] - Potential hardcoded credentials (Confidence: 0, Severity: 2, CWE: 798)
+> 27: 	VirtOperatorCertSecretName      = &#34;kubevirt-operator-certs&#34;
+28: 	VirtApiCertSecretName           = &#34;kubevirt-virt-api-certs&#34;
+29: 	VirtControllerCertSecretName    = &#34;kubevirt-controller-certs&#34;
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Potential file inclusion via variable" tests="18">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/watchdog/watchdog.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/watchdog/watchdog.go:53] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 52: 
+53: 	b, err := ioutil.ReadFile(filePath)
+54: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/imageupload/imageupload.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/imageupload/imageupload.go:209] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 208: 
+209: 	file, err := os.Open(imagePath)
+210: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:263] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 262: 
+263: 				file, err := os.Open(logfile)
+264: 				if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go:139] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 138: 	// support direct i/o
+139: 	f, err := os.OpenFile(path, syscall.O_RDONLY|syscall.O_DIRECT, 0)
+140: 	if err != nil &amp;&amp; !os.IsNotExist(err) {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go:195] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 194: func readProcCmdline(pathname string) ([]string, error) {
+195: 	content, err := ioutil.ReadFile(pathname)
+196: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go:224] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 223: 	for _, entry := range entries {
+224: 		content, err := ioutil.ReadFile(entry)
+225: 		if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go:2240] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 2239: 
+2240: 	content, err := ioutil.ReadFile(cpuManagerPath)
+2241: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go:466] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 465: 
+466: 	content, err := ioutil.ReadFile(ifacepath)
+467: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/selinux/labels.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/selinux/labels.go:126] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 125: 
+126: 	input, err := ioutil.ReadFile(sourceFile)
+127: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:121] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 120: 		record := vmiMountTargetRecord{}
+121: 		bytes, err := ioutil.ReadFile(recordFile)
+122: 		if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go:120] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 119: 
+120: 		fileBytes, err := ioutil.ReadFile(recordPath)
+121: 		if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/util/net/ip/ip.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/util/net/ip/ip.go:78] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 77: func isIPv6Disabled(filename string) bool {
+78: 	data, err := ioutil.ReadFile(filename)
+79: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk-utils/utils.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk-utils/utils.go:95] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 94: 
+95: 	file, err := os.Open(filePath)
+96: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:204] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 203: 	userDataSecretFile := filepath.Join(basedir, secretFile)
+204: 	userDataSecret, err := ioutil.ReadFile(userDataSecretFile)
+205: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/certificates/triple/cert/cert.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/certificates/triple/cert/cert.go:166] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 165: 		if err == nil {
+166: 			key, err := ioutil.ReadFile(keyFixturePath)
+167: 			if err == nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/certificates/triple/cert/cert.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/certificates/triple/cert/cert.go:164] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 163: 	if len(fixtureDirectory) &gt; 0 {
+164: 		cert, err := ioutil.ReadFile(certFixturePath)
+165: 		if err == nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/certificates/bootstrap/cert-manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/certificates/bootstrap/cert-manager.go:195] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 194: 	}
+195: 	keyBytes, err := ioutil.ReadFile(keyBytesPath)
+196: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/certificates/bootstrap/cert-manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/certificates/bootstrap/cert-manager.go:191] - Potential file inclusion via variable (Confidence: 2, Severity: 1, CWE: 22)
+> 190: 
+191: 	certBytes, err := ioutil.ReadFile(certBytesPath)
+192: 	if err != nil {
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Implicit memory aliasing in for loop." tests="10">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go:1099] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 1098: 			s.domain.Spec.Devices.Interfaces = append(ifaces[:i], ifaces[i+1:]...)
+1099: 			foundIface = &amp;iface
+1100: 			break
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/network.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/network.go:138] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 137: 		podInterfaceName = getPodInterfaceName(networks, cniNetworks, iface.Name)
+138: 		err = NetworkInterface.PlugPhase2(vif, vmi, &amp;iface, networks[iface.Name], domain, podInterfaceName)
+139: 		if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/network.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/network.go:122] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 121: 		podInterfaceName = getPodInterfaceName(networks, cniNetworks, iface.Name)
+122: 		err = NetworkInterface.PlugPhase1(networkInterfaceFactory, vmi, &amp;iface, networks[iface.Name], podInterfaceName, pid)
+123: 		if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli/libvirt.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli/libvirt.go:239] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 238: 		stat := &amp;stats.DomainStats{}
+239: 		err = statsconv.Convert_libvirt_DomainStats_to_stats_DomainStats(statsconv.DomainIdentifier(domStat.Domain), &amp;domStat, memStats, stat)
+240: 		if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli/libvirt.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli/libvirt.go:189] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 188: 	for i, d := range virDoms {
+189: 		doms[i] = &amp;d
+190: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go:1234] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 1233: 		} else {
+1234: 			ifaceType := getInterfaceType(&amp;iface)
+1235: 			domainIface := Interface{
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go:984] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 983: 			inputDevice := Input{}
+984: 			err := Convert_v1_Input_To_api_InputDevice(&amp;input, &amp;inputDevice, c)
+985: 			if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go:926] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 925: 
+926: 		err := Convert_v1_Disk_To_api_Disk(&amp;disk, &amp;newDisk, devicePerBus, numBlkQueues)
+927: 		if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vm.go:485] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 484: 			ready = false
+485: 			newDataVolume := createDataVolumeManifest(&amp;template, vm)
+486: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/webhooks/validating-webhook/admitters/vmi-create-admitter.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/webhooks/validating-webhook/admitters/vmi-create-admitter.go:465] - Implicit memory aliasing in for loop. (Confidence: 1, Severity: 1, CWE: 118)
+> 464: 	for _, volume := range spec.Volumes {
+465: 		volumeNameMap[volume.Name] = &amp;volume
+466: 	}
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Expect file permissions to be 0600 or less" tests="6">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:373] - Expect file permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 372: 
+373: 	qemuConf, err := os.OpenFile(&#34;/etc/libvirt/qemu.conf&#34;, os.O_APPEND|os.O_WRONLY, 0644)
+374: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:365] - Expect file permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 364: 		}
+365: 		err = os.Chmod(&#34;/dev/kvm&#34;, 0660)
+366: 		if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:393] - Expect file permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 392: 	// Let libvirt log to stderr
+393: 	libvirtConf, err := os.OpenFile(&#34;/etc/libvirt/libvirtd.conf&#34;, os.O_APPEND|os.O_WRONLY, 0644)
+394: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:764] - Expect file permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 763: var updateHostsFile = func(entry string) error {
+764: 	file, err := os.OpenFile(&#34;/etc/hosts&#34;, os.O_WRONLY|os.O_APPEND, 0644)
+765: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go:70] - Expect file permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 69: 
+70: 	err = os.Chmod(baseDir, 0755)
+71: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go:105] - Expect file permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 104: 
+105: 	if err = os.Chmod(imagePath, 0640); err != nil {
+106: 		return fmt.Errorf(&#34;failed to change permisions on %s&#34;, imagePath)
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Expect directory permissions to be 0750 or less" tests="19">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/network.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/network.go:111] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 110: 	// Create a dir with VMI UID under network-info-dir to store network files
+111: 	err := os.MkdirAll(fmt.Sprintf(util.VMIInterfaceDir, vmi.ObjectMeta.UID), 0755)
+112: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go:55] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 54: func InitializePrivateDirectories(baseDir string) error {
+55: 	if err := os.MkdirAll(baseDir, 0755); err != nil {
+56: 		return err
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/monitor.go:65] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 64: func InitializeDisksDirectories(baseDir string) error {
+65: 	err := os.MkdirAll(baseDir, 0755)
+66: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go:280] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 279: 	os.RemoveAll(socketPath)
+280: 	err = os.MkdirAll(filepath.Dir(socketPath), 0755)
+281: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go:351] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 350: 	os.RemoveAll(m.unixSocketPath)
+351: 	err := os.MkdirAll(filepath.Dir(m.unixSocketPath), 0755)
+352: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:163] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 162: 
+163: 	err = os.MkdirAll(filepath.Dir(recordFile), 0755)
+164: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go:104] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 103: 	ghostRecordDir = directoryPath
+104: 	err := os.MkdirAll(ghostRecordDir, 0755)
+105: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/util/net/grpc/grpc.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/util/net/grpc/grpc.go:68] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 67: 
+68: 	err := os.MkdirAll(filepath.Dir(socketPath), 0755)
+69: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ignition/ignition.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ignition/ignition.go:69] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 68: 	domainBasePath := GetDomainBasePath(vmi.Name, namespace)
+69: 	err := os.MkdirAll(domainBasePath, 0755)
+70: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ignition/ignition.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ignition/ignition.go:44] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 43: func SetLocalDirectory(dir string) error {
+44: 	err := os.MkdirAll(dir, 0755)
+45: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/host-disk/host-disk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/host-disk/host-disk.go:49] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 48: 	pvcBaseDir = dir
+49: 	return os.MkdirAll(dir, 0755)
+50: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go:55] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 54: 	pvcBaseDir = dir
+55: 	return os.MkdirAll(dir, 0755)
+56: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go:61] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 60: 
+61: 	err := os.MkdirAll(dir, 0755)
+62: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk/ephemeral-disk.go:49] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 48: 	mountBaseDir = dir
+49: 	return os.MkdirAll(dir, 0755)
+50: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/emptydisk/emptydisk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/emptydisk/emptydisk.go:23] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 22: 			file := FilePathForVolumeName(volume.Name)
+23: 			if err := os.MkdirAll(EmptyDiskBaseDir, 0777); err != nil {
+24: 				return err
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/container-disk/container-disk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/container-disk/container-disk.go:97] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 96: 	mountBaseDir = dir
+97: 	return os.MkdirAll(dir, 0755)
+98: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/container-disk/container-disk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/container-disk/container-disk.go:107] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 106: 	podsBaseDir = dir
+107: 	return os.MkdirAll(dir, 0755)
+108: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:409] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 408: 
+409: 	err := os.MkdirAll(dataPath, 0755)
+410: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:343] - Expect directory permissions to be 0750 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 342: func SetLocalDirectory(dir string) error {
+343: 	err := os.MkdirAll(dir, 0755)
+344: 	if err != nil {
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Expect WriteFile permissions to be 0600 or less" tests="10">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go:80] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 79: func writeVifFile(buf []byte, pid, name string) error {
+80: 	err := ioutil.WriteFile(getVifFilePath(pid, name), buf, 0644)
+81: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/common.go:494] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 493: 	fileName = getInterfaceCacheFile(fileName, pid, name)
+494: 	err = ioutil.WriteFile(fileName, buf, 0644)
+495: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/selinux/labels.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/selinux/labels.go:132] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 131: 	destinationFile := dir + &#34;/&#34; + sourceFile
+132: 	err = ioutil.WriteFile(destinationFile, input, 0644)
+133: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:168] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 167: 
+168: 	err = ioutil.WriteFile(recordFile, bytes, 0644)
+169: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ignition/ignition.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ignition/ignition.go:77] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 76: 	ignitionData := []byte(vmi.Annotations[v1.IgnitionAnnotation])
+77: 	err = ioutil.WriteFile(ignitionFile, ignitionData, 0644)
+78: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:457] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 456: 	if len(networkData) &gt; 0 {
+457: 		err = ioutil.WriteFile(networkFile, networkData, 0644)
+458: 		if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:447] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 446: 	}
+447: 	err = ioutil.WriteFile(metaFile, metaData, 0644)
+448: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:443] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 442: 
+443: 	err = ioutil.WriteFile(userFile, userData, 0644)
+444: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/certificates/triple/cert/cert.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/certificates/triple/cert/cert.go:254] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 253: 		}
+254: 		if err := ioutil.WriteFile(keyFixturePath, keyBuffer.Bytes(), 0644); err != nil {
+255: 			return nil, nil, fmt.Errorf(&#34;failed to write key fixture to %s: %v&#34;, certFixturePath, err)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/certificates/triple/cert/cert.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/certificates/triple/cert/cert.go:251] - Expect WriteFile permissions to be 0600 or less (Confidence: 2, Severity: 1, CWE: 276)
+> 250: 	if len(fixtureDirectory) &gt; 0 {
+251: 		if err := ioutil.WriteFile(certFixturePath, certBuffer.Bytes(), 0644); err != nil {
+252: 			return nil, nil, fmt.Errorf(&#34;failed to write cert fixture to %s: %v&#34;, certFixturePath, err)
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Errors unhandled." tests="236">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/watchdog/watchdog.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/watchdog/watchdog.go:80] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 79: 	}
+80: 	f.Close()
+81: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/vnc/vnc.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/vnc/vnc.go:149] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 148: 			// exit early if spawning remote-viewer fails
+149: 			ln.SetDeadline(time.Now().Add(LISTEN_TIMEOUT))
+150: 		}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/templates/templates.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/templates/templates.go:55] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 54: 			fmt.Printf(&#34;fatal: Number of input parameters is incorrect, %s accepts %d arg(s), received %d\n\n&#34;, nameOfCommand, n, len(args))
+55: 			cmd.Help()
+56: 			return errors.New(&#34;argument validation failed&#34;)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/imageupload/imageupload.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/imageupload/imageupload.go:137] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 136: 	cmd.Flags().StringVar(&amp;imagePath, &#34;image-path&#34;, &#34;&#34;, &#34;Path to the local VM image.&#34;)
+137: 	cmd.MarkFlagRequired(&#34;image-path&#34;)
+138: 	cmd.Flags().BoolVar(&amp;noCreate, &#34;no-create&#34;, false, &#34;Don&#39;t attempt to create a new DataVolume/PVC.&#34;)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/expose/expose.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/expose/expose.go:63] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 62: 	cmd.Flags().StringVar(&amp;serviceName, &#34;name&#34;, &#34;&#34;, &#34;Name of the service created for the exposure of the VM.&#34;)
+63: 	cmd.MarkFlagRequired(&#34;name&#34;)
+64: 	cmd.Flags().StringVar(&amp;clusterIP, &#34;cluster-ip&#34;, &#34;&#34;, &#34;ClusterIP to be assigned to the service. Leave empty to auto-allocate, or set to &#39;None&#39; to create a headless service.&#34;)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/console/console.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/console/console.go:178] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 177: 
+178: 	terminal.Restore(int(os.Stdin.Fd()), state)
+179: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:193] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 192: 	e.Secrets.SetExpectations(key, 0, 0)
+193: 	e.ConfigMap.SetExpectations(key, 0, 0)
+194: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:192] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 191: 	e.PrometheusRule.SetExpectations(key, 0, 0)
+192: 	e.Secrets.SetExpectations(key, 0, 0)
+193: 	e.ConfigMap.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:191] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 190: 	e.ServiceMonitor.SetExpectations(key, 0, 0)
+191: 	e.PrometheusRule.SetExpectations(key, 0, 0)
+192: 	e.Secrets.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:190] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 189: 	e.PodDisruptionBudget.SetExpectations(key, 0, 0)
+190: 	e.ServiceMonitor.SetExpectations(key, 0, 0)
+191: 	e.PrometheusRule.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:189] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 188: 	e.InstallStrategyJob.SetExpectations(key, 0, 0)
+189: 	e.PodDisruptionBudget.SetExpectations(key, 0, 0)
+190: 	e.ServiceMonitor.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:188] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 187: 	e.InstallStrategyConfigMap.SetExpectations(key, 0, 0)
+188: 	e.InstallStrategyJob.SetExpectations(key, 0, 0)
+189: 	e.PodDisruptionBudget.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:187] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 186: 	e.SCC.SetExpectations(key, 0, 0)
+187: 	e.InstallStrategyConfigMap.SetExpectations(key, 0, 0)
+188: 	e.InstallStrategyJob.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:186] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 185: 	e.APIService.SetExpectations(key, 0, 0)
+186: 	e.SCC.SetExpectations(key, 0, 0)
+187: 	e.InstallStrategyConfigMap.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:185] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 184: 	e.MutatingWebhook.SetExpectations(key, 0, 0)
+185: 	e.APIService.SetExpectations(key, 0, 0)
+186: 	e.SCC.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:184] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 183: 	e.ValidationWebhook.SetExpectations(key, 0, 0)
+184: 	e.MutatingWebhook.SetExpectations(key, 0, 0)
+185: 	e.APIService.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:183] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 182: 	e.DaemonSet.SetExpectations(key, 0, 0)
+183: 	e.ValidationWebhook.SetExpectations(key, 0, 0)
+184: 	e.MutatingWebhook.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:182] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 181: 	e.Deployment.SetExpectations(key, 0, 0)
+182: 	e.DaemonSet.SetExpectations(key, 0, 0)
+183: 	e.ValidationWebhook.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:181] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 180: 	e.Service.SetExpectations(key, 0, 0)
+181: 	e.Deployment.SetExpectations(key, 0, 0)
+182: 	e.DaemonSet.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:180] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 179: 	e.Crd.SetExpectations(key, 0, 0)
+180: 	e.Service.SetExpectations(key, 0, 0)
+181: 	e.Deployment.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:179] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 178: 	e.RoleBinding.SetExpectations(key, 0, 0)
+179: 	e.Crd.SetExpectations(key, 0, 0)
+180: 	e.Service.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:178] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 177: 	e.Role.SetExpectations(key, 0, 0)
+178: 	e.RoleBinding.SetExpectations(key, 0, 0)
+179: 	e.Crd.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:177] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 176: 	e.ClusterRoleBinding.SetExpectations(key, 0, 0)
+177: 	e.Role.SetExpectations(key, 0, 0)
+178: 	e.RoleBinding.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:176] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 175: 	e.ClusterRole.SetExpectations(key, 0, 0)
+176: 	e.ClusterRoleBinding.SetExpectations(key, 0, 0)
+177: 	e.Role.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:175] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 174: 	e.ServiceAccount.SetExpectations(key, 0, 0)
+175: 	e.ClusterRole.SetExpectations(key, 0, 0)
+176: 	e.ClusterRoleBinding.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/types.go:174] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 173: func (e *Expectations) ResetExpectations(key string) {
+174: 	e.ServiceAccount.SetExpectations(key, 0, 0)
+175: 	e.ClusterRole.SetExpectations(key, 0, 0)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/config.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/config.go:450] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 449: 	values := getStringFromFields(*c)
+450: 	hasher.Write([]byte(values))
+451: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/kubevirt.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/kubevirt.go:895] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 894: 
+895: 					c.kubeVirtExpectations.InstallStrategyJob.AddExpectedDeletion(kvkey, key)
+896: 					propagationPolicy := metav1.DeletePropagationForeground
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/kubevirt.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/kubevirt.go:986] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 985: 	// Record the version we&#39;re targeting to install
+986: 	config.SetTargetDeploymentConfig(kv)
+987: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/kubevirt.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/kubevirt.go:1040] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 1039: 		// record the version that has been completely installed
+1040: 		config.SetObservedDeploymentConfig(kv)
+1041: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:163] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 162: 	for _, entry := range strategy.serviceAccounts {
+163: 		marshalutil.MarshallObject(entry, writer)
+164: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:166] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 165: 	for _, entry := range strategy.clusterRoles {
+166: 		marshalutil.MarshallObject(entry, writer)
+167: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:169] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 168: 	for _, entry := range strategy.clusterRoleBindings {
+169: 		marshalutil.MarshallObject(entry, writer)
+170: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:172] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 171: 	for _, entry := range strategy.roles {
+172: 		marshalutil.MarshallObject(entry, writer)
+173: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:175] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 174: 	for _, entry := range strategy.roleBindings {
+175: 		marshalutil.MarshallObject(entry, writer)
+176: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:178] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 177: 	for _, entry := range strategy.crds {
+178: 		marshalutil.MarshallObject(entry, writer)
+179: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:181] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 180: 	for _, entry := range strategy.services {
+181: 		marshalutil.MarshallObject(entry, writer)
+182: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:184] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 183: 	for _, entry := range strategy.certificateSecrets {
+184: 		marshalutil.MarshallObject(entry, writer)
+185: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:187] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 186: 	for _, entry := range strategy.validatingWebhookConfigurations {
+187: 		marshalutil.MarshallObject(entry, writer)
+188: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:190] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 189: 	for _, entry := range strategy.mutatingWebhookConfigurations {
+190: 		marshalutil.MarshallObject(entry, writer)
+191: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:193] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 192: 	for _, entry := range strategy.apiServices {
+193: 		marshalutil.MarshallObject(entry, writer)
+194: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:196] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 195: 	for _, entry := range strategy.deployments {
+196: 		marshalutil.MarshallObject(entry, writer)
+197: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:199] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 198: 	for _, entry := range strategy.daemonSets {
+199: 		marshalutil.MarshallObject(entry, writer)
+200: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:202] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 201: 	for _, entry := range strategy.customSCCPrivileges {
+202: 		marshalutil.MarshallObject(entry, writer)
+203: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:205] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 204: 	for _, entry := range strategy.sccs {
+205: 		marshalutil.MarshallObject(entry, writer)
+206: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:208] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 207: 	for _, entry := range strategy.serviceMonitors {
+208: 		marshalutil.MarshallObject(entry, writer)
+209: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:211] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 210: 	for _, entry := range strategy.prometheusRules {
+211: 		marshalutil.MarshallObject(entry, writer)
+212: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:214] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 213: 	for _, entry := range strategy.configMaps {
+214: 		marshalutil.MarshallObject(entry, writer)
+215: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/strategy.go:216] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 215: 	}
+216: 	writer.Flush()
+217: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/patches.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/patches.go:168] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 167: 	}
+168: 	hasher.Write(values)
+169: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:71] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 70: 			if key, err := controller.KeyFunc(webhook); err == nil {
+71: 				expectations.ValidationWebhook.AddExpectedDeletion(kvkey, key)
+72: 				err = clientset.AdmissionregistrationV1beta1().ValidatingWebhookConfigurations().Delete(webhook.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:108] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 107: 			if key, err := controller.KeyFunc(crd); err == nil {
+108: 				expectations.Crd.AddExpectedDeletion(kvkey, key)
+109: 				err := ext.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:132] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 131: 			if key, err := controller.KeyFunc(ds); err == nil {
+132: 				expectations.DaemonSet.AddExpectedDeletion(kvkey, key)
+133: 				err := clientset.AppsV1().DaemonSets(ds.Namespace).Delete(ds.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:152] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 151: 				pdbClient := clientset.PolicyV1beta1().PodDisruptionBudgets(pdb.Namespace)
+152: 				expectations.PodDisruptionBudget.AddExpectedDeletion(kvkey, key)
+153: 				err = pdbClient.Delete(pdb.Name, &amp;metav1.DeleteOptions{})
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:171] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 170: 			if key, err := controller.KeyFunc(depl); err == nil {
+171: 				expectations.Deployment.AddExpectedDeletion(kvkey, key)
+172: 				err = clientset.AppsV1().Deployments(depl.Namespace).Delete(depl.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:190] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 189: 			if key, err := controller.KeyFunc(webhookConfiguration); err == nil {
+190: 				expectations.ValidationWebhook.AddExpectedDeletion(kvkey, key)
+191: 				err := clientset.AdmissionregistrationV1beta1().ValidatingWebhookConfigurations().Delete(webhookConfiguration.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:209] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 208: 			if key, err := controller.KeyFunc(webhookConfiguration); err == nil {
+209: 				expectations.MutatingWebhook.AddExpectedDeletion(kvkey, key)
+210: 				err := clientset.AdmissionregistrationV1beta1().MutatingWebhookConfigurations().Delete(webhookConfiguration.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:228] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 227: 			if key, err := controller.KeyFunc(apiservice); err == nil {
+228: 				expectations.APIService.AddExpectedDeletion(kvkey, key)
+229: 				err := aggregatorclient.Delete(apiservice.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:247] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 246: 			if key, err := controller.KeyFunc(svc); err == nil {
+247: 				expectations.Service.AddExpectedDeletion(kvkey, key)
+248: 				err := clientset.CoreV1().Services(svc.Namespace).Delete(svc.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:268] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 267: 			if key, err := controller.KeyFunc(serviceMonitor); err == nil {
+268: 				expectations.ServiceMonitor.AddExpectedDeletion(kvkey, key)
+269: 				err := prometheusClient.MonitoringV1().ServiceMonitors(serviceMonitor.Namespace).Delete(serviceMonitor.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:288] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 287: 			if key, err := controller.KeyFunc(prometheusRule); err == nil {
+288: 				expectations.PrometheusRule.AddExpectedDeletion(kvkey, key)
+289: 				err := prometheusClient.MonitoringV1().PrometheusRules(prometheusRule.Namespace).Delete(prometheusRule.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:307] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 306: 			if key, err := controller.KeyFunc(crb); err == nil {
+307: 				expectations.ClusterRoleBinding.AddExpectedDeletion(kvkey, key)
+308: 				err := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:325] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 324: 			if key, err := controller.KeyFunc(cr); err == nil {
+325: 				expectations.ClusterRole.AddExpectedDeletion(kvkey, key)
+326: 				err := clientset.RbacV1().ClusterRoles().Delete(cr.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:343] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 342: 			if key, err := controller.KeyFunc(rb); err == nil {
+343: 				expectations.RoleBinding.AddExpectedDeletion(kvkey, key)
+344: 				err := clientset.RbacV1().RoleBindings(kv.Namespace).Delete(rb.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:361] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 360: 			if key, err := controller.KeyFunc(role); err == nil {
+361: 				expectations.Role.AddExpectedDeletion(kvkey, key)
+362: 				err := clientset.RbacV1().Roles(kv.Namespace).Delete(role.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:379] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 378: 			if key, err := controller.KeyFunc(sa); err == nil {
+379: 				expectations.ServiceAccount.AddExpectedDeletion(kvkey, key)
+380: 				err := clientset.CoreV1().ServiceAccounts(kv.Namespace).Delete(sa.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:397] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 396: 			if key, err := controller.KeyFunc(secret); err == nil {
+397: 				expectations.Secrets.AddExpectedDeletion(kvkey, key)
+398: 				err := clientset.CoreV1().Secrets(kv.Namespace).Delete(secret.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:415] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 414: 			if key, err := controller.KeyFunc(configMap); err == nil {
+415: 				expectations.ConfigMap.AddExpectedDeletion(kvkey, key)
+416: 				err := clientset.CoreV1().ConfigMaps(kv.Namespace).Delete(configMap.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:485] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 484: 			if key, err := controller.KeyFunc(s); err == nil {
+485: 				expectations.SCC.AddExpectedDeletion(kvkey, key)
+486: 				err := scc.SecurityContextConstraints().Delete(s.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/delete.go:499] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 498: 
+499: 	deleteDummyWebhookValidators(kv, clientset, stores, expectations)
+500: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:1950] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 1949: 					if key, err := controller.KeyFunc(cachedService); err == nil {
+1950: 						expectations.Service.AddExpectedDeletion(kvkey, key)
+1951: 						err := core.Services(service.Namespace).Delete(cachedService.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2748] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2747: 				if key, err := controller.KeyFunc(webhook); err == nil {
+2748: 					expectations.ValidationWebhook.AddExpectedDeletion(kvkey, key)
+2749: 					err := clientset.AdmissionregistrationV1beta1().ValidatingWebhookConfigurations().Delete(webhook.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2780] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2779: 				if key, err := controller.KeyFunc(webhook); err == nil {
+2780: 					expectations.MutatingWebhook.AddExpectedDeletion(kvkey, key)
+2781: 					err := clientset.AdmissionregistrationV1beta1().MutatingWebhookConfigurations().Delete(webhook.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2812] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2811: 				if key, err := controller.KeyFunc(apiService); err == nil {
+2812: 					expectations.APIService.AddExpectedDeletion(kvkey, key)
+2813: 					err := aggregatorclient.Delete(apiService.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2844] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2843: 				if key, err := controller.KeyFunc(secret); err == nil {
+2844: 					expectations.Secrets.AddExpectedDeletion(kvkey, key)
+2845: 					err := clientset.CoreV1().Secrets(secret.Namespace).Delete(secret.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2869] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2868: 				if key, err := controller.KeyFunc(configMap); err == nil {
+2869: 					expectations.ConfigMap.AddExpectedDeletion(kvkey, key)
+2870: 					err := clientset.CoreV1().ConfigMaps(configMap.Namespace).Delete(configMap.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2894] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2893: 				if key, err := controller.KeyFunc(crd); err == nil {
+2894: 					expectations.Crd.AddExpectedDeletion(kvkey, key)
+2895: 					err := ext.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2919] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2918: 				if key, err := controller.KeyFunc(ds); err == nil {
+2919: 					expectations.DaemonSet.AddExpectedDeletion(kvkey, key)
+2920: 					err := clientset.AppsV1().DaemonSets(ds.Namespace).Delete(ds.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2944] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2943: 				if key, err := controller.KeyFunc(deployment); err == nil {
+2944: 					expectations.Deployment.AddExpectedDeletion(kvkey, key)
+2945: 					err := clientset.AppsV1().Deployments(deployment.Namespace).Delete(deployment.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2969] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2968: 				if key, err := controller.KeyFunc(svc); err == nil {
+2969: 					expectations.Service.AddExpectedDeletion(kvkey, key)
+2970: 					err := clientset.CoreV1().Services(svc.Namespace).Delete(svc.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:2994] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 2993: 				if key, err := controller.KeyFunc(crb); err == nil {
+2994: 					expectations.ClusterRoleBinding.AddExpectedDeletion(kvkey, key)
+2995: 					err := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:3019] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 3018: 				if key, err := controller.KeyFunc(cr); err == nil {
+3019: 					expectations.ClusterRole.AddExpectedDeletion(kvkey, key)
+3020: 					err := clientset.RbacV1().ClusterRoles().Delete(cr.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:3044] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 3043: 				if key, err := controller.KeyFunc(rb); err == nil {
+3044: 					expectations.RoleBinding.AddExpectedDeletion(kvkey, key)
+3045: 					err := clientset.RbacV1().RoleBindings(kv.Namespace).Delete(rb.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:3069] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 3068: 				if key, err := controller.KeyFunc(role); err == nil {
+3069: 					expectations.Role.AddExpectedDeletion(kvkey, key)
+3070: 					err := clientset.RbacV1().Roles(kv.Namespace).Delete(role.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:3094] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 3093: 				if key, err := controller.KeyFunc(sa); err == nil {
+3094: 					expectations.ServiceAccount.AddExpectedDeletion(kvkey, key)
+3095: 					err := clientset.CoreV1().ServiceAccounts(kv.Namespace).Delete(sa.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:3125] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 3124: 				if key, err := controller.KeyFunc(scc); err == nil {
+3125: 					expectations.SCC.AddExpectedDeletion(kvkey, key)
+3126: 					err := clientset.SecClient().SecurityContextConstraints().Delete(scc.Name, deleteOptions)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/create.go:3150] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 3149: 				if key, err := controller.KeyFunc(cachePromRule); err == nil {
+3150: 					expectations.PrometheusRule.AddExpectedDeletion(kvkey, key)
+3151: 					err := clientset.PrometheusClient().
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/application.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/application.go:136] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 135: 	for k, v := range util.GetPassthroughEnv() {
+136: 		os.Setenv(k, v)
+137: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:217] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 216: 				defer close(exitChan)
+217: 				cmd.Wait()
+218: 			}()
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:222] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 221: 			case &lt;-stopChan:
+222: 				cmd.Process.Kill()
+223: 				return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:283] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 282: 				defer close(exitChan)
+283: 				cmd.Wait()
+284: 			}()
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:288] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 287: 			case &lt;-stopChan:
+288: 				cmd.Process.Kill()
+289: 				return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go:236] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 235: 		}
+236: 		newFile.Close()
+237: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go:309] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 308: 		vif := &amp;VIF{Name: podInterfaceName}
+309: 		populateMacAddress(vif, iface)
+310: 		return &amp;BridgePodInterface{iface: iface,
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/podinterface.go:320] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 319: 		vif := &amp;VIF{Name: podInterfaceName}
+320: 		populateMacAddress(vif, iface)
+321: 		return &amp;MasqueradePodInterface{iface: iface,
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:424] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 423: 			if err != nil {
+424: 				l.setMigrationResult(vmi, true, fmt.Sprintf(&#34;%v&#34;, err), &#34;&#34;)
+425: 				return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:1582] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 1581: 		list = append(list, domain)
+1582: 		dom.Free()
+1583: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:732] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 731: 				log.Log.Object(vmi).Reason(err).Error(&#34;failed to cancel migration&#34;)
+732: 				l.setMigrationAbortStatus(vmi, v1.MigrationAbortFailed)
+733: 				return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:689] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 688: 			logger.Info(&#34;Migration was canceled&#34;)
+689: 			l.setMigrationResult(vmi, true, &#34;Live migration aborted &#34;, v1.MigrationAbortSucceeded)
+690: 			break monitorLoop
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:685] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 684: 			logger.Info(&#34;Migration job failed&#34;)
+685: 			l.setMigrationResult(vmi, true, fmt.Sprintf(&#34;%v&#34;, err), &#34;&#34;)
+686: 			break monitorLoop
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:681] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 680: 			logger.Info(&#34;Migration has been completed&#34;)
+681: 			l.setMigrationResult(vmi, false, &#34;&#34;, &#34;&#34;)
+682: 			break monitorLoop
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:673] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 672: 				}
+673: 				l.setMigrationResult(vmi, true, fmt.Sprintf(&#34;Live migration is not completed after %d sec and has been aborted&#34;, acceptableCompletionTime), v1.MigrationAbortSucceeded)
+674: 				break monitorLoop
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:660] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 659: 				}
+660: 				l.setMigrationResult(vmi, true, fmt.Sprintf(&#34;Live migration stuck for %d sec and has been aborted&#34;, progressDelay), v1.MigrationAbortSucceeded)
+661: 				break monitorLoop
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:628] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 627: 				}
+628: 				l.setMigrationResult(vmi, true, fmt.Sprintf(&#34;Live migration failed %v&#34;, passedErr), abortStatus)
+629: 				break monitorLoop
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:446] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 445: 			log.Log.Object(vmi).Reason(err).Error(&#34;Live migration failed.&#34;)
+446: 			l.setMigrationResult(vmi, true, fmt.Sprintf(&#34;%v&#34;, err), &#34;&#34;)
+447: 			return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:434] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 433: 		if err != nil {
+434: 			l.setMigrationResult(vmi, true, fmt.Sprintf(&#34;%v&#34;, err), &#34;&#34;)
+435: 			return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cmd-server/server.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cmd-server/server.go:468] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 467: 	go func() {
+468: 		grpcServer.Serve(sock)
+469: 	}()
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cmd-server/server.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cmd-server/server.go:462] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 461: 			sock.Close()
+462: 			os.Remove(socketPath)
+463: 			close(done)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cmd-server/server.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cmd-server/server.go:461] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 460: 			}
+461: 			sock.Close()
+462: 			os.Remove(socketPath)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli/libvirt.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli/libvirt.go:245] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 244: 		list = append(list, stat)
+245: 		domStat.Domain.Free()
+246: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli/libvirt.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli/libvirt.go:101] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 100: 	}
+101: 	s.Free()
+102: 	return e
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go:121] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 120: 			log.Log.Reason(err).Infof(&#34;failed to negotiate version&#34;)
+121: 			conn.Close()
+122: 			return false, nil
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go:132] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 131: 		default:
+132: 			conn.Close()
+133: 			return false, fmt.Errorf(&#34;cmd v1client version %v not implemented yet&#34;, version)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go:249] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 248: 		watchEvent := watch.Event{Type: watch.Modified, Object: domain}
+249: 		client.SendDomainEvent(watchEvent)
+250: 		events &lt;- watchEvent
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go:255] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 254: 				event := watch.Event{Type: watch.Added, Object: domain}
+255: 				client.SendDomainEvent(event)
+256: 				events &lt;- event
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go:259] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 258: 				event := watch.Event{Type: watch.Added, Object: domain}
+259: 				client.SendDomainEvent(event)
+260: 				events &lt;- event
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go:272] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 271: 			event := watch.Event{Type: watch.Modified, Object: domain}
+272: 			client.SendDomainEvent(event)
+273: 			events &lt;- event
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go:340] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 339: 			case &lt;-reconnectChan:
+340: 				n.SendDomainEvent(newWatchEventError(fmt.Errorf(&#34;Libvirt reconnect, domain %s&#34;, domainName)))
+341: 			}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/notify-client/client.go:433] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 432: 	if n.conn != nil {
+433: 		n.conn.Close()
+434: 		n.conn = nil
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go:208] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 207: 				log.Log.Object(vmi).Infof(&#34;closing notify pipe listener for vmi&#34;)
+208: 				ln.Close()
+209: 				return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go:279] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 278: 
+279: 	os.RemoveAll(socketPath)
+280: 	err = os.MkdirAll(filepath.Dir(socketPath), 0755)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go:880-886] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 879: 		d := domain.(*api.Domain)
+880: 		c.vmiSourceInformer.GetStore().Add(
+881: 			v1.NewVMIReferenceWithUUID(
+882: 				d.ObjectMeta.Namespace,
+883: 				d.ObjectMeta.Name,
+884: 				d.Spec.Metadata.KubeVirt.UID,
+885: 			),
+886: 		)
+887: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go:1091] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 1090: 			vmiCopy.Status.MigrationState.TargetNodeDomainDetected = true
+1091: 			d.setVMIGuestTime(vmi)
+1092: 		}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/vm.go:1516] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 1515: 
+1516: 	virtcache.DeleteGhostRecord(vmi.Namespace, vmi.Name)
+1517: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:189] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 188: 
+189: 	response.WriteEntity(fsList)
+190: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:186] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 185: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to get guest info&#34;)
+186: 		response.WriteError(http.StatusInternalServerError, err)
+187: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:180] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 179: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to connect cmd client&#34;)
+180: 		response.WriteError(http.StatusInternalServerError, err)
+181: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:175] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 174: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to detect cmd client&#34;)
+175: 		response.WriteError(http.StatusInternalServerError, err)
+176: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:166] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 165: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to retrieve VMI&#34;)
+166: 		response.WriteError(code, err)
+167: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:159] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 158: 
+159: 	response.WriteEntity(userList)
+160: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:156] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 155: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to get user list&#34;)
+156: 		response.WriteError(http.StatusInternalServerError, err)
+157: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:150] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 149: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to connect cmd client&#34;)
+150: 		response.WriteError(http.StatusInternalServerError, err)
+151: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:145] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 144: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to detect cmd client&#34;)
+145: 		response.WriteError(http.StatusInternalServerError, err)
+146: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:136] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 135: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to retrieve VMI&#34;)
+136: 		response.WriteError(code, err)
+137: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:129] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 128: 	log.Log.Object(vmi).Infof(&#34;returning guestinfo :%v&#34;, guestInfo)
+129: 	response.WriteEntity(guestInfo)
+130: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:125] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 124: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to get guest info&#34;)
+125: 		response.WriteError(http.StatusInternalServerError, err)
+126: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:119] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 118: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to connect cmd client&#34;)
+119: 		response.WriteError(http.StatusInternalServerError, err)
+120: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:114] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 113: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to detect cmd client&#34;)
+114: 		response.WriteError(http.StatusInternalServerError, err)
+115: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:105] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 104: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to retrieve VMI&#34;)
+105: 		response.WriteError(code, err)
+106: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:94] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 93: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to unpause VMI&#34;)
+94: 		response.WriteError(http.StatusInternalServerError, err)
+95: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:88] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 87: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to connect cmd client&#34;)
+88: 		response.WriteError(http.StatusInternalServerError, err)
+89: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:83] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 82: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to detect cmd client&#34;)
+83: 		response.WriteError(http.StatusInternalServerError, err)
+84: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:76] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 75: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to retrieve VMI&#34;)
+76: 		response.WriteError(code, err)
+77: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:66] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 65: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to pause VMI&#34;)
+66: 		response.WriteError(http.StatusInternalServerError, err)
+67: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:60] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 59: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to connect cmd client&#34;)
+60: 		response.WriteError(http.StatusInternalServerError, err)
+61: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:55] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 54: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to detect cmd client&#34;)
+55: 		response.WriteError(http.StatusInternalServerError, err)
+56: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/lifecycle.go:48] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 47: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to retrieve VMI&#34;)
+48: 		response.WriteError(code, err)
+49: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go:152] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 151: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to upgrade client websocket connection&#34;)
+152: 		response.WriteError(http.StatusInternalServerError, err)
+153: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go:92] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 91: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed finding unix socket for serial console&#34;)
+92: 		response.WriteError(http.StatusBadRequest, err)
+93: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go:86] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 85: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to retrieve VMI&#34;)
+86: 		response.WriteError(code, err)
+87: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go:71] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 70: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed finding unix socket for VNC console&#34;)
+71: 		response.WriteError(http.StatusBadRequest, err)
+72: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/rest/console.go:65] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 64: 		log.Log.Object(vmi).Reason(err).Error(&#34;Failed to retrieve VMI&#34;)
+65: 		response.WriteError(code, err)
+66: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/notify-server/server.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/notify-server/server.go:144] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 143: 	defer func() {
+144: 		sock.Close()
+145: 		os.Remove(sockFile)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/notify-server/server.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/notify-server/server.go:145] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 144: 		sock.Close()
+145: 		os.Remove(sockFile)
+146: 	}()
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/notify-server/server.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/notify-server/server.go:151] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 150: 		defer close(done)
+151: 		grpcServer.Serve(sock)
+152: 	}()
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go:372] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 371: 	if m.listener != nil {
+372: 		m.listener.Close()
+373: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go:350] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 349: 
+350: 	os.RemoveAll(m.unixSocketPath)
+351: 	err := os.MkdirAll(filepath.Dir(m.unixSocketPath), 0755)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go:283] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 282: 			curProxy.StopListening()
+283: 			os.RemoveAll(curProxy.unixSocketPath)
+284: 		}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy/migration-proxy.go:256] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 255: 
+256: 		os.RemoveAll(filePath)
+257: 		proxy := NewSourceProxy(filePath, targetFullAddr, m.serverTLSConfig, m.clientTLSConfig)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go:95] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 94: 	}
+95: 	conn.Close()
+96: 	return nil
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go:142] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 141: 		if err == nil {
+142: 			devnode.Close()
+143: 		}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go:227] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 226: 	emptyList := []*pluginapi.Device{}
+227: 	s.Send(&amp;pluginapi.ListAndWatchResponse{Devices: emptyList})
+228: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go:229] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 228: 
+229: 	s.Send(&amp;pluginapi.ListAndWatchResponse{Devices: dpi.devs})
+230: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/device-manager/generic_device.go:239] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 238: 			}
+239: 			s.Send(&amp;pluginapi.ListAndWatchResponse{Devices: dpi.devs})
+240: 		case &lt;-dpi.stop:
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:80] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 79: 		for _, target := range record.MountTargetEntries {
+80: 			os.Remove(target.TargetFile)
+81: 			os.Remove(target.SocketFile)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:81] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 80: 			os.Remove(target.TargetFile)
+81: 			os.Remove(target.SocketFile)
+82: 		}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:84] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 83: 
+84: 		os.Remove(recordFile)
+85: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/container-disk/mount.go:246] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 245: 				}
+246: 				f.Close()
+247: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cmd-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cmd-client/client.go:213] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 212: 	}
+213: 	f.Close()
+214: 	return nil
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cmd-client/client.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cmd-client/client.go:332] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 331: func (c *VirtLauncherClient) Close() {
+332: 	c.conn.Close()
+333: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go:342] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 341: 			case &lt;-expiredWatchdogTickerChan:
+342: 				d.handleStaleWatchdogFiles()
+343: 				d.handleStaleSocketConnections()
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go:343] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 342: 				d.handleStaleWatchdogFiles()
+343: 				d.handleStaleSocketConnections()
+344: 			case err := &lt;-srvErr:
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go:431] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 430: 			// socket is alive still
+431: 			sock.Close()
+432: 			continue
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vmi.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vmi.go:584] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 583: 		vmiKey := controller.VirtualMachineKey(vmi)
+584: 		c.podExpectations.ExpectCreations(vmiKey, 1)
+585: 		pod, err := c.clientset.CoreV1().Pods(vmi.GetNamespace()).Create(templatePod)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vmi.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vmi.go:930] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 929: 
+930: 		c.podExpectations.ExpectDeletions(vmiKey, []string{controller.PodKey(pod)})
+931: 		err := c.clientset.CoreV1().Pods(vmi.Namespace).Delete(pod.Name, &amp;v1.DeleteOptions{})
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vm.go:492] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 491: 
+492: 			c.dataVolumeExpectations.ExpectCreations(vmKey, 1)
+493: 			curDataVolume, err = c.clientset.CdiClient().CdiV1alpha1().DataVolumes(vm.Namespace).Create(newDataVolume)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vm.go:668] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 667: 
+668: 	c.expectations.ExpectCreations(vmKey, 1)
+669: 	vmi, err = c.clientset.VirtualMachineInstance(vm.ObjectMeta.Namespace).Create(vmi)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vm.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/vm.go:694] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 693: 	// stop it
+694: 	c.expectations.ExpectDeletions(vmKey, []string{controller.VirtualMachineKey(vmi)})
+695: 	err = c.clientset.VirtualMachineInstance(vm.ObjectMeta.Namespace).Delete(vmi.ObjectMeta.Name, &amp;v1.DeleteOptions{})
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/snapshot/snapshot_base.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/snapshot/snapshot_base.go:176] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 175: 	for crd := range ctrl.dynamicInformerMap {
+176: 		ctrl.deleteDynamicInformer(crd)
+177: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/replicaset.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/replicaset.go:299] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 298: 		deleteCandidates := vmis[0:diff]
+299: 		c.expectations.ExpectDeletions(rsKey, controller.VirtualMachineKeys(deleteCandidates))
+300: 		for i := 0; i &lt; diff; i++ {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/replicaset.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/replicaset.go:320] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 319: 		// We have to create VMIs
+320: 		c.expectations.ExpectCreations(rsKey, abs(diff))
+321: 		basename := c.getVirtualMachineBaseName(rs)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/replicaset.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/replicaset.go:822] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 821: 	deleteCandidates := vmis[0:diff]
+822: 	c.expectations.ExpectDeletions(rsKey, controller.VirtualMachineKeys(deleteCandidates))
+823: 	for i := 0; i &lt; diff; i++ {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/migration.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/migration.go:415] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 414: 	key := controller.MigrationKey(migration)
+415: 	c.podExpectations.ExpectCreations(key, 1)
+416: 	pod, err := c.clientset.CoreV1().Pods(vmi.GetNamespace()).Create(templatePod)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/drain/evacuation/evacuation.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/drain/evacuation/evacuation.go:387] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 386: 
+387: 	c.migrationExpectations.ExpectCreations(node.Name, diff)
+388: 	for _, vmi := range selectedCandidates {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/drain/disruptionbudget/disruptionbudget.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/drain/disruptionbudget/disruptionbudget.go:358] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 357: 		}
+358: 		c.podDisruptionBudgetExpectations.ExpectDeletions(key, []string{pdbKey})
+359: 		err = c.clientset.PolicyV1beta1().PodDisruptionBudgets(pdb.Namespace).Delete(pdb.Name, &amp;v1.DeleteOptions{})
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/drain/disruptionbudget/disruptionbudget.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/drain/disruptionbudget/disruptionbudget.go:369] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 368: 		two := intstr.FromInt(2)
+369: 		c.podDisruptionBudgetExpectations.ExpectCreations(key, 1)
+370: 		createdPDB, err := c.clientset.PolicyV1beta1().PodDisruptionBudgets(vmi.Namespace).Create(&amp;v1beta1.PodDisruptionBudget{
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go:183] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 182: func init() {
+183: 	vsv1beta1.AddToScheme(scheme.Scheme)
+184: 	snapshotv1.AddToScheme(scheme.Scheme)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go:184] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 183: 	vsv1beta1.AddToScheme(scheme.Scheme)
+184: 	snapshotv1.AddToScheme(scheme.Scheme)
+185: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go:315] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 314: 		httpLogger := logger.With(&#34;service&#34;, &#34;http&#34;)
+315: 		httpLogger.Level(log.INFO).Log(&#34;action&#34;, &#34;listening&#34;, &#34;interface&#34;, vca.BindAddress, &#34;port&#34;, vca.Port)
+316: 		http.Handle(&#34;/metrics&#34;, promhttp.Handler())
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go:406] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 405: 
+406: 	containerdisk.SetLocalDirectory(vca.ephemeralDiskDir + &#34;/container-disk-data&#34;)
+407: 	vca.templateService = services.NewTemplateService(vca.launcherImage,
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go:507] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 506: 			res[&#34;apiserver&#34;] = map[string]interface{}{&#34;leader&#34;: &#34;true&#34;}
+507: 			response.WriteHeaderAndJson(http.StatusOK, res, restful.MIME_JSON)
+508: 			return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-controller/watch/application.go:513] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 512: 	res[&#34;apiserver&#34;] = map[string]interface{}{&#34;leader&#34;: &#34;false&#34;}
+513: 	response.WriteHeaderAndJson(http.StatusOK, res, restful.MIME_JSON)
+514: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:804] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 803: 		log.Log.Errorf(&#34;Cannot prepare connection %s&#34;, err.Error())
+804: 		response.WriteError(http.StatusInternalServerError, err)
+805: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:811] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 810: 		log.Log.Errorf(&#34;Cannot GET request %s&#34;, conErr.Error())
+811: 		response.WriteError(http.StatusInternalServerError, conErr)
+812: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:818] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 817: 		log.Log.Reason(err).Error(&#34;error unmarshalling guest agent response&#34;)
+818: 		response.WriteError(http.StatusInternalServerError, err)
+819: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:822] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 821: 
+822: 	response.WriteEntity(guestInfo)
+823: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:844] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 843: 		log.Log.Errorf(&#34;Cannot prepare connection %s&#34;, err.Error())
+844: 		response.WriteError(http.StatusInternalServerError, err)
+845: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:851] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 850: 		log.Log.Errorf(&#34;Cannot GET request %s&#34;, conErr.Error())
+851: 		response.WriteError(http.StatusInternalServerError, conErr)
+852: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:858] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 857: 		log.Log.Reason(err).Error(&#34;error unmarshalling user list response&#34;)
+858: 		response.WriteError(http.StatusInternalServerError, err)
+859: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:862] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 861: 
+862: 	response.WriteEntity(userList)
+863: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:884] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 883: 		log.Log.Errorf(&#34;Cannot prepare connection %s&#34;, err.Error())
+884: 		response.WriteError(http.StatusInternalServerError, err)
+885: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:891] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 890: 		log.Log.Errorf(&#34;Cannot GET request %s&#34;, conErr.Error())
+891: 		response.WriteError(http.StatusInternalServerError, conErr)
+892: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:898] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 897: 		log.Log.Reason(err).Error(&#34;error unmarshalling file system list response&#34;)
+898: 		response.WriteError(http.StatusInternalServerError, err)
+899: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/rest/subresource.go:902] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 901: 
+902: 	response.WriteEntity(filesystemList)
+903: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go:259] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 258: 			To(func(request *restful.Request, response *restful.Response) {
+259: 				response.WriteAsJson(virtversion.Get())
+260: 			}).Operation(&#34;version&#34;))
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go:371] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 370: 
+371: 				response.WriteAsJson(list)
+372: 			}).
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go:396-398] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 395: 			}
+396: 			response.WriteAsJson(&amp;metav1.RootPaths{
+397: 				Paths: paths,
+398: 			})
+399: 		}).
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go:411] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 410: 			To(func(request *restful.Request, response *restful.Response) {
+411: 				response.WriteAsJson(subresourceAPIGroup())
+412: 			}).
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go:426] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 425: 			list.Groups = append(list.Groups, subresourceAPIGroup())
+426: 			response.WriteAsJson(list)
+427: 		}).
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go:443] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 442: 			})
+443: 			response.WriteAsJson(openapispec)
+444: 		}))
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go:467] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 466: 		}
+467: 		resp.WriteErrorString(http.StatusUnauthorized, reason)
+468: 	})
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-api/api.go:478] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 477: 	f := func(req *restful.Request, resp *restful.Response) {
+478: 		resp.WriteAsJson(spec)
+479: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/util/net/grpc/grpc.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/util/net/grpc/grpc.go:66] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 65: func CreateSocket(socketPath string) (net.Listener, error) {
+66: 	os.RemoveAll(socketPath)
+67: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/service/service.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/service/service.go:75] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 74: 	// set new default verbosity, was set to 0 by glog
+75: 	flag.Set(&#34;v&#34;, &#34;2&#34;)
+76: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/rest/filter/filter.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/rest/filter/filter.go:39-46] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 38: 		chain.ProcessFilter(req, resp)
+39: 		log.Log.Level(log.INFO).
+40: 			With(&#34;remoteAddress&#34;, strings.Split(req.Request.RemoteAddr, &#34;:&#34;)[0]).
+41: 			With(&#34;username&#34;, username).
+42: 			With(&#34;method&#34;, req.Request.Method).
+43: 			With(&#34;url&#34;, req.Request.URL.RequestURI()).
+44: 			With(&#34;proto&#34;, req.Request.Proto).
+45: 			With(&#34;statusCode&#34;, resp.StatusCode()).
+46: 			Log(&#34;contentLength&#34;, resp.ContentLength())
+47: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go:99] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 98: 	})
+99: 	prometheus.Register(unfinishedWork)
+100: 	return unfinishedWork
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go:89] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 88: 	})
+89: 	prometheus.Register(longestRunningProcessor)
+90: 	return longestRunningProcessor
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go:79] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 78: 	})
+79: 	prometheus.Register(retries)
+80: 	return retries
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go:69] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 68: 	})
+69: 	prometheus.Register(workDuration)
+70: 	return workDuration
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go:59] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 58: 	})
+59: 	prometheus.Register(latency)
+60: 	return latency
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go:49] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 48: 	})
+49: 	prometheus.Register(adds)
+50: 	return adds
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/monitoring/workqueue/prometheus/prometheus.go:39] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 38: 	})
+39: 	prometheus.Register(depth)
+40: 	return depth
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/inotify-informer/inotify.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/inotify-informer/inotify.go:115] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 114: 			case &lt;-d.stopChan:
+115: 				d.watcher.Close()
+116: 				return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/healthz/healthz.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/healthz/healthz.go:56] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 55: 		res[&#34;config-resource-version&#34;] = clusterConfig.GetResourceVersion()
+56: 		response.WriteHeaderAndJson(http.StatusOK, res, restful.MIME_JSON)
+57: 		return
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/healthz/healthz.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/healthz/healthz.go:64] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 63: 	res[&#34;config-resource-version&#34;] = clusterConfig.GetResourceVersion()
+64: 	response.WriteHeaderAndJson(http.StatusInternalServerError, res, restful.MIME_JSON)
+65: }
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/controller/controller.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/controller/controller.go:73] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 72: 	if r := recover(); r != nil {
+73: 		log.Log.Level(log.FATAL).Log(&#34;stacktrace&#34;, debug.Stack(), &#34;msg&#34;, r)
+74: 	}
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:326] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 325: 			log.Log.V(2).Errorf(&#34;Timed out generating cloud-init iso at path %s&#34;, isoOutFile)
+326: 			cmd.Process.Kill()
+327: 		case err := &lt;-done:
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:438] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 437: 
+438: 	diskutils.RemoveFile(userFile)
+439: 	diskutils.RemoveFile(metaFile)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:439] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 438: 	diskutils.RemoveFile(userFile)
+439: 	diskutils.RemoveFile(metaFile)
+440: 	diskutils.RemoveFile(networkFile)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:440] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 439: 	diskutils.RemoveFile(metaFile)
+440: 	diskutils.RemoveFile(networkFile)
+441: 	diskutils.RemoveFile(isoStaging)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:441] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 440: 	diskutils.RemoveFile(networkFile)
+441: 	diskutils.RemoveFile(isoStaging)
+442: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:473] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 472: 	}
+473: 	diskutils.RemoveFile(metaFile)
+474: 	diskutils.RemoveFile(userFile)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:474] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 473: 	diskutils.RemoveFile(metaFile)
+474: 	diskutils.RemoveFile(userFile)
+475: 	diskutils.RemoveFile(networkFile)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:475] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 474: 	diskutils.RemoveFile(userFile)
+475: 	diskutils.RemoveFile(networkFile)
+476: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:488] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 487: 	if isEqual {
+488: 		diskutils.RemoveFile(isoStaging)
+489: 	} else {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/cloud-init/cloud-init.go:490] - Errors unhandled. (Confidence: 2, Severity: 0, CWE: 703)
+> 489: 	} else {
+490: 		diskutils.RemoveFile(iso)
+491: 		err = os.Rename(isoStaging, iso)
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Deferring unsafe method &#34;Close&#34; on type &#34;*os.File&#34;" tests="14">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/imageupload/imageupload.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virtctl/imageupload/imageupload.go:213] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 212: 	}
+213: 	defer file.Close()
+214: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:377] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 376: 	}
+377: 	defer qemuConf.Close()
+378: 	// We are in a container, don&#39;t try to stuff qemu inside special cgroups
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:397] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 396: 	}
+397: 	defer libvirtConf.Close()
+398: 	_, err = libvirtConf.WriteString(&#34;log_outputs = \&#34;1:stderr\&#34;\n&#34;)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/libvirt_helper.go:268] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 267: 				}
+268: 				defer file.Close()
+269: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/cpu_utils.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util/cpu_utils.go:36] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 35: 	}
+36: 	defer file.Close()
+37: 	scanner := bufio.NewScanner(file)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/manager.go:768] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 767: 	}
+768: 	defer file.Close()
+769: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api/converter.go:143] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 142: 	}
+143: 	defer f.Close()
+144: 	return true
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go:287] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 286: 	}
+287: 	defer in.Close()
+288: 	c := csv.NewReader(in)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go:333] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 332: 	}
+333: 	defer in.Close()
+334: 	c := csv.NewReader(in)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go:366] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 365: 	}
+366: 	defer in.Close()
+367: 	c := csv.NewReader(in)
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/isolation/isolation.go:441] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 440: 	}
+441: 	defer cgroups.Close()
+442: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-handler/cache/cache.go:224] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 223: 
+224: 		defer f.Close()
+225: 
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/host-disk/host-disk.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/host-disk/host-disk.go:94] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 93: 	f, err := os.Create(fullPath)
+94: 	defer f.Close()
+95: 	if err != nil {
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk-utils/utils.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk-utils/utils.go:99] - Deferring unsafe method "Close" on type "*os.File" (Confidence: 2, Severity: 1, CWE: 703)
+> 98: 	}
+99: 	defer file.Close()
+100: 
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Blocklisted import crypto/sha1: weak cryptographic primitive" tests="2">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/config.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/util/config.go:23] - Blocklisted import crypto/sha1: weak cryptographic primitive (Confidence: 2, Severity: 1, CWE: 327)
+> 22: import (
+23: 	&#34;crypto/sha1&#34;
+24: 	&#34;encoding/hex&#34;
+</failure>
+		</testcase>
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/patches.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/virt-operator/install-strategy/patches.go:4] - Blocklisted import crypto/sha1: weak cryptographic primitive (Confidence: 2, Severity: 1, CWE: 327)
+> 3: import (
+4: 	&#34;crypto/sha1&#34;
+5: 	&#34;encoding/hex&#34;
+</failure>
+		</testcase>
+	</testsuite>
+	<testsuite name="Blocklisted import crypto/md5: weak cryptographic primitive" tests="1">
+		<testcase name="/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk-utils/utils.go">
+			<failure message="Found 1 vulnerability. See stacktrace for details.">Results:
+[/root/go/src/kubevirt.io/kubevirt/pkg/ephemeral-disk-utils/utils.go:24] - Blocklisted import crypto/md5: weak cryptographic primitive (Confidence: 2, Severity: 1, CWE: 327)
+> 23: 	&#34;bytes&#34;
+24: 	&#34;crypto/md5&#34;
+25: 	&#34;fmt&#34;
+</failure>
+		</testcase>
+	</testsuite>
+</testsuites>
