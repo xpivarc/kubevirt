@@ -46,7 +46,7 @@ const (
 	// https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 	ServiceAccount Type = "serviceaccount"
 
-	mountBaseDir = "/var/run/kubevirt-private"
+	mountBaseDir = "/home/virt/.local/share/kubevirt-private"
 )
 
 var (

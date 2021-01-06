@@ -70,13 +70,13 @@ const (
 
 	imagePullSecret = ""
 
-	virtShareDir = "/var/run/kubevirt"
+	virtShareDir = "/home/virt"
 
-	ephemeralDiskDir = virtShareDir + "-ephemeral-disks"
+	ephemeralDiskDir = "/home/virt/kubevirt-ephemeral-disks"
 
 	defaultControllerThreads = 3
 
-	defaultLauncherSubGid                 = 107
+	defaultLauncherSubGid                 = 1000
 	defaultSnapshotControllerResyncPeriod = 5 * time.Minute
 
 	defaultPromCertFilePath = "/etc/virt-controller/certificates/tls.crt"

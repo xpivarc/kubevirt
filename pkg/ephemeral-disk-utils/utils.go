@@ -37,7 +37,7 @@ import (
 )
 
 // TODO this should be part of structs, instead of a global
-var DefaultOwnershipManager OwnershipManagerInterface = &OwnershipManager{user: "qemu"}
+var DefaultOwnershipManager OwnershipManagerInterface = &OwnershipManager{user: "virt"}
 
 // For testing
 func MockDefaultOwnershipManager() {
@@ -68,7 +68,11 @@ func (om *OwnershipManager) SetFileOwnership(file string) error {
 	if err != nil {
 		return fmt.Errorf("failed to convert GID %s of user %s: %v", owner.Gid, om.user, err)
 	}
-	return os.Chown(file, uid, gid)
+	err = os.Chown(file, uid, gid)
+	if err != nil {
+		return fmt.Errorf("ITS ME %s, %d, %d. \n %v", file, uid, gid, err)
+	}
+	return nil
 }
 
 func RemoveFile(path string) error {

@@ -36,16 +36,19 @@ import (
 	"kubevirt.io/kubevirt/pkg/util"
 )
 
-var containerDiskOwner = "qemu"
+var containerDiskOwner = "virt"
 
 var podsBaseDir = util.KubeletPodsDir
 
 var mountBaseDir = filepath.Join(util.VirtShareDir, "/container-disks")
 
+// var launcherMountBaseDir = filepath.Join("/home/virt/kubevirt", "/container-disks")
+var launcherMountBaseDir = mountBaseDir
+
 type SocketPathGetter func(vmi *v1.VirtualMachineInstance, volumeIndex int) (string, error)
 
 func GetLegacyVolumeMountDirOnHost(vmi *v1.VirtualMachineInstance) string {
-	return filepath.Join(mountBaseDir, string(vmi.UID))
+	return filepath.Join(launcherMountBaseDir, string(vmi.UID))
 }
 
 func GetVolumeMountDirOnGuest(vmi *v1.VirtualMachineInstance) string {
@@ -89,7 +92,7 @@ func GetDiskTargetPathFromHostView(vmi *v1.VirtualMachineInstance, volumeIndex i
 }
 
 func GetDiskTargetPathFromLauncherView(volumeIndex int) string {
-	return filepath.Join(mountBaseDir, fmt.Sprintf("disk_%d.img", volumeIndex))
+	return filepath.Join(launcherMountBaseDir, fmt.Sprintf("disk_%d.img", volumeIndex))
 }
 
 func SetLocalDirectory(dir string) error {
@@ -179,6 +182,9 @@ func GenerateContainers(vmi *v1.VirtualMachineInstance, podVolumeName string, bi
 func generateContainersHelper(vmi *v1.VirtualMachineInstance, podVolumeName string, binVolumeName string, isInit bool) []kubev1.Container {
 	var containers []kubev1.Container
 
+	nonRoot := true
+	var userId int64 = 1000
+
 	// Make VirtualMachineInstance Image Wrapper Containers
 	for index, volume := range vmi.Spec.Volumes {
 		if volume.ContainerDisk != nil {
@@ -215,8 +221,12 @@ func generateContainersHelper(vmi *v1.VirtualMachineInstance, podVolumeName stri
 				Name:            name,
 				Image:           diskContainerImage,
 				ImagePullPolicy: volume.ContainerDisk.ImagePullPolicy,
-				Command:         []string{"/usr/bin/container-disk"},
-				Args:            args,
+				SecurityContext: &kubev1.SecurityContext{
+					RunAsUser:    &userId,
+					RunAsNonRoot: &nonRoot,
+				},
+				Command: []string{"/usr/bin/container-disk"},
+				Args:    args,
 				VolumeMounts: []kubev1.VolumeMount{
 					{
 						Name:      podVolumeName,

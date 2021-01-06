@@ -36,6 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	utilwait "k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/utils/pointer"
 
 	v1 "kubevirt.io/client-go/api/v1"
 	"kubevirt.io/client-go/log"
@@ -59,260 +60,35 @@ import (
 
 const defaultStartTimeout = 3 * time.Minute
 
+var (
+	runWithNonRoot *bool = pointer.BoolPtr(false)
+	configDir            = "etc"
+)
+
 func init() {
 	// must registry the event impl before doing anything else.
 	libvirt.EventRegisterDefaultImpl()
 }
 
-func markReady() {
-	err := os.Rename(cmdclient.UninitializedSocketOnGuest(), cmdclient.SocketOnGuest())
-	if err != nil {
-		panic(err)
+func initNonRoot(nonRoot bool) {
+	if !nonRoot {
+		return
 	}
-	log.Log.Info("Marked as ready")
-}
-
-func startCmdServer(socketPath string,
-	domainManager virtwrap.DomainManager,
-	stopChan chan struct{},
-	options *cmdserver.ServerOptions) chan struct{} {
-	done, err := cmdserver.RunServer(socketPath, domainManager, stopChan, options)
-	if err != nil {
-		log.Log.Reason(err).Error("Failed to start virt-launcher cmd server")
-		panic(err)
-	}
-
-	// ensure the cmdserver is responsive before continuing
-	// PollImmediate breaks the poll loop when bool or err are returned OR if timeout occurs.
-	//
-	// Timing out causes an error to be returned
-	err = utilwait.PollImmediate(1*time.Second, 15*time.Second, func() (bool, error) {
-		client, err := cmdclient.NewClient(socketPath)
-		if err != nil {
-			return false, nil
-		}
-		defer client.Close()
-
-		err = client.Ping()
-		if err != nil {
-			return false, nil
-		}
-		return true, nil
-	})
-
-	if err != nil {
-		panic(fmt.Errorf("failed to connect to cmd server: %v", err))
-	}
-
-	return done
-}
-
-func createLibvirtConnection() virtcli.Connection {
-	libvirtUri := "qemu:///system"
-	domainConn, err := virtcli.NewConnection(libvirtUri, "", "", 10*time.Second)
-	if err != nil {
-		panic(fmt.Sprintf("failed to connect to libvirtd: %v", err))
-	}
-
-	return domainConn
-}
-
-func startDomainEventMonitoring(
-	notifier *notifyclient.Notifier,
-	virtShareDir string,
-	domainConn virtcli.Connection,
-	deleteNotificationSent chan watch.Event,
-	vmiUID types.UID,
-	domainName string,
-	agentStore *agentpoller.AsyncAgentStore,
-	qemuAgentSysInterval time.Duration,
-	qemuAgentFileInterval time.Duration,
-	qemuAgentUserInterval time.Duration,
-	qemuAgentVersionInterval time.Duration,
-) {
-	go func() {
-		for {
-			if res := libvirt.EventRunDefaultImpl(); res != nil {
-				log.Log.Reason(res).Error("Listening to libvirt events failed, retrying.")
-				time.Sleep(time.Second)
-			}
-		}
-	}()
-
-	err := notifier.StartDomainNotifier(domainConn, deleteNotificationSent, vmiUID, domainName, agentStore, qemuAgentSysInterval, qemuAgentFileInterval, qemuAgentUserInterval, qemuAgentVersionInterval)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func initializeDirs(virtShareDir string,
-	ephemeralDiskDir string,
-	containerDiskDir string,
-	hotplugDiskDir string,
-	uid string) {
-
-	// Resolve permission mismatch when system default mask is set more restrictive than 022.
-	mask := syscall.Umask(0)
-	defer syscall.Umask(mask)
-
-	err := virtlauncher.InitializePrivateDirectories(filepath.Join("/var/run/kubevirt-private", uid))
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = cloudinit.SetLocalDirectory(ephemeralDiskDir + "/cloud-init-data")
-	if err != nil {
-		panic(err)
-	}
-
-	err = ignition.SetLocalDirectory(ephemeralDiskDir + "/ignition-data")
-	if err != nil {
-		panic(err)
-	}
-
-	err = containerdisk.SetLocalDirectory(containerDiskDir)
-	if err != nil {
-		panic(err)
-	}
-
-	err = hotplugdisk.SetLocalDirectory(hotplugDiskDir)
-	if err != nil {
-		panic(err)
-	}
-
-	err = ephemeraldisk.SetLocalDirectory(ephemeralDiskDir + "/disk-data")
-	if err != nil {
-		panic(err)
-	}
-
-	err = virtlauncher.InitializeDisksDirectories(filepath.Join("/var/run/kubevirt-private", "vm-disks"))
-	if err != nil {
-		panic(err)
-	}
-
-	err = virtlauncher.InitializeDisksDirectories(config.ConfigMapDisksDir)
-	if err != nil {
-		panic(err)
-	}
-
-	err = virtlauncher.InitializeDisksDirectories(config.SecretDisksDir)
-	if err != nil {
-		panic(err)
-	}
-
-	err = virtlauncher.InitializeDisksDirectories(config.DownwardAPIDisksDir)
-	if err != nil {
-		panic(err)
-	}
-
-	err = virtlauncher.InitializeDisksDirectories(config.ServiceAccountDiskDir)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func waitForDomainUUID(timeout time.Duration, events chan watch.Event, stop chan struct{}, domainManager virtwrap.DomainManager) *api.Domain {
-
-	ticker := time.NewTicker(timeout).C
-	select {
-	case <-ticker:
-		panic(fmt.Errorf("timed out waiting for domain to be defined"))
-	case e := <-events:
-		if e.Object != nil && e.Type == watch.Added {
-			domain := e.Object.(*api.Domain)
-			log.Log.Infof("Detected domain with UUID %s", domain.Spec.UUID)
-			return domain
-		} else if e.Type == watch.Modified {
-			domain, ok := e.Object.(*api.Domain)
-			if ok && domain.ObjectMeta.DeletionTimestamp != nil {
-				return nil
-			}
-		}
-	case <-stop:
-		return nil
-	}
-	return nil
-}
-
-func waitForFinalNotify(deleteNotificationSent chan watch.Event,
-	domainManager virtwrap.DomainManager,
-	vm *v1.VirtualMachineInstance) {
-
-	log.Log.Info("Waiting on final notifications to be sent to virt-handler.")
-
-	// First attempt to wait for domain event to occur as a part of the normal shutdown flow.
-	// If that fails, call Kill on the domain and wait for the event again.
-	// If that that fails, exit. We did our best to shutdown the domain gracefully. We can't block
-	// the pod forever. Virt-handler will learn of the domain's exit through monitoring cmd server socket.
-
-	killTimeout := time.After(15 * time.Second)
-	timedOut := false
-	for timedOut == false {
-		select {
-		case e := <-deleteNotificationSent:
-			if e.Object != nil && e.Type == watch.Modified {
-				domain, ok := e.Object.(*api.Domain)
-				if ok && domain.ObjectMeta.DeletionTimestamp != nil {
-					log.Log.Info("Final Delete notification sent")
-					return
-				}
-			}
-		case <-killTimeout:
-			log.Log.Info("Timed out waiting for final delete notification. Attempting to kill domain")
-			timedOut = true
-		}
-	}
-
-	// There are many conditions that can cause the qemu pid to exit that
-	// don't involve the VirtualMachineInstance's domain from being deleted from libvirt.
-	//
-	// KillVMI is idempotent. Making a call to KillVMI here ensures that the deletion
-	// occurs regardless if the VirtualMachineInstance crashed unexpectedly or if virt-handler requested
-	// a graceful shutdown.
-	domainManager.KillVMI(vm)
-
-	// We don't want to block here forever. If the delete does not occur, that could mean
-	// something is wrong with libvirt. In this situation, virt-handler will detect that
-	// the domain went away eventually, however the exit status will be unknown.
-	finalTimeout := time.After(30 * time.Second)
-	for {
-		select {
-		case e := <-deleteNotificationSent:
-			if e.Object != nil && e.Type == watch.Modified {
-				domain, ok := e.Object.(*api.Domain)
-				if ok && domain.ObjectMeta.DeletionTimestamp != nil {
-					log.Log.Info("Final Delete notification sent after calling kill.")
-					return
-				}
-			}
-			return
-		case <-finalTimeout:
-			log.Log.Info("Timed out waiting for final delete notification after calling kill.")
-			return
-		}
-	}
-}
-
-func cleanupContainerDiskDirectory(ephemeralDiskDir string) {
-	// Cleanup the content of ephemeralDiskDir, to make sure that all containerDisk containers terminate
-	err := RemoveContents(ephemeralDiskDir)
-	if err != nil {
-		log.Log.Reason(err).Errorf("could not clean up ephemeral disk directory: %s", ephemeralDiskDir)
-	}
+	configDir = "/home/virt/.config"
 }
 
 func main() {
 	qemuTimeout := pflag.Duration("qemu-timeout", defaultStartTimeout, "Amount of time to wait for qemu")
-	virtShareDir := pflag.String("kubevirt-share-dir", "/var/run/kubevirt", "Shared directory between virt-handler and virt-launcher")
-	ephemeralDiskDir := pflag.String("ephemeral-disk-dir", "/var/run/kubevirt-ephemeral-disks", "Base directory for ephemeral disk data")
-	containerDiskDir := pflag.String("container-disk-dir", "/var/run/kubevirt/container-disks", "Base directory for container disk data")
-	hotplugDiskDir := pflag.String("hotplug-disk-dir", "/var/run/kubevirt/hotplug-disks", "Base directory for hotplug disk data")
+	virtShareDir := pflag.String("kubevirt-share-dir", "/home/virt/kubevirt", "Shared directory between virt-handler and virt-launcher")
+	ephemeralDiskDir := pflag.String("ephemeral-disk-dir", "/home/virt/kubevirt-ephemeral-disks", "Base directory for ephemeral disk data")
+	hotplugDiskDir := pflag.String("hotplug-disk-dir", "/home/virt/kubevirt/hotplug-disks", "Base directory for hotplug disk data")
+	containerDiskDir := pflag.String("container-disk-dir", "/home/virt/container-disks", "Base directory for container disk data")
 	name := pflag.String("name", "", "Name of the VirtualMachineInstance")
 	uid := pflag.String("uid", "", "UID of the VirtualMachineInstance")
 	namespace := pflag.String("namespace", "", "Namespace of the VirtualMachineInstance")
 	gracePeriodSeconds := pflag.Int("grace-period-seconds", 30, "Grace period to observe before sending SIGTERM to vm process")
 	useEmulation := pflag.Bool("use-emulation", false, "Use software emulation")
+	runWithNonRoot = pflag.Bool("run-as-nonroot", false, "Run libvirtd with the 'virt' user")
 	hookSidecars := pflag.Uint("hook-sidecars", 0, "Number of requested hook sidecars, virt-launcher will wait for all of them to become available")
 	noFork := pflag.Bool("no-fork", false, "Fork and let virt-launcher watch itself to react to crashes if set to false")
 	lessPVCSpaceToleration := pflag.Int("less-pvc-space-toleration", 0, "Toleration in percent when PVs' available space is smaller than requested")
@@ -322,15 +98,17 @@ func main() {
 	qemuAgentUserInterval := pflag.Duration("qemu-agent-user-interval", 10, "Interval in seconds between consecutive qemu agent calls for user command")
 	qemuAgentVersionInterval := pflag.Duration("qemu-agent-version-interval", 300, "Interval in seconds between consecutive qemu agent calls for version command")
 	// set new default verbosity, was set to 0 by glog
-	goflag.Set("v", "2")
+	goflag.Set("v", "9")
 
 	pflag.CommandLine.AddGoFlag(goflag.CommandLine.Lookup("v"))
 	pflag.Parse()
 
 	log.InitializeLogging("virt-launcher")
 
+	//	time.Sleep(8 * time.Hour)
+
 	if !*noFork {
-		exitCode, err := ForkAndMonitor(*containerDiskDir)
+		exitCode, err := forkAndMonitor(*containerDiskDir)
 		if err != nil {
 			log.Log.Reason(err).Error("monitoring virt-launcher failed")
 			os.Exit(1)
@@ -353,14 +131,16 @@ func main() {
 	// Start libvirtd, virtlogd, and establish libvirt connection
 	stopChan := make(chan struct{})
 
-	err = util.SetupLibvirt()
+	l := util.NewLibvirtWraper(*runWithNonRoot)
+	err = l.SetupLibvirt()
 	if err != nil {
 		panic(err)
 	}
-	util.StartLibvirt(stopChan)
+
+	l.StartLibvirt(stopChan)
 	// only single domain should be present
 	domainName := api.VMINamespaceKeyFunc(vm)
-	util.StartVirtlog(stopChan, domainName)
+	// l.StartVirtlog(stopChan, domainName)
 
 	domainConn := createLibvirtConnection()
 	defer domainConn.Close()
@@ -455,9 +235,9 @@ func main() {
 	log.Log.Info("Exiting...")
 }
 
-// ForkAndMonitor itself to give qemu an extra grace period to properly terminate
+// forkAndMonitor itself to give qemu an extra grace period to properly terminate
 // in case of virt-launcher crashes
-func ForkAndMonitor(containerDiskDir string) (int, error) {
+func forkAndMonitor(containerDiskDir string) (int, error) {
 	defer cleanupContainerDiskDirectory(containerDiskDir)
 	cmd := exec.Command(os.Args[0], append(os.Args[1:], "--no-fork", "true")...)
 	cmd.Stdout = os.Stdout
@@ -549,7 +329,7 @@ func ForkAndMonitor(containerDiskDir string) (int, error) {
 	return exitCode, nil
 }
 
-func RemoveContents(dir string) error {
+func removeContents(dir string) error {
 	files, err := filepath.Glob(filepath.Join(dir, "*.sock"))
 	if err != nil {
 		return err
@@ -561,4 +341,279 @@ func RemoveContents(dir string) error {
 		}
 	}
 	return nil
+}
+
+func markReady() {
+	err := os.Rename(cmdclient.UninitializedSocketOnGuest(), cmdclient.SocketOnGuest())
+	if err != nil {
+		panic(err)
+	}
+	log.Log.Info("Marked as ready")
+}
+
+func startCmdServer(socketPath string,
+	domainManager virtwrap.DomainManager,
+	stopChan chan struct{},
+	options *cmdserver.ServerOptions) chan struct{} {
+	done, err := cmdserver.RunServer(socketPath, domainManager, stopChan, options)
+	if err != nil {
+		log.Log.Reason(err).Error("Failed to start virt-launcher cmd server")
+		panic(err)
+	}
+
+	// ensure the cmdserver is responsive before continuing
+	// PollImmediate breaks the poll loop when bool or err are returned OR if timeout occurs.
+	//
+	// Timing out causes an error to be returned
+	err = utilwait.PollImmediate(1*time.Second, 15*time.Second, func() (bool, error) {
+		client, err := cmdclient.NewClient(socketPath)
+		if err != nil {
+			return false, nil
+		}
+		defer client.Close()
+
+		err = client.Ping()
+		if err != nil {
+			return false, nil
+		}
+		return true, nil
+	})
+
+	if err != nil {
+		panic(fmt.Errorf("failed to connect to cmd server: %v", err))
+	}
+
+	return done
+}
+
+func createLibvirtConnection() virtcli.Connection {
+	libvirtUri := "qemu:///system"
+	if *runWithNonRoot == true {
+		os.Setenv("XDG_CACHE_HOME", "/home/virt/.cache")
+		os.Setenv("XDG_CONFIG_HOME", "/home/virt/.config")
+		libvirtUri = "qemu+unix:///session?socket=/home/virt/.cache/libvirt/libvirt-sock"
+	}
+
+	domainConn, err := virtcli.NewConnection(libvirtUri, "virt", "", 10*time.Second)
+	if err != nil {
+		panic(fmt.Sprintf("failed to connect to libvirtd: %v", err))
+	}
+
+	return domainConn
+}
+
+func startDomainEventMonitoring(
+	notifier *notifyclient.Notifier,
+	virtShareDir string,
+	domainConn virtcli.Connection,
+	deleteNotificationSent chan watch.Event,
+	vmiUID types.UID,
+	domainName string,
+	agentStore *agentpoller.AsyncAgentStore,
+	qemuAgentSysInterval time.Duration,
+	qemuAgentFileInterval time.Duration,
+	qemuAgentUserInterval time.Duration,
+	qemuAgentVersionInterval time.Duration,
+) {
+	go func() {
+		for {
+			if res := libvirt.EventRunDefaultImpl(); res != nil {
+				log.Log.Reason(res).Error("Listening to libvirt events failed, retrying.")
+				time.Sleep(time.Second)
+			}
+		}
+	}()
+
+	err := notifier.StartDomainNotifier(domainConn, deleteNotificationSent, vmiUID, domainName, agentStore, qemuAgentSysInterval, qemuAgentFileInterval, qemuAgentUserInterval, qemuAgentVersionInterval)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func initializeDirs(virtShareDir string,
+	ephemeralDiskDir string,
+	containerDiskDir string,
+	hotplugDiskDir string,
+	uid string) {
+
+	// Resolve permission mismatch when system default mask is set more restrictive than 022.
+	mask := syscall.Umask(0)
+	defer syscall.Umask(mask)
+
+	virPrivateDir := "/home/virt/.local/share/kubevirt-private"
+
+	err := virtlauncher.InitializePrivateDirectories(filepath.Join(virPrivateDir, uid))
+
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+
+	err = virtlauncher.InitializePrivateDirectories("/home/virt/.config/libvirt/")
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+
+	err = cloudinit.SetLocalDirectory(ephemeralDiskDir + "/cloud-init-data")
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+
+	err = ignition.SetLocalDirectory(ephemeralDiskDir + "/ignition-data")
+	if err != nil {
+		panic(err)
+	}
+
+	err = containerdisk.SetLocalDirectory(containerDiskDir)
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+
+	err = hotplugdisk.SetLocalDirectory(hotplugDiskDir)
+	if err != nil {
+		panic(err)
+	}
+
+	err = ephemeraldisk.SetLocalDirectory(ephemeralDiskDir + "/disk-data")
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+
+	err = virtlauncher.InitializeDisksDirectories(filepath.Join(virPrivateDir, "vm-disks"))
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+
+	err = virtlauncher.InitializeDisksDirectories(config.ConfigMapDisksDir)
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+
+	err = virtlauncher.InitializeDisksDirectories(config.SecretDisksDir)
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+
+	err = virtlauncher.InitializeDisksDirectories(config.DownwardAPIDisksDir)
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+
+	err = virtlauncher.InitializeDisksDirectories(config.ServiceAccountDiskDir)
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(10 * time.Hour)
+		panic(err)
+	}
+}
+
+func waitForDomainUUID(timeout time.Duration, events chan watch.Event, stop chan struct{}, domainManager virtwrap.DomainManager) *api.Domain {
+
+	ticker := time.NewTicker(timeout).C
+	select {
+	case <-ticker:
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
+		panic(fmt.Errorf("timed out waiting for domain to be defined"))
+	case e := <-events:
+		if e.Object != nil && e.Type == watch.Added {
+			domain := e.Object.(*api.Domain)
+			log.Log.Infof("Detected domain with UUID %s", domain.Spec.UUID)
+			return domain
+		} else if e.Type == watch.Modified {
+			domain, ok := e.Object.(*api.Domain)
+			if ok && domain.ObjectMeta.DeletionTimestamp != nil {
+				return nil
+			}
+		} else {
+			fmt.Printf("%+v \n", e)
+		}
+	case <-stop:
+		return nil
+	}
+	return nil
+}
+
+func waitForFinalNotify(deleteNotificationSent chan watch.Event,
+	domainManager virtwrap.DomainManager,
+	vm *v1.VirtualMachineInstance) {
+
+	log.Log.Info("Waiting on final notifications to be sent to virt-handler.")
+
+	// First attempt to wait for domain event to occur as a part of the normal shutdown flow.
+	// If that fails, call Kill on the domain and wait for the event again.
+	// If that that fails, exit. We did our best to shutdown the domain gracefully. We can't block
+	// the pod forever. Virt-handler will learn of the domain's exit through monitoring cmd server socket.
+
+	killTimeout := time.After(15 * time.Second)
+	timedOut := false
+	for timedOut == false {
+		select {
+		case e := <-deleteNotificationSent:
+			if e.Object != nil && e.Type == watch.Modified {
+				domain, ok := e.Object.(*api.Domain)
+				if ok && domain.ObjectMeta.DeletionTimestamp != nil {
+					log.Log.Info("Final Delete notification sent")
+					return
+				}
+			}
+		case <-killTimeout:
+			log.Log.Info("Timed out waiting for final delete notification. Attempting to kill domain")
+			timedOut = true
+		}
+	}
+
+	// There are many conditions that can cause the qemu pid to exit that
+	// don't involve the VirtualMachineInstance's domain from being deleted from libvirt.
+	//
+	// KillVMI is idempotent. Making a call to KillVMI here ensures that the deletion
+	// occurs regardless if the VirtualMachineInstance crashed unexpectedly or if virt-handler requested
+	// a graceful shutdown.
+	domainManager.KillVMI(vm)
+
+	// We don't want to block here forever. If the delete does not occur, that could mean
+	// something is wrong with libvirt. In this situation, virt-handler will detect that
+	// the domain went away eventually, however the exit status will be unknown.
+	finalTimeout := time.After(30 * time.Second)
+	for {
+		select {
+		case e := <-deleteNotificationSent:
+			if e.Object != nil && e.Type == watch.Modified {
+				domain, ok := e.Object.(*api.Domain)
+				if ok && domain.ObjectMeta.DeletionTimestamp != nil {
+					log.Log.Info("Final Delete notification sent after calling kill.")
+					return
+				}
+			}
+			return
+		case <-finalTimeout:
+			log.Log.Info("Timed out waiting for final delete notification after calling kill.")
+			return
+		}
+	}
+}
+
+func cleanupContainerDiskDirectory(ephemeralDiskDir string) {
+	// Cleanup the content of ephemeralDiskDir, to make sure that all containerDisk containers terminate
+	err := removeContents(ephemeralDiskDir)
+	if err != nil {
+		log.Log.Reason(err).Errorf("could not clean up ephemeral disk directory: %s", ephemeralDiskDir)
+	}
 }

@@ -28,10 +28,12 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -301,6 +303,13 @@ func (d *VirtualMachineController) startDomainNotifyPipe(domainPipeStopChan chan
 		return err
 	}
 
+	defaultLauncherSubGid := 1000
+	err = os.Chown(socketPath, defaultLauncherSubGid, defaultLauncherSubGid)
+	if err != nil {
+		log.Log.Reason(err).Error("unable to change group for domain notify")
+		return err
+	}
+
 	handleDomainNotifyPipe(domainPipeStopChan, listener, d.virtShareDir, vmi)
 
 	return nil
@@ -436,14 +445,19 @@ func (d *VirtualMachineController) setPodNetworkPhase1(vmi *v1.VirtualMachineIns
 		return false, nil
 	}
 
+	vhostNet := path.Join("proc", strconv.Itoa(res.Pid()), "root", "dev", "vhost-net")
+	err = os.Chmod(vhostNet, 0777)
+	if err != nil {
+		panic(err)
+	}
+
 	err = res.DoNetNS(func() error { return network.SetupPodNetworkPhase1(vmi, pid) })
 	if err != nil {
 		_, critical := err.(*network.CriticalNetworkError)
 		if critical {
 			return true, err
-		} else {
-			return false, err
 		}
+		return false, err
 
 	}
 
@@ -1440,6 +1454,7 @@ func (d *VirtualMachineController) defaultExecute(key string,
 	}
 
 	if syncErr != nil && !vmi.IsFinal() {
+
 		d.recorder.Event(vmi, k8sv1.EventTypeWarning, v1.SyncFailed.String(), syncErr.Error())
 		log.Log.Object(vmi).Reason(syncErr).Error("Synchronizing the VirtualMachineInstance failed.")
 	}
@@ -2151,9 +2166,9 @@ func (d *VirtualMachineController) processVmUpdate(origVMI *v1.VirtualMachineIns
 			criticalNetworkError, err := d.setPodNetworkPhase1(vmi)
 			if err != nil {
 				if criticalNetworkError {
-					return &virtLauncherCriticalNetworkError{fmt.Sprintf("failed to configure vmi network: %v", err)}
+					return &virtLauncherCriticalNetworkError{fmt.Sprintf("failed to configure vmi network 1: %v", err)}
 				} else {
-					return fmt.Errorf("failed to configure vmi network: %v", err)
+					return fmt.Errorf("failed to configure vmi network 2: %v", err)
 				}
 
 			}

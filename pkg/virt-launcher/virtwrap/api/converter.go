@@ -479,7 +479,7 @@ func Convert_v1_Config_To_api_Disk(volumeName string, disk *Disk, configType con
 }
 
 func GetFilesystemVolumePath(volumeName string) string {
-	return filepath.Join(string(filepath.Separator), "var", "run", "kubevirt-private", "vmi-disks", volumeName, "disk.img")
+	return filepath.Join(string(filepath.Separator), "home", "virt", ".local", "share", "kubevirt-private", "vmi-disks", volumeName, "disk.img")
 }
 
 // GetHotplugFilesystemVolumePath returns the path and file name of a hotplug disk image
@@ -893,10 +893,10 @@ func Convert_v1_VirtualMachine_To_api_Domain(vmi *v1.VirtualMachineInstance, dom
 	// in vmi.Spec.Domain.CPU
 	queueNumber, cpuTopology := CalculateNetworkQueueNumberAndGetCPUTopology(vmi)
 	domain.Spec.CPU.Topology = cpuTopology
-	domain.Spec.VCPU = &VCPU{
-		Placement: "static",
-		CPUs:      queueNumber,
-	}
+	// domain.Spec.VCPU = &VCPU{
+	// 	Placement: "static",
+	// 	CPUs:      queueNumber,
+	// }
 
 	if _, err := os.Stat("/dev/kvm"); os.IsNotExist(err) {
 		if c.UseEmulation {
@@ -1438,7 +1438,7 @@ func Convert_v1_VirtualMachine_To_api_Domain(vmi *v1.VirtualMachineInstance, dom
 				},
 				Source: &SerialSource{
 					Mode: "bind",
-					Path: fmt.Sprintf("/var/run/kubevirt-private/%s/virt-serial%d", vmi.ObjectMeta.UID, serialPort),
+					Path: fmt.Sprintf("/home/virt/.local/share/kubevirt-private/%s/virt-serial%d", vmi.ObjectMeta.UID, serialPort),
 				},
 			},
 		}
@@ -1460,7 +1460,7 @@ func Convert_v1_VirtualMachine_To_api_Domain(vmi *v1.VirtualMachineInstance, dom
 			{
 				Listen: &GraphicsListen{
 					Type:   "socket",
-					Socket: fmt.Sprintf("/var/run/kubevirt-private/%s/virt-vnc", vmi.ObjectMeta.UID),
+					Socket: fmt.Sprintf("/home/virt/.local/share/kubevirt-private/%s/virt-vnc", vmi.ObjectMeta.UID),
 				},
 				Type: "vnc",
 			},
@@ -1637,7 +1637,7 @@ func Convert_v1_VirtualMachine_To_api_Domain(vmi *v1.VirtualMachineInstance, dom
 			return err
 		}
 	}
-
+	domain.Spec.IOThreads = nil
 	return nil
 }
 
@@ -2060,7 +2060,7 @@ func GetImageInfo(imagePath string) (*containerdisk.DiskInfo, error) {
 		"/usr/bin/qemu-img", "info", imagePath, "--output", "json",
 	).Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to invoke qemu-img: %v", err)
+		return nil, fmt.Errorf("failed to invoke qemu-img %s: %v", imagePath, err)
 	}
 	info := &containerdisk.DiskInfo{}
 	err = json.Unmarshal(out, info)

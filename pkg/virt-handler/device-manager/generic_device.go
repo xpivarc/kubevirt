@@ -143,6 +143,17 @@ func (dpi *GenericDevicePlugin) Start(stop chan struct{}) (err error) {
 		if err == nil {
 			devnode.Close()
 		}
+	} else {
+
+		err = os.Chown("/dev/kvm", 1000, 107)
+		if err != nil {
+			fmt.Println("----------------------- failed setting user ------------------------------------")
+		}
+		err = os.Chmod("/dev/kvm", 0660)
+		if err != nil {
+			fmt.Println("----------------------- failed chmod  ------------------------------------")
+		}
+
 	}
 
 	sock, err := net.Listen("unix", dpi.socketPath)

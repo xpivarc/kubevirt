@@ -29,8 +29,8 @@ import (
 	diskutils "kubevirt.io/kubevirt/pkg/ephemeral-disk-utils"
 )
 
-var mountBaseDir = "/var/run/libvirt/kubevirt-ephemeral-disk"
-var pvcBaseDir = "/var/run/kubevirt-private/vmi-disks"
+var mountBaseDir = "/home/virt/.local/share/libvirt/kubevirt-ephemeral-disk"
+var pvcBaseDir = "/home/virt/.local/share/kubevirt-private/vmi-disks"
 
 func generateBaseDir() string {
 	return fmt.Sprintf("%s", mountBaseDir)

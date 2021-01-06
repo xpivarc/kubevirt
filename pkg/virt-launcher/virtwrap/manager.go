@@ -585,7 +585,7 @@ func (l *LibvirtDomainManager) setGuestTime(vmi *v1.VirtualMachineInstance, dom 
 }
 
 func getVMIEphemeralDisksTotalSize() *resource.Quantity {
-	var baseDir = "/var/run/kubevirt-ephemeral-disks/"
+	var baseDir = "/home/virt/kubevirt-ephemeral-disks/"
 	totalSize := int64(0)
 	err := filepath.Walk(baseDir, func(path string, f os.FileInfo, err error) error {
 		if !f.IsDir() {
@@ -1037,6 +1037,7 @@ func (l *LibvirtDomainManager) preStartHook(vmi *v1.VirtualMachineInstance, doma
 	}
 
 	// Create ephemeral disk for container disks
+
 	err = containerdisk.CreateEphemeralImages(vmi)
 	if err != nil {
 		return domain, fmt.Errorf("preparing ephemeral container disk images failed: %v", err)
