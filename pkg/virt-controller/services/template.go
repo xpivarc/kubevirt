@@ -818,8 +818,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			"-c",
 			"echo", "bound PVCs"}
 	} else {
-		// command = []string{"/usr/bin/virt-launcher-non-root",
-		command = []string{"/usr/bin/virt-launcher-bin",
+		command = []string{"/usr/bin/virt-launcher",
 			"--qemu-timeout", "5m",
 			"--name", domain,
 			"--uid", string(vmi.UID),
