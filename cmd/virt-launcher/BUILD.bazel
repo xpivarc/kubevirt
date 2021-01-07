@@ -45,18 +45,12 @@ go_binary(
 genrule(
     name = "setcaps",
     srcs = [":virt-launcher"],
-    outs = ["virt-launcher-bin"],
-    cmd = "path=$$(readlink -f $(location virt-launcher)) && cp $$path $@ && setcap 'cap_net_bind_service+ep' $@ ",
+    outs = ["virt-launcher.tar.gz"],
+    cmd = "path=$$(readlink -f $(location virt-launcher)) && cp $$path . && setcap 'cap_net_bind_service+ep' virt-launcher && tar --xattrs -czvf virt-launcher.tar.gz virt-launcher && mv virt-launcher.tar.gz $@",
     visibility = ["//visibility:public"],
 )
 
-genrule(
-    name = "help",
-    srcs = [":virt-launcher-bin"],
-    outs = ["help"],
-    cmd = "echo 'caps' && getcap $(location virt-launcher-bin) && getcap $$( readlink -f $(location virt-launcher-bin)) && false"
 
-)
 load("@io_bazel_rules_docker//contrib:passwd.bzl", "passwd_entry", "passwd_tar")
 load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 
@@ -288,8 +282,8 @@ container_image(
     directory = "/usr/bin",
     entrypoint = ["/usr/bin/virt-launcher"],
     files = [
-        ":virt-launcher-bin",
         "//cmd/container-disk-v2alpha:container-disk",
     ],
+    tars = [":setcaps"],
     visibility = ["//visibility:public"],
 )
