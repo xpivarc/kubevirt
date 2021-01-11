@@ -44,6 +44,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/config"
 	containerdisk "kubevirt.io/kubevirt/pkg/container-disk"
 	ephemeraldisk "kubevirt.io/kubevirt/pkg/ephemeral-disk"
+	diskutils "kubevirt.io/kubevirt/pkg/ephemeral-disk-utils"
 	"kubevirt.io/kubevirt/pkg/hooks"
 	hotplugdisk "kubevirt.io/kubevirt/pkg/hotplug-disk"
 	"kubevirt.io/kubevirt/pkg/ignition"
@@ -209,7 +210,7 @@ func initializeDirs(virtShareDir string,
 		panic(err)
 	}
 
-	err = virtlauncher.InitializeDisksDirectories(filepath.Join(virPrivateDir, "vm-disks"))
+	err = virtlauncher.InitializeDisksDirectories(filepath.Join("/var/run/kubevirt-private", "vm-disks"))
 	if err != nil {
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
@@ -376,6 +377,10 @@ func main() {
 			log.Log.Warningf("failed to set log verbosity. The value of logVerbosity label should be an integer, got %s instead.", verbosityStr)
 		}
 	}
+	// non-root user is not able to use chown syscall
+	if *runWithNonRoot {
+		diskutils.SetNonRootDefault()
+	}
 
 	if !*noFork {
 		exitCode, err := forkAndMonitor(*containerDiskDir)
@@ -410,7 +415,11 @@ func main() {
 	l.StartLibvirt(stopChan)
 	// only single domain should be present
 	domainName := api.VMINamespaceKeyFunc(vm)
-	// l.StartVirtlog(stopChan, domainName)
+
+	// Need to find where are the logs when we are running in session mod
+	if !*runWithNonRoot {
+		l.StartVirtlog(stopChan, domainName)
+	}
 
 	domainConn := createLibvirtConnection(*runWithNonRoot)
 	defer domainConn.Close()

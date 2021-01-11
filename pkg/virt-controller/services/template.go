@@ -108,6 +108,7 @@ type templateService struct {
 	virtClient                 kubecli.KubevirtClient
 	clusterConfig              *virtconfig.ClusterConfig
 	launcherSubGid             int64
+	nonRoot                    bool
 }
 
 type PvcNotFoundError error
@@ -327,12 +328,15 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 
 	var volumes []k8sv1.Volume
 	var volumeDevices []k8sv1.VolumeDevice
-	var nonRootUserId int64 = 1000
-	var nonRoot bool = true
-	var privileged bool = false
 	var volumeMounts []k8sv1.VolumeMount
 	var imagePullSecrets []k8sv1.LocalObjectReference
 
+	var userId int64 = 0
+	var privileged bool = false
+
+	if t.nonRoot {
+		userId = 1000
+	}
 	// Need to run in privileged mode in Power or libvirt will fail to lock memory for VMI
 	if runtime.GOARCH == "ppc64le" {
 		privileged = true
@@ -859,7 +863,9 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			"--hook-sidecars", strconv.Itoa(len(requestedHookSidecarList)),
 			"--less-pvc-space-toleration", strconv.Itoa(lessPVCSpaceToleration),
 			"--ovmf-path", ovmfPath,
-			"--run-as-nonroot",
+		}
+		if t.nonRoot {
+			command = append(command, "--run-as-nonroot")
 		}
 	}
 
@@ -917,10 +923,8 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 		Image:           t.launcherImage,
 		ImagePullPolicy: imagePullPolicy,
 		SecurityContext: &k8sv1.SecurityContext{
-			RunAsUser:    &nonRootUserId,
-			RunAsGroup:   &nonRootUserId,
-			RunAsNonRoot: &nonRoot,
-			Privileged:   &privileged,
+			RunAsUser:  &userId,
+			Privileged: &privileged,
 			Capabilities: &k8sv1.Capabilities{
 				Add:  capabilities,
 				Drop: []k8sv1.Capability{CAP_NET_RAW},
@@ -931,6 +935,11 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 		VolumeMounts:  volumeMounts,
 		Resources:     resources,
 		Ports:         ports,
+	}
+	if t.nonRoot {
+		compute.SecurityContext.RunAsGroup = &userId
+		t := true
+		compute.SecurityContext.RunAsNonRoot = &t
 	}
 
 	if vmi.Spec.ReadinessProbe != nil {
@@ -1060,10 +1069,8 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			Args:            requestedHookSidecar.Args,
 			Resources:       resources,
 			SecurityContext: &k8sv1.SecurityContext{
-				RunAsUser:    &nonRootUserId,
-				RunAsGroup:   &nonRootUserId,
-				RunAsNonRoot: &nonRoot,
-				Privileged:   &privileged,
+				RunAsUser:  &userId,
+				Privileged: &privileged,
 			},
 			VolumeMounts: []k8sv1.VolumeMount{
 				{
@@ -1071,6 +1078,11 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 					MountPath: hooks.HookSocketsSharedDirectory,
 				},
 			},
+		}
+		if t.nonRoot {
+			sidecar.SecurityContext.RunAsGroup = &userId
+			t := true
+			sidecar.SecurityContext.RunAsNonRoot = &t
 		}
 		containers = append(containers, sidecar)
 	}
@@ -1148,14 +1160,17 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			Image:           t.launcherImage,
 			ImagePullPolicy: imagePullPolicy,
 			SecurityContext: &k8sv1.SecurityContext{
-				RunAsUser:    &nonRootUserId,
-				RunAsGroup:   &nonRootUserId,
-				RunAsNonRoot: &nonRoot,
-				Privileged:   &privileged,
+				RunAsUser:  &userId,
+				Privileged: &privileged,
 			},
 			Command:      initContainerCommand,
 			VolumeMounts: initContainerVolumeMounts,
 			Resources:    initContainerResources,
+		}
+		if t.nonRoot {
+			cpInitContainer.SecurityContext.RunAsGroup = &userId
+			t := true
+			cpInitContainer.SecurityContext.RunAsNonRoot = &t
 		}
 
 		initContainers = append(initContainers, cpInitContainer)
@@ -1178,10 +1193,8 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			Hostname:  hostName,
 			Subdomain: vmi.Spec.Subdomain,
 			SecurityContext: &k8sv1.PodSecurityContext{
-				RunAsUser:    &nonRootUserId,
-				RunAsGroup:   &nonRootUserId,
-				RunAsNonRoot: &nonRoot,
-				FSGroup:      &t.launcherSubGid,
+				RunAsUser: &userId,
+				FSGroup:   &t.launcherSubGid,
 			},
 			TerminationGracePeriodSeconds: &gracePeriodKillAfter,
 			RestartPolicy:                 k8sv1.RestartPolicyNever,
@@ -1193,6 +1206,12 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			DNSConfig:                     vmi.Spec.DNSConfig,
 			DNSPolicy:                     vmi.Spec.DNSPolicy,
 		},
+	}
+
+	if t.nonRoot {
+		pod.Spec.SecurityContext.RunAsGroup = &userId
+		t := true
+		pod.Spec.SecurityContext.RunAsNonRoot = &t
 	}
 
 	// If an SELinux type was specified, use that--otherwise don't set an SELinux type
@@ -1350,6 +1369,7 @@ func getRequiredCapabilities(vmi *v1.VirtualMachineInstance) []k8sv1.Capability 
 		(vmi.Spec.Domain.Devices.AutoattachPodInterface == nil) ||
 		(*vmi.Spec.Domain.Devices.AutoattachPodInterface == true) {
 		res = append(res, CAP_NET_ADMIN)
+		// Remove once dhcp4 will bind to passed socket from virt-handler
 		res = append(res, "CAP_NET_BIND_SERVICE")
 	}
 	// add a CAP_SYS_NICE capability to allow setting cpu affinity
@@ -1592,7 +1612,8 @@ func NewTemplateService(launcherImage string,
 	persistentVolumeClaimCache cache.Store,
 	virtClient kubecli.KubevirtClient,
 	clusterConfig *virtconfig.ClusterConfig,
-	launcherSubGid int64) TemplateService {
+	launcherSubGid int64,
+	nonRoot bool) TemplateService {
 
 	precond.MustNotBeEmpty(launcherImage)
 	svc := templateService{
@@ -1607,6 +1628,7 @@ func NewTemplateService(launcherImage string,
 		virtClient:                 virtClient,
 		clusterConfig:              clusterConfig,
 		launcherSubGid:             launcherSubGid,
+		nonRoot:                    nonRoot,
 	}
 	return &svc
 }
