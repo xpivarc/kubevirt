@@ -76,7 +76,7 @@ const (
 
 	defaultControllerThreads = 3
 
-	defaultLauncherSubGid                 = 1000
+	defaultLauncherSubGid                 = 107
 	defaultSnapshotControllerResyncPeriod = 5 * time.Minute
 
 	defaultPromCertFilePath = "/etc/virt-controller/certificates/tls.crt"
