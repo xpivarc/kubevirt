@@ -36,7 +36,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	utilwait "k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/utils/pointer"
 
 	v1 "kubevirt.io/client-go/api/v1"
 	"kubevirt.io/client-go/log"
@@ -44,6 +43,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/config"
 	containerdisk "kubevirt.io/kubevirt/pkg/container-disk"
 	ephemeraldisk "kubevirt.io/kubevirt/pkg/ephemeral-disk"
+	diskutils "kubevirt.io/kubevirt/pkg/ephemeral-disk-utils"
 	"kubevirt.io/kubevirt/pkg/hooks"
 	hotplugdisk "kubevirt.io/kubevirt/pkg/hotplug-disk"
 	"kubevirt.io/kubevirt/pkg/ignition"
@@ -60,21 +60,9 @@ import (
 
 const defaultStartTimeout = 3 * time.Minute
 
-var (
-	runWithNonRoot *bool = pointer.BoolPtr(false)
-	configDir            = "etc"
-)
-
 func init() {
 	// must registry the event impl before doing anything else.
 	libvirt.EventRegisterDefaultImpl()
-}
-
-func initNonRoot(nonRoot bool) {
-	if !nonRoot {
-		return
-	}
-	configDir = "/home/virt/.config"
 }
 
 func main() {
@@ -88,7 +76,7 @@ func main() {
 	namespace := pflag.String("namespace", "", "Namespace of the VirtualMachineInstance")
 	gracePeriodSeconds := pflag.Int("grace-period-seconds", 30, "Grace period to observe before sending SIGTERM to vm process")
 	useEmulation := pflag.Bool("use-emulation", false, "Use software emulation")
-	runWithNonRoot = pflag.Bool("run-as-nonroot", false, "Run libvirtd with the 'virt' user")
+	runWithNonRoot := pflag.Bool("run-as-nonroot", false, "Run libvirtd with the 'virt' user")
 	hookSidecars := pflag.Uint("hook-sidecars", 0, "Number of requested hook sidecars, virt-launcher will wait for all of them to become available")
 	noFork := pflag.Bool("no-fork", false, "Fork and let virt-launcher watch itself to react to crashes if set to false")
 	lessPVCSpaceToleration := pflag.Int("less-pvc-space-toleration", 0, "Toleration in percent when PVs' available space is smaller than requested")
@@ -105,7 +93,10 @@ func main() {
 
 	log.InitializeLogging("virt-launcher")
 
-	//	time.Sleep(8 * time.Hour)
+	// non-root user is not able to use chown syscall
+	if *runWithNonRoot {
+		diskutils.SetNonRootDefault()
+	}
 
 	if !*noFork {
 		exitCode, err := forkAndMonitor(*containerDiskDir)
@@ -140,9 +131,13 @@ func main() {
 	l.StartLibvirt(stopChan)
 	// only single domain should be present
 	domainName := api.VMINamespaceKeyFunc(vm)
-	// l.StartVirtlog(stopChan, domainName)
 
-	domainConn := createLibvirtConnection()
+	// Need to find where are the logs when we are running in session mod
+	if !*runWithNonRoot {
+		l.StartVirtlog(stopChan, domainName)
+	}
+
+	domainConn := createLibvirtConnection(*runWithNonRoot)
 	defer domainConn.Close()
 
 	var agentStore = agentpoller.NewAsyncAgentStore()
@@ -386,9 +381,9 @@ func startCmdServer(socketPath string,
 	return done
 }
 
-func createLibvirtConnection() virtcli.Connection {
+func createLibvirtConnection(nonRoot bool) virtcli.Connection {
 	libvirtUri := "qemu:///system"
-	if *runWithNonRoot == true {
+	if nonRoot {
 		os.Setenv("XDG_CACHE_HOME", "/home/virt/.cache")
 		os.Setenv("XDG_CONFIG_HOME", "/home/virt/.config")
 		libvirtUri = "qemu+unix:///session?socket=/home/virt/.cache/libvirt/libvirt-sock"
@@ -445,22 +440,16 @@ func initializeDirs(virtShareDir string,
 	err := virtlauncher.InitializePrivateDirectories(filepath.Join(virPrivateDir, uid))
 
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializePrivateDirectories("/home/virt/.config/libvirt/")
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = cloudinit.SetLocalDirectory(ephemeralDiskDir + "/cloud-init-data")
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
@@ -471,8 +460,6 @@ func initializeDirs(virtShareDir string,
 
 	err = containerdisk.SetLocalDirectory(containerDiskDir)
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
@@ -483,43 +470,31 @@ func initializeDirs(virtShareDir string,
 
 	err = ephemeraldisk.SetLocalDirectory(ephemeralDiskDir + "/disk-data")
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializeDisksDirectories(filepath.Join(virPrivateDir, "vm-disks"))
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializeDisksDirectories(config.ConfigMapDisksDir)
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializeDisksDirectories(config.SecretDisksDir)
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializeDisksDirectories(config.DownwardAPIDisksDir)
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializeDisksDirectories(config.ServiceAccountDiskDir)
 	if err != nil {
-		fmt.Println(err)
-		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 }

@@ -307,6 +307,7 @@ func (d *VirtualMachineController) startDomainNotifyPipe(domainPipeStopChan chan
 	// 	log.Log.Reason(err).Error("unable to change group for domain notify")
 	// 	return err
 	// }
+	// TODO(LUBO)
 
 	handleDomainNotifyPipe(domainPipeStopChan, listener, d.virtShareDir, vmi)
 
@@ -448,6 +449,7 @@ func (d *VirtualMachineController) setPodNetworkPhase1(vmi *v1.VirtualMachineIns
 	// if err != nil {
 	// 	panic(err)
 	// }
+	// TODO(LUBO)
 
 	err = res.DoNetNS(func() error { return network.SetupPodNetworkPhase1(vmi, pid) })
 	if err != nil {
