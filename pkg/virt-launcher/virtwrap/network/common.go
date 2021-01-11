@@ -527,15 +527,12 @@ func writeToCachedFile(inter interface{}, fileName, pid, name string) error {
 	p := "/home/virt/.local/share/kubevirt-private/"
 	err = os.MkdirAll(fmt.Sprint(p), 0666)
 	if err != nil {
-		fmt.Println(err)
 		return fmt.Errorf("error creating cached dir: %v", err)
 	}
 
 	fileName = getInterfaceCacheFile(fileName, pid, name)
-	fmt.Println("File Name: ", fileName)
 	err = ioutil.WriteFile(fileName, buf, 0644)
 	if err != nil {
-		fmt.Println(err)
 		return fmt.Errorf("error writing cached object: %v", err)
 	}
 	return nil
