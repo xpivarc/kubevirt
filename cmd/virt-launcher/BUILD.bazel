@@ -10,6 +10,7 @@ go_library(
         "//pkg/config:go_default_library",
         "//pkg/container-disk:go_default_library",
         "//pkg/ephemeral-disk:go_default_library",
+        "//pkg/ephemeral-disk-utils:go_default_library",
         "//pkg/hooks:go_default_library",
         "//pkg/hotplug-disk:go_default_library",
         "//pkg/ignition:go_default_library",
@@ -49,7 +50,6 @@ genrule(
     cmd = "path=$$(readlink -f $(location virt-launcher)) && cp $$path . && setcap 'cap_net_bind_service+ep' virt-launcher && tar --xattrs -czvf virt-launcher.tar.gz virt-launcher && mv virt-launcher.tar.gz $@",
     visibility = ["//visibility:public"],
 )
-
 
 load("@io_bazel_rules_docker//contrib:passwd.bzl", "passwd_entry", "passwd_tar")
 load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")

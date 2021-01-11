@@ -303,6 +303,7 @@ func (d *VirtualMachineController) startDomainNotifyPipe(domainPipeStopChan chan
 		return err
 	}
 
+	// TODO(LUBO)
 	defaultLauncherSubGid := 1000
 	err = os.Chown(socketPath, defaultLauncherSubGid, defaultLauncherSubGid)
 	if err != nil {
@@ -445,6 +446,7 @@ func (d *VirtualMachineController) setPodNetworkPhase1(vmi *v1.VirtualMachineIns
 		return false, nil
 	}
 
+	// TODO(LUBO)
 	vhostNet := path.Join("proc", strconv.Itoa(res.Pid()), "root", "dev", "vhost-net")
 	err = os.Chmod(vhostNet, 0777)
 	if err != nil {

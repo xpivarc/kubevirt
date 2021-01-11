@@ -893,10 +893,10 @@ func Convert_v1_VirtualMachine_To_api_Domain(vmi *v1.VirtualMachineInstance, dom
 	// in vmi.Spec.Domain.CPU
 	queueNumber, cpuTopology := CalculateNetworkQueueNumberAndGetCPUTopology(vmi)
 	domain.Spec.CPU.Topology = cpuTopology
-	// domain.Spec.VCPU = &VCPU{
-	// 	Placement: "static",
-	// 	CPUs:      queueNumber,
-	// }
+	domain.Spec.VCPU = &VCPU{
+		Placement: "static",
+		CPUs:      queueNumber,
+	}
 
 	if _, err := os.Stat("/dev/kvm"); os.IsNotExist(err) {
 		if c.UseEmulation {
@@ -1637,7 +1637,7 @@ func Convert_v1_VirtualMachine_To_api_Domain(vmi *v1.VirtualMachineInstance, dom
 			return err
 		}
 	}
-	domain.Spec.IOThreads = nil
+	// domain.Spec.IOThreads = nil
 	return nil
 }
 
