@@ -9,8 +9,8 @@ import (
 
 const ExtensionAPIServerAuthenticationConfigMap = "extension-apiserver-authentication"
 const RequestHeaderClientCAFileKey = "requestheader-client-ca-file"
-const VirtShareDir = "/home/virt/kubevirt"
-const VirtPrivateDir = "/home/virt/kubevirt-private"
+const VirtShareDir = "/home/virt/"
+const VirtPrivateDir = "/home/virt/"
 const NetworkInfoDir = VirtPrivateDir + "/network-info-cache"
 const VirtLibDir = "/var/lib/kubevirt"
 const KubeletPodsDir = "/var/lib/kubelet/pods"
