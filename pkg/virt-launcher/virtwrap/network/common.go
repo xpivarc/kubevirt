@@ -50,8 +50,9 @@ import (
 
 const (
 	randomMacGenerationAttempts = 10
-	tapOwnerUID                 = "0"
-	tapOwnerGID                 = "0"
+	// 1000 for non-root or qemu? I think first as libvirt to manipulation
+	tapOwnerUID = "0"
+	tapOwnerGID = "0"
 )
 
 type VIF struct {
@@ -523,6 +524,14 @@ func writeToCachedFile(inter interface{}, fileName, pid, name string) error {
 	if err != nil {
 		return fmt.Errorf("error marshaling cached object: %v", err)
 	}
+
+	// remove me I am redundat if we mount everything under /home/virt
+	// p := "/home/virt/.local/share/kubevirt-private/"
+	// err = os.MkdirAll(fmt.Sprint(p), 0666)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return fmt.Errorf("error creating cached dir: %v", err)
+	// }
 
 	fileName = getInterfaceCacheFile(fileName, pid, name)
 	err = ioutil.WriteFile(fileName, buf, 0644)

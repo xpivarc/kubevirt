@@ -39,6 +39,10 @@ const podInterface = "eth0"
 var interfaceCacheFile = "/proc/%s/root/var/run/kubevirt-private/interface-cache-%s.json"
 var qemuArgCacheFile = "/proc/%s/root/var/run/kubevirt-private/qemu-arg-%s.json"
 var vifCacheFile = "/proc/%s/root/var/run/kubevirt-private/vif-cache-%s.json"
+
+// var interfaceCacheFile = "/proc/%s/root/home/virt/.local/share/kubevirt-private/interface-cache-%s.json"
+// var qemuArgCacheFile = "/proc/%s/root/home/virt/.local/share/kubevirt-private/qemu-arg-%s.json"
+// var vifCacheFile = "/proc/%s/root/home/virt/.local/share/kubevirt-private/vif-cache-%s.json"
 var NetworkInterfaceFactory = getNetworkClass
 
 var podInterfaceName = podInterface

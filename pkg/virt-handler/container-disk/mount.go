@@ -245,6 +245,13 @@ func (m *mounter) Mount(vmi *v1.VirtualMachineInstance, verify bool) error {
 				}
 				f.Close()
 
+				// If non-root this is required, here come the problem, will the chmod trigger whole copy of cd? (AFAIK we discussed this in one PR and end resoulution was -> depends on fs )
+				// log.DefaultLogger().Object(vmi).Infof("Set owner of container disk at %s to %s", strings.TrimPrefix(sourceFile, nodeRes.MountRoot()), targetFile)
+				// out, err := exec.Command("/usr/bin/virt-chroot", "--mount", "/proc/1/ns/mnt", "exec", "--", "/usr/bin/chown", "1000:107", strings.TrimPrefix(sourceFile, nodeRes.MountRoot())).CombinedOutput()
+				// if err != nil {
+				// 	return fmt.Errorf("failed to set ownership of containerDisk %v: %v : %v", volume.Name, string(out), err)
+				// }
+
 				log.DefaultLogger().Object(vmi).Infof("Bind mounting container disk at %s to %s", strings.TrimPrefix(sourceFile, nodeRes.MountRoot()), targetFile)
 				// #nosec g204 no risk to TrimPref as argument as it just trims two fixed strings
 				out, err := exec.Command("/usr/bin/virt-chroot", "--mount", "/proc/1/ns/mnt", "mount", "-o", "ro,bind", strings.TrimPrefix(sourceFile, nodeRes.MountRoot()), targetFile).CombinedOutput()

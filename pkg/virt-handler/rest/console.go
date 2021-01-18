@@ -128,7 +128,11 @@ func (t *ConsoleHandler) getUnixSocketPath(vmi *v1.VirtualMachineInstance, socke
 	if err != nil {
 		return "", err
 	}
+
+	// based on non-root
+	// socketDir := path.Join("proc", strconv.Itoa(result.Pid()), "root", "home", "virt", ".local", "share", "kubevirt-private", string(vmi.GetUID()))
 	socketDir := path.Join("proc", strconv.Itoa(result.Pid()), "root", "var", "run", "kubevirt-private", string(vmi.GetUID()))
+
 	socketPath := path.Join(socketDir, socketName)
 	if _, err = os.Stat(socketPath); os.IsNotExist(err) {
 		return "", err
