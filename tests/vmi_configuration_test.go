@@ -65,12 +65,11 @@ var _ = FDescribe("Configurations", func() {
 	BeforeEach(func() {
 		virtClient, err = kubecli.GetKubevirtClient()
 		tests.PanicOnError(err)
-
 		tests.BeforeTestCleanup()
 	})
 
 	Context("with all devices on the root PCI bus", func() {
-		It("[test_id:4623]should start run the guest as usual", func() {
+		PIt("[test_id:4623]should start run the guest as usual", func() {
 			vmi := tests.NewRandomVMIWithEphemeralDiskAndUserdata(cd.ContainerDiskFor(cd.ContainerDiskCirros), "#!/bin/bash\necho 'hello'\n")
 			vmi.Annotations = map[string]string{
 				v1.PlacePCIDevicesOnRootComplex: "true",
@@ -93,7 +92,7 @@ var _ = FDescribe("Configurations", func() {
 
 	})
 
-	Context("[rfe_id:897][crit:medium][vendor:cnv-qe@redhat.com][level:component]for CPU and memory limits should", func() {
+	PContext("[rfe_id:897][crit:medium][vendor:cnv-qe@redhat.com][level:component]for CPU and memory limits should", func() {
 
 		It("[test_id:3110]lead to get the burstable QOS class assigned when limit and requests differ", func() {
 			vmi := tests.NewRandomVMIWithEphemeralDisk(cd.ContainerDiskFor(cd.ContainerDiskAlpine))
@@ -172,7 +171,7 @@ var _ = FDescribe("Configurations", func() {
 
 	})
 
-	Describe("VirtualMachineInstance definition", func() {
+	FDescribe("VirtualMachineInstance definition", func() {
 		Context("[Serial][rfe_id:2065][crit:medium][vendor:cnv-qe@redhat.com][level:component]with 3 CPU cores", func() {
 			var availableNumberOfCPUs int
 			var vmi *v1.VirtualMachineInstance
@@ -1720,7 +1719,7 @@ var _ = FDescribe("Configurations", func() {
 			tests.UpdateKubeVirtConfigValueAndWait(originalConfig)
 		})
 
-		FIt("[test_id:1681]should set appropriate cache modes", func() {
+		It("[test_id:1681]should set appropriate cache modes", func() {
 			tests.SkipPVCTestIfRunnigOnKindInfra()
 
 			vmi := tests.NewRandomVMI()

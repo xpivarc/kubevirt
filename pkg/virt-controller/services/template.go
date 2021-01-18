@@ -94,7 +94,6 @@ type TemplateService interface {
 type templateService struct {
 	launcherImage              string
 	virtShareDir               string
-	virtLibDir                 string
 	ephemeralDiskDir           string
 	containerDiskDir           string
 	hotplugDiskDir             string
@@ -1579,7 +1578,6 @@ func NewTemplateService(launcherImage string,
 	svc := templateService{
 		launcherImage:              launcherImage,
 		virtShareDir:               virtShareDir,
-		virtLibDir:                 virtLibDir,
 		ephemeralDiskDir:           ephemeralDiskDir,
 		containerDiskDir:           containerDiskDir,
 		hotplugDiskDir:             hotplugDiskDir,

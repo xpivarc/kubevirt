@@ -37,6 +37,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/util/types"
 )
 
+// non-virt
 var pvcBaseDir = "/var/run/kubevirt-private/vmi-disks"
 
 const (
