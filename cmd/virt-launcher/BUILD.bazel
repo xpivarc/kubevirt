@@ -28,6 +28,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
+        "//vendor/k8s.io/utils/pointer:go_default_library",
         "//vendor/libvirt.org/libvirt-go:go_default_library",
     ],
 )
@@ -39,6 +40,152 @@ go_binary(
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
     x_defs = version_x_defs(),
+)
+
+genrule(
+    name = "setcaps",
+    srcs = [":virt-launcher"],
+    outs = ["virt-launcher-bin"],
+    cmd = "path=$$(readlink -f $(location virt-launcher)) && cp $$path $@ && setcap 'cap_net_bind_service+ep' $@ ",
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "help",
+    srcs = [":virt-launcher-bin"],
+    outs = ["help"],
+    cmd = "echo 'caps' && getcap $(location virt-launcher-bin) && getcap $$( readlink -f $(location virt-launcher-bin)) && false"
+
+)
+load("@io_bazel_rules_docker//contrib:passwd.bzl", "passwd_entry", "passwd_tar")
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+pkg_tar(
+    name = "qemu-allow",
+    srcs = [
+        ":bridge.conf",
+        ":libvirt.conf",
+        ":qemu.conf",
+        ":virt.conf",
+    ],
+    mode = "640",
+    owner = "1000.1000",
+    package_dir = "/home/virt/.cache/libvirt/qemu",
+)
+
+pkg_tar(
+    name = "qemu-kvm-allow",
+    srcs = [
+        ":bridge.conf",
+        ":libvirt.conf",
+        ":qemu.conf",
+        ":virt.conf",
+    ],
+    mode = "640",
+    owner = "1000.1000",
+    package_dir = "/etc/qemu-kvm",
+)
+
+passwd_entry(
+    name = "virt",
+    create_home = True,
+    gid = 1000,
+    home = "/home/virt/",
+    uid = 1000,
+    username = "virt",
+)
+
+passwd_entry(
+    name = "root",
+    gid = 0,
+    home = "/root",
+    shell = "/bin/bash",
+    uid = 0,
+    username = "root",
+)
+
+passwd_entry(
+    name = "qemu",
+    gid = 107,
+    home = "/",
+    shell = "/sbin/nologin",
+    uid = 107,
+    username = "qemu",
+)
+
+passwd_tar(
+    name = "passwd",
+    entries = [
+        ":root",
+        ":qemu",
+        ":virt",
+    ],
+    passwd_file_pkg_dir = "etc",
+)
+
+load("@io_bazel_rules_docker//contrib:group.bzl", "group_entry", "group_file")
+
+group_entry(
+    name = "root_group",
+    gid = 0,
+    groupname = "root",
+)
+
+group_entry(
+    name = "launcher_group",
+    gid = 1000,
+    groupname = "virt",
+    users = [
+        "virt",
+        "qemu",
+    ],
+)
+
+group_entry(
+    name = "qemu_group",
+    gid = 107,
+    groupname = "qemu",
+    users = [
+        "virt",
+        "qemu",
+    ],
+)
+
+group_entry(
+    name = "libvirt_group",
+    gid = 992,
+    groupname = "libvirt",
+    users = [
+        "virt",
+    ],
+)
+
+group_entry(
+    name = "kvm_group",
+    gid = 36,
+    groupname = "kvm",
+    users = [
+        "qemu",
+        "virt",
+    ],
+)
+
+group_file(
+    name = "group",
+    entries = [
+        ":root_group",
+        ":launcher_group",
+        ":qemu_group",
+        ":libvirt_group",
+        ":kvm_group",
+    ],
+)
+
+pkg_tar(
+    name = "group_tar",
+    srcs = [":group"],
+    mode = "0o644",
+    package_dir = "etc",
 )
 
 load(
@@ -54,6 +201,12 @@ container_image(
     }),
     directory = "/",
     files = ["//:get-version"],
+    tars = [
+        ":passwd",
+        ":group_tar",
+        ":qemu-allow",
+        ":qemu-kvm-allow",
+    ],
 )
 
 container_image(
@@ -66,7 +219,7 @@ container_image(
     directory = "/usr/bin",
     entrypoint = ["/usr/bin/virt-launcher"],
     files = [
-        ":virt-launcher",
+        ":virt-launcher-bin",
         "//cmd/container-disk-v2alpha:container-disk",
     ],
     visibility = ["//visibility:public"],
