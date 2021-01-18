@@ -29,6 +29,8 @@ mkdir -p ${CMD_OUT_DIR}/dump
 # Build all binaries for amd64
 bazel build \
     --config=${ARCHITECTURE} \
+    --stamp \
+    --sandbox_debug \
     //tools/csv-generator/... //cmd/... //staging/src/kubevirt.io/client-go/examples/...
 
 # Copy dump binary to a reachable place outside of the build container
