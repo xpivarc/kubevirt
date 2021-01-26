@@ -327,7 +327,8 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 
 	var volumes []k8sv1.Volume
 	var volumeDevices []k8sv1.VolumeDevice
-	var userId int64 = 0
+	var nonRootUserId int64 = 1000
+	var nonRoot bool = true
 	var privileged bool = false
 	var volumeMounts []k8sv1.VolumeMount
 	var imagePullSecrets []k8sv1.LocalObjectReference
@@ -858,6 +859,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			"--hook-sidecars", strconv.Itoa(len(requestedHookSidecarList)),
 			"--less-pvc-space-toleration", strconv.Itoa(lessPVCSpaceToleration),
 			"--ovmf-path", ovmfPath,
+			"--run-as-nonroot",
 		}
 	}
 
@@ -915,8 +917,10 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 		Image:           t.launcherImage,
 		ImagePullPolicy: imagePullPolicy,
 		SecurityContext: &k8sv1.SecurityContext{
-			RunAsUser:  &userId,
-			Privileged: &privileged,
+			RunAsUser:    &nonRootUserId,
+			RunAsGroup:   &nonRootUserId,
+			RunAsNonRoot: &nonRoot,
+			Privileged:   &privileged,
 			Capabilities: &k8sv1.Capabilities{
 				Add:  capabilities,
 				Drop: []k8sv1.Capability{CAP_NET_RAW},
@@ -1055,8 +1059,14 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			Command:         requestedHookSidecar.Command,
 			Args:            requestedHookSidecar.Args,
 			Resources:       resources,
+			SecurityContext: &k8sv1.SecurityContext{
+				RunAsUser:    &nonRootUserId,
+				RunAsGroup:   &nonRootUserId,
+				RunAsNonRoot: &nonRoot,
+				Privileged:   &privileged,
+			},
 			VolumeMounts: []k8sv1.VolumeMount{
-				k8sv1.VolumeMount{
+				{
 					Name:      "hook-sidecar-sockets",
 					MountPath: hooks.HookSocketsSharedDirectory,
 				},
@@ -1137,9 +1147,15 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			Name:            "container-disk-binary",
 			Image:           t.launcherImage,
 			ImagePullPolicy: imagePullPolicy,
-			Command:         initContainerCommand,
-			VolumeMounts:    initContainerVolumeMounts,
-			Resources:       initContainerResources,
+			SecurityContext: &k8sv1.SecurityContext{
+				RunAsUser:    &nonRootUserId,
+				RunAsGroup:   &nonRootUserId,
+				RunAsNonRoot: &nonRoot,
+				Privileged:   &privileged,
+			},
+			Command:      initContainerCommand,
+			VolumeMounts: initContainerVolumeMounts,
+			Resources:    initContainerResources,
 		}
 
 		initContainers = append(initContainers, cpInitContainer)
@@ -1162,8 +1178,10 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			Hostname:  hostName,
 			Subdomain: vmi.Spec.Subdomain,
 			SecurityContext: &k8sv1.PodSecurityContext{
-				RunAsUser: &userId,
-				FSGroup:   &t.launcherSubGid,
+				RunAsUser:    &nonRootUserId,
+				RunAsGroup:   &nonRootUserId,
+				RunAsNonRoot: &nonRoot,
+				FSGroup:      &t.launcherSubGid,
 			},
 			TerminationGracePeriodSeconds: &gracePeriodKillAfter,
 			RestartPolicy:                 k8sv1.RestartPolicyNever,
@@ -1332,6 +1350,7 @@ func getRequiredCapabilities(vmi *v1.VirtualMachineInstance) []k8sv1.Capability 
 		(vmi.Spec.Domain.Devices.AutoattachPodInterface == nil) ||
 		(*vmi.Spec.Domain.Devices.AutoattachPodInterface == true) {
 		res = append(res, CAP_NET_ADMIN)
+		res = append(res, "CAP_NET_BIND_SERVICE")
 	}
 	// add a CAP_SYS_NICE capability to allow setting cpu affinity
 	res = append(res, CAP_SYS_NICE)

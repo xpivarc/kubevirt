@@ -108,9 +108,15 @@ func startCmdServer(socketPath string,
 	return done
 }
 
-func createLibvirtConnection() virtcli.Connection {
+func createLibvirtConnection(runWithNonRoot bool) virtcli.Connection {
 	libvirtUri := "qemu:///system"
-	domainConn, err := virtcli.NewConnection(libvirtUri, "", "", 10*time.Second)
+	if runWithNonRoot == true {
+		os.Setenv("XDG_CACHE_HOME", "/home/virt/.cache")
+		os.Setenv("XDG_CONFIG_HOME", "/home/virt/.config")
+		libvirtUri = "qemu+unix:///session?socket=/home/virt/.cache/libvirt/libvirt-sock"
+	}
+
+	domainConn, err := virtcli.NewConnection(libvirtUri, "virt", "", 10*time.Second)
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect to libvirtd: %v", err))
 	}
@@ -150,20 +156,32 @@ func initializeDirs(virtShareDir string,
 	ephemeralDiskDir string,
 	containerDiskDir string,
 	hotplugDiskDir string,
-	uid string) {
+	uid string,
+	nonroot bool) {
 
 	// Resolve permission mismatch when system default mask is set more restrictive than 022.
 	mask := syscall.Umask(0)
 	defer syscall.Umask(mask)
 
 	err := virtlauncher.InitializePrivateDirectories(filepath.Join("/var/run/kubevirt-private", uid))
-
 	if err != nil {
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(err)
+	}
+	if nonroot {
+		err = virtlauncher.InitializePrivateDirectories("/home/virt/.config/libvirt/")
+		if err != nil {
+			fmt.Println("going to hang for 10 hours")
+			time.Sleep(10 * time.Hour)
+			panic(err)
+		}
 	}
 
 	err = cloudinit.SetLocalDirectory(ephemeralDiskDir + "/cloud-init-data")
 	if err != nil {
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
@@ -174,6 +192,8 @@ func initializeDirs(virtShareDir string,
 
 	err = containerdisk.SetLocalDirectory(containerDiskDir)
 	if err != nil {
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
@@ -184,31 +204,43 @@ func initializeDirs(virtShareDir string,
 
 	err = ephemeraldisk.SetLocalDirectory(ephemeralDiskDir + "/disk-data")
 	if err != nil {
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
-	err = virtlauncher.InitializeDisksDirectories(filepath.Join("/var/run/kubevirt-private", "vm-disks"))
+	err = virtlauncher.InitializeDisksDirectories(filepath.Join(virPrivateDir, "vm-disks"))
 	if err != nil {
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializeDisksDirectories(config.ConfigMapDisksDir)
 	if err != nil {
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializeDisksDirectories(config.SecretDisksDir)
 	if err != nil {
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializeDisksDirectories(config.DownwardAPIDisksDir)
 	if err != nil {
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 
 	err = virtlauncher.InitializeDisksDirectories(config.ServiceAccountDiskDir)
 	if err != nil {
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(err)
 	}
 }
@@ -218,6 +250,8 @@ func waitForDomainUUID(timeout time.Duration, events chan watch.Event, stop chan
 	ticker := time.NewTicker(timeout).C
 	select {
 	case <-ticker:
+		fmt.Println("going to hang for 10 hours")
+		time.Sleep(10 * time.Hour)
 		panic(fmt.Errorf("timed out waiting for domain to be defined"))
 	case e := <-events:
 		if e.Object != nil && e.Type == watch.Added {
@@ -229,6 +263,8 @@ func waitForDomainUUID(timeout time.Duration, events chan watch.Event, stop chan
 			if ok && domain.ObjectMeta.DeletionTimestamp != nil {
 				return nil
 			}
+		} else {
+			fmt.Printf("%+v \n", e)
 		}
 	case <-stop:
 		return nil
@@ -297,7 +333,7 @@ func waitForFinalNotify(deleteNotificationSent chan watch.Event,
 
 func cleanupContainerDiskDirectory(ephemeralDiskDir string) {
 	// Cleanup the content of ephemeralDiskDir, to make sure that all containerDisk containers terminate
-	err := RemoveContents(ephemeralDiskDir)
+	err := removeContents(ephemeralDiskDir)
 	if err != nil {
 		log.Log.Reason(err).Errorf("could not clean up ephemeral disk directory: %s", ephemeralDiskDir)
 	}
@@ -314,6 +350,7 @@ func main() {
 	namespace := pflag.String("namespace", "", "Namespace of the VirtualMachineInstance")
 	gracePeriodSeconds := pflag.Int("grace-period-seconds", 30, "Grace period to observe before sending SIGTERM to vm process")
 	useEmulation := pflag.Bool("use-emulation", false, "Use software emulation")
+	runWithNonRoot := pflag.Bool("run-as-nonroot", false, "Run libvirtd with the 'virt' user")
 	hookSidecars := pflag.Uint("hook-sidecars", 0, "Number of requested hook sidecars, virt-launcher will wait for all of them to become available")
 	noFork := pflag.Bool("no-fork", false, "Fork and let virt-launcher watch itself to react to crashes if set to false")
 	lessPVCSpaceToleration := pflag.Int("less-pvc-space-toleration", 0, "Toleration in percent when PVs' available space is smaller than requested")
@@ -323,7 +360,7 @@ func main() {
 	qemuAgentUserInterval := pflag.Duration("qemu-agent-user-interval", 10, "Interval in seconds between consecutive qemu agent calls for user command")
 	qemuAgentVersionInterval := pflag.Duration("qemu-agent-version-interval", 300, "Interval in seconds between consecutive qemu agent calls for version command")
 	// set new default verbosity, was set to 0 by glog
-	goflag.Set("v", "2")
+	goflag.Set("v", "9")
 
 	pflag.CommandLine.AddGoFlag(goflag.CommandLine.Lookup("v"))
 	pflag.Parse()
@@ -341,7 +378,7 @@ func main() {
 	}
 
 	if !*noFork {
-		exitCode, err := ForkAndMonitor(*containerDiskDir)
+		exitCode, err := forkAndMonitor(*containerDiskDir)
 		if err != nil {
 			log.Log.Reason(err).Error("monitoring virt-launcher failed")
 			os.Exit(1)
@@ -359,21 +396,23 @@ func main() {
 	vm := v1.NewVMIReferenceFromNameWithNS(*namespace, *name)
 
 	// Initialize local and shared directories
-	initializeDirs(*virtShareDir, *ephemeralDiskDir, *containerDiskDir, *hotplugDiskDir, *uid)
+	initializeDirs(*virtShareDir, *ephemeralDiskDir, *containerDiskDir, *hotplugDiskDir, *uid, *runWithNonRoot)
 
 	// Start libvirtd, virtlogd, and establish libvirt connection
 	stopChan := make(chan struct{})
 
-	err = util.SetupLibvirt()
+	l := util.NewLibvirtWraper(*runWithNonRoot)
+	err = l.SetupLibvirt()
 	if err != nil {
 		panic(err)
 	}
-	util.StartLibvirt(stopChan)
+
+	l.StartLibvirt(stopChan)
 	// only single domain should be present
 	domainName := api.VMINamespaceKeyFunc(vm)
-	util.StartVirtlog(stopChan, domainName)
+	// l.StartVirtlog(stopChan, domainName)
 
-	domainConn := createLibvirtConnection()
+	domainConn := createLibvirtConnection(*runWithNonRoot)
 	defer domainConn.Close()
 
 	var agentStore = agentpoller.NewAsyncAgentStore()
@@ -466,9 +505,9 @@ func main() {
 	log.Log.Info("Exiting...")
 }
 
-// ForkAndMonitor itself to give qemu an extra grace period to properly terminate
+// forkAndMonitor itself to give qemu an extra grace period to properly terminate
 // in case of virt-launcher crashes
-func ForkAndMonitor(containerDiskDir string) (int, error) {
+func forkAndMonitor(containerDiskDir string) (int, error) {
 	defer cleanupContainerDiskDirectory(containerDiskDir)
 	cmd := exec.Command(os.Args[0], append(os.Args[1:], "--no-fork", "true")...)
 	cmd.Stdout = os.Stdout
@@ -560,7 +599,7 @@ func ForkAndMonitor(containerDiskDir string) (int, error) {
 	return exitCode, nil
 }
 
-func RemoveContents(dir string) error {
+func removeContents(dir string) error {
 	files, err := filepath.Glob(filepath.Join(dir, "*.sock"))
 	if err != nil {
 		return err

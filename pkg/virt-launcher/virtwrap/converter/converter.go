@@ -2078,7 +2078,7 @@ func GetImageInfo(imagePath string) (*containerdisk.DiskInfo, error) {
 		"/usr/bin/qemu-img", "info", imagePath, "--output", "json",
 	).Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to invoke qemu-img: %v", err)
+		return nil, fmt.Errorf("failed to invoke qemu-img %s: %v", imagePath, err)
 	}
 	info := &containerdisk.DiskInfo{}
 	err = json.Unmarshal(out, info)

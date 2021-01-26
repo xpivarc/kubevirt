@@ -52,8 +52,8 @@ import (
 
 const (
 	randomMacGenerationAttempts = 10
-	tapOwnerUID                 = "0"
-	tapOwnerGID                 = "0"
+	tapOwnerUID                 = "1000"
+	tapOwnerGID                 = "1000"
 )
 
 type VIF struct {
