@@ -166,6 +166,7 @@ func initializeDirs(virtShareDir string,
 
 	err := virtlauncher.InitializePrivateDirectories(filepath.Join("/var/run/kubevirt-private", uid))
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
 		panic(err)
@@ -173,6 +174,7 @@ func initializeDirs(virtShareDir string,
 	if nonroot {
 		err = virtlauncher.InitializePrivateDirectories("/home/virt/.config/libvirt/")
 		if err != nil {
+			fmt.Println(err)
 			fmt.Println("going to hang for 10 hours")
 			time.Sleep(10 * time.Hour)
 			panic(err)
@@ -181,6 +183,7 @@ func initializeDirs(virtShareDir string,
 
 	err = cloudinit.SetLocalDirectory(ephemeralDiskDir + "/cloud-init-data")
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
 		panic(err)
@@ -193,6 +196,7 @@ func initializeDirs(virtShareDir string,
 
 	err = containerdisk.SetLocalDirectory(containerDiskDir)
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
 		panic(err)
@@ -205,6 +209,7 @@ func initializeDirs(virtShareDir string,
 
 	err = ephemeraldisk.SetLocalDirectory(ephemeralDiskDir + "/disk-data")
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
 		panic(err)
@@ -212,6 +217,7 @@ func initializeDirs(virtShareDir string,
 
 	err = virtlauncher.InitializeDisksDirectories(filepath.Join("/var/run/kubevirt-private", "vm-disks"))
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
 		panic(err)
@@ -219,6 +225,7 @@ func initializeDirs(virtShareDir string,
 
 	err = virtlauncher.InitializeDisksDirectories(config.ConfigMapDisksDir)
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
 		panic(err)
@@ -226,6 +233,7 @@ func initializeDirs(virtShareDir string,
 
 	err = virtlauncher.InitializeDisksDirectories(config.SecretDisksDir)
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
 		panic(err)
@@ -233,6 +241,7 @@ func initializeDirs(virtShareDir string,
 
 	err = virtlauncher.InitializeDisksDirectories(config.DownwardAPIDisksDir)
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
 		panic(err)
@@ -240,6 +249,7 @@ func initializeDirs(virtShareDir string,
 
 	err = virtlauncher.InitializeDisksDirectories(config.ServiceAccountDiskDir)
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("going to hang for 10 hours")
 		time.Sleep(10 * time.Hour)
 		panic(err)
@@ -251,7 +261,7 @@ func waitForDomainUUID(timeout time.Duration, events chan watch.Event, stop chan
 	ticker := time.NewTicker(timeout).C
 	select {
 	case <-ticker:
-		fmt.Println("going to hang for 10 hours")
+		fmt.Println("going to hang for 10 hours, ticker")
 		time.Sleep(10 * time.Hour)
 		panic(fmt.Errorf("timed out waiting for domain to be defined"))
 	case e := <-events:
