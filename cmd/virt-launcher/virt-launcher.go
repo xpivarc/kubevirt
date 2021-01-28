@@ -114,6 +114,7 @@ func createLibvirtConnection(runWithNonRoot bool) virtcli.Connection {
 	user := ""
 	if runWithNonRoot == true {
 		user = "qemu"
+		libvirtUri = "qemu+unix:///session?socket=/var/run/libvirt/libvirt-sock"
 	}
 
 	domainConn, err := virtcli.NewConnection(libvirtUri, user, "", 10*time.Second)
