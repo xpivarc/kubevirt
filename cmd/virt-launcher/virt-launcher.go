@@ -112,9 +112,7 @@ func startCmdServer(socketPath string,
 func createLibvirtConnection(runWithNonRoot bool) virtcli.Connection {
 	libvirtUri := "qemu:///system"
 	if runWithNonRoot == true {
-		os.Setenv("XDG_CACHE_HOME", "/home/virt/.cache")
-		os.Setenv("XDG_CONFIG_HOME", "/home/virt/.config")
-		libvirtUri = "qemu+unix:///session?socket=/home/virt/.cache/libvirt/libvirt-sock"
+		libvirtUri = "qemu+unix:///session?socket=/var/run/libvirt/libvirt-sock"
 	}
 
 	domainConn, err := virtcli.NewConnection(libvirtUri, "virt", "", 10*time.Second)

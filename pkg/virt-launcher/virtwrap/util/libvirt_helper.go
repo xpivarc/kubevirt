@@ -215,11 +215,6 @@ func (l LibvirtWraper) StartLibvirt(stopChan chan struct{}) {
 		for {
 			exitChan := make(chan struct{})
 			cmd := exec.Command("/usr/sbin/libvirtd")
-			// cmd.SysProcAttr = &syscall.SysProcAttr{
-			// 	Credential: &syscall.Credential{
-			// 		Uid: l.user,
-			// 	},
-			// }
 
 			// connect libvirt's stderr to our own stdout in order to see the logs in the container logs
 			reader, err := cmd.StderrPipe()
@@ -376,6 +371,11 @@ func NewDomainFromName(name string, vmiUID types.UID) *api.Domain {
 }
 
 func (l LibvirtWraper) SetupLibvirt() error {
+	if l.user != 0 {
+		os.Setenv("XDG_RUNTIME_DIR", "/var/run/")
+		os.Setenv("XDG_CACHE_HOME", "/home/virt/.cache")
+		os.Setenv("XDG_CONFIG_HOME", "/home/virt/.config")
+	}
 	configDir := "/etc"
 	if l.user != 0 {
 		configDir = "/home/virt/.config"
