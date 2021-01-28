@@ -33,6 +33,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -527,6 +528,10 @@ func (l *LibvirtDomainManager) asyncMigrate(vmi *v1.VirtualMachineInstance, opti
 
 		// For a tunnelled migration, this is always the uri
 		dstURI := fmt.Sprintf("qemu+tcp://%s/system", net.JoinHostPort(loopbackAddress, strconv.Itoa(tcpBindPort)))
+		if kutil.IsNonRootVMI(vmi) {
+			dstURI = fmt.Sprintf("qemu+tcp://%s/session", net.JoinHostPort(loopbackAddress, strconv.Itoa(tcpBindPort)))
+		}
+
 		migrURI := fmt.Sprintf("tcp://%s", ip.NormalizeIPAddress(loopbackAddress))
 
 		domName := api.VMINamespaceKeyFunc(vmi)
@@ -963,7 +968,11 @@ func (l *LibvirtDomainManager) MigrateVMI(vmi *v1.VirtualMachineInstance, option
 }
 
 var updateHostsFile = func(entry string) (err error) {
-	file, err := kutil.OpenFileWithNosec("/etc/hosts", os.O_WRONLY|os.O_APPEND)
+	u, _ := user.Current()
+	if u.Uid != "0" {
+		return nil
+	}
+	file, err := os.OpenFile("/etc/hosts", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return fmt.Errorf("failed opening file: %s", err)
 	}
