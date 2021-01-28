@@ -29,7 +29,6 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
-        "//vendor/k8s.io/utils/pointer:go_default_library",
         "//vendor/libvirt.org/libvirt-go:go_default_library",
     ],
 )
@@ -107,15 +106,15 @@ passwd_entry(
     username = "qemu",
 )
 
-passwd_tar(
-    name = "passwd",
-    entries = [
-        ":root",
-        ":qemu",
-        ":virt",
-    ],
-    passwd_file_pkg_dir = "etc",
-)
+# passwd_tar(
+#     name = "passwd",
+#     entries = [
+#         ":root",
+#         ":qemu",
+#         ":virt",
+#     ],
+#     passwd_file_pkg_dir = "etc",
+# )
 
 load("@io_bazel_rules_docker//contrib:group.bzl", "group_entry", "group_file")
 
@@ -212,13 +211,13 @@ group_entry(
     groupname = "qemu",
 )
 
-group_file(
-    name = "group",
-    entries = [
-        ":qemu-group",
-        ":root-group",
-    ],
-)
+# group_file(
+#     name = "group",
+#     entries = [
+#         ":qemu-group",
+#         ":root-group",
+#     ],
+# )
 
 passwd_entry(
     name = "qemu-user",
@@ -234,6 +233,7 @@ passwd_file(
     entries = [
         ":qemu-user",
         ":root-user",
+        ":virt",
     ],
 )
 
@@ -265,7 +265,7 @@ container_image(
         ":libvirt-config",
         ":passwd-tar",
         "//rpm:launcherbase_x86_64",
-        ":passwd",
+        # ":passwd",
         ":group_tar",
         ":qemu-allow",
         ":qemu-kvm-allow",
