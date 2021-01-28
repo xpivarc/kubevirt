@@ -5,8 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"syscall"
@@ -27,6 +29,12 @@ import (
 )
 
 const QEMUSeaBiosDebugPipe = converter.QEMUSeaBiosDebugPipe
+const (
+	qemuConfPath           = "/etc/libvirt/qemu.conf"
+	nonRootQemuConfPath    = "/var/run/libvirt/qemu.conf"
+	libvirdConfPath        = "/etc/libvirt/libvirtd.conf"
+	nonRootLibvirdConfPath = "/var/run/libvirt/libvirtd.conf"
+)
 
 var LifeCycleTranslationMap = map[libvirt.DomainState]api.LifeCycle{
 	libvirt.DOMAIN_NOSTATE:     api.NoState,
@@ -223,7 +231,8 @@ func (l LibvirtWraper) StartLibvirt(stopChan chan struct{}) {
 	go func() {
 		for {
 			exitChan := make(chan struct{})
-			cmd := exec.Command("/usr/sbin/libvirtd")
+			args := []string{"-f", "/var/run/libvirt/libvirtd.conf"}
+			cmd := exec.Command("/usr/sbin/libvirtd", args...)
 
 			// connect libvirt's stderr to our own stdout in order to see the logs in the container logs
 			reader, err := cmd.StderrPipe()
@@ -270,7 +279,7 @@ func (l LibvirtWraper) StartLibvirt(stopChan chan struct{}) {
 	}()
 }
 
-func startVirtlogdLogging(stopChan chan struct{}, domainName string) {
+func startVirtlogdLogging(stopChan chan struct{}, domainName string, nonRoot bool) {
 	for {
 		cmd := exec.Command("/usr/sbin/virtlogd", "-f", "/etc/libvirt/virtlogd.conf")
 
@@ -284,6 +293,9 @@ func startVirtlogdLogging(stopChan chan struct{}, domainName string) {
 
 		go func() {
 			logfile := fmt.Sprintf("/var/log/libvirt/qemu/%s.log", domainName)
+			if nonRoot {
+				logfile = filepath.Join("/var", "run", "libvirt", "qemu", "log", fmt.Sprintf("%s.log", domainName))
+			}
 
 			// It can take a few seconds to the log file to be created
 			for {
@@ -380,8 +392,8 @@ func startQEMUSeaBiosLogging(stopChan chan struct{}) {
 	}
 }
 
-func StartVirtlog(stopChan chan struct{}, domainName string) {
-	go startVirtlogdLogging(stopChan, domainName)
+func StartVirtlog(stopChan chan struct{}, domainName string, nonRoot bool) {
+	go startVirtlogdLogging(stopChan, domainName, nonRoot)
 	go startQEMUSeaBiosLogging(stopChan)
 }
 
@@ -427,12 +439,13 @@ func NewDomainFromName(name string, vmiUID types.UID) *api.Domain {
 	return domain
 }
 
-func (l LibvirtWraper) SetupLibvirt() error {
-	qemuConf, err := os.OpenFile("/etc/libvirt/qemu.conf", os.O_APPEND|os.O_WRONLY, 0644)
+func configureQemuConf(qemuFilename string) (err error) {
+	qemuConf, err := os.OpenFile(qemuFilename, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer util.CloseIOAndCheckErr(qemuConf, &err)
+
 	// We are in a container, don't try to stuff qemu inside special cgroups
 	_, err = qemuConf.WriteString("cgroup_controllers = [ ]\n")
 	if err != nil {
@@ -447,26 +460,77 @@ func (l LibvirtWraper) SetupLibvirt() error {
 		return err
 	}
 
-	// Let libvirt log to stderr
-	libvirtConf, err := os.OpenFile("/etc/libvirt/libvirtd.conf", os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-	defer util.CloseIOAndCheckErr(libvirtConf, &err)
-	_, err = libvirtConf.WriteString("log_outputs = \"1:stderr\"\n")
-	if err != nil {
-		return err
-	}
-
-	if envVarValue, ok := os.LookupEnv("LIBVIRT_DEBUG_LOGS"); ok && (envVarValue == "1") {
-		// see https://libvirt.org/kbase/debuglogs.html for details
-		_, err = libvirtConf.WriteString("log_filters=\"3:remote 4:event 3:util.json 3:util.object 3:util.dbus 3:util.netlink 3:node_device 3:rpc 3:access 1:*\"\n")
+	if envVarValue, ok := os.LookupEnv("VIRTIOFSD_DEBUG_LOGS"); ok && (envVarValue == "1") {
+		_, err = qemuConf.WriteString("virtiofsd_debug = 1\n")
 		if err != nil {
 			return err
 		}
 	}
-	if envVarValue, ok := os.LookupEnv("VIRTIOFSD_DEBUG_LOGS"); ok && (envVarValue == "1") {
-		_, err = qemuConf.WriteString("virtiofsd_debug = 1\n")
+
+	return nil
+}
+
+func copyQemu() (err error) {
+	qemuConf, err := os.OpenFile(qemuConfPath, os.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer util.CloseIOAndCheckErr(qemuConf, &err)
+	newQemuConf, err := os.OpenFile(nonRootQemuConfPath, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer util.CloseIOAndCheckErr(newQemuConf, &err)
+
+	_, err = io.Copy(newQemuConf, qemuConf)
+	return err
+}
+
+func copyLibvirtd() (err error) {
+	libvirtdConf, err := os.OpenFile(libvirdConfPath, os.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer util.CloseIOAndCheckErr(libvirtdConf, &err)
+
+	newLibvirtdConf, err := os.OpenFile(nonRootLibvirdConfPath, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer util.CloseIOAndCheckErr(newLibvirtdConf, &err)
+
+	_, err = io.Copy(newLibvirtdConf, libvirtdConf)
+	return err
+
+}
+
+func (l LibvirtWraper) SetupLibvirt() (err error) {
+	qemuFile := qemuConfPath
+	if l.user != 0 {
+		qemuFile = nonRootQemuConfPath
+		if err := copyQemu(); err != nil {
+			return err
+		}
+	}
+
+	if err := configureQemuConf(qemuFile); err != nil {
+		return err
+	}
+
+	if err := copyLibvirtd(); err != nil {
+		return err
+	}
+
+	// Let libvirt log to stderr
+	libvirdDConf, err := os.OpenFile(nonRootLibvirdConfPath, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer util.CloseIOAndCheckErr(libvirdDConf, &err)
+
+	if envVarValue, ok := os.LookupEnv("LIBVIRT_DEBUG_LOGS"); ok && (envVarValue == "1") {
+		// see https://libvirt.org/kbase/debuglogs.html for details
+		_, err = libvirdDConf.WriteString("log_filters=\"3:remote 4:event 3:util.json 3:util.object 3:util.dbus 3:util.netlink 3:node_device 3:rpc 3:access 1:*\"\n")
 		if err != nil {
 			return err
 		}
