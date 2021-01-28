@@ -21,6 +21,14 @@ const CPUManagerPath = HostRootMount + "var/lib/kubelet/cpu_manager_state"
 var VMIInterfaceDir = NetworkInfoDir + "/%s"
 var VMIInterfacepath = NetworkInfoDir + "/%s/%s"
 
+func IsNonRootVMI(vmi *v1.VirtualMachineInstance) bool {
+	_, ok := vmi.Annotations["nonroot"]
+	if !ok {
+		return false
+	}
+	return true
+}
+
 func IsSRIOVVmi(vmi *v1.VirtualMachineInstance) bool {
 	for _, iface := range vmi.Spec.Domain.Devices.Interfaces {
 		if iface.SRIOV != nil {
@@ -63,6 +71,15 @@ func IsVFIOVMI(vmi *v1.VirtualMachineInstance) bool {
 
 	if IsHostDevVMI(vmi) || IsGPUVMI(vmi) || IsSRIOVVmi(vmi) {
 		return true
+	}
+	return false
+}
+
+func NeedVirtioNetDevice(vmi *v1.VirtualMachineInstance, useEmulation bool) bool {
+	for _, iface := range vmi.Spec.Domain.Devices.Interfaces {
+		if !useEmulation && (iface.Model == "" || iface.Model == "virtio") {
+			return true
+		}
 	}
 	return false
 }
