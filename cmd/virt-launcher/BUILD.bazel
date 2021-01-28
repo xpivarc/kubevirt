@@ -47,7 +47,7 @@ genrule(
     name = "setcaps",
     srcs = [":virt-launcher"],
     outs = ["virt-launcher.tar.gz"],
-    cmd = "path=$$(readlink -f $(location virt-launcher)) && cp $$path . && setcap 'cap_net_bind_service+ep' virt-launcher && tar --xattrs -czvf virt-launcher.tar.gz virt-launcher && mv virt-launcher.tar.gz $@",
+    cmd = "path=$$(readlink -f $(location virt-launcher)) && cp $$path . && setcap 'cap_net_bind_service+ep cap_net_admin+ep' virt-launcher && tar --xattrs -czvf virt-launcher.tar.gz virt-launcher && mv virt-launcher.tar.gz $@",
     visibility = ["//visibility:public"],
 )
 
