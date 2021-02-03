@@ -28,6 +28,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -446,9 +447,9 @@ func (d *VirtualMachineController) setPodNetworkPhase1(vmi *v1.VirtualMachineIns
 	}
 
 	// TODO(LUBO) only when virtio if, is this good place?
-	if virtutil.NeedVirtioNetDevice(vmi, d.clusterConfig.IsUseEmulation()) {
+	if virtutil.IsNonRootVMI(vmi) && virtutil.NeedVirtioNetDevice(vmi, d.clusterConfig.IsUseEmulation()) {
 		vhostNet := path.Join(res.MountRoot(), "dev", "vhost-net")
-		err = os.Chmod(vhostNet, 0777)
+		diskutils.DefaultOwnershipManager.SetFileOwnership(vhostNet)
 		if err != nil {
 			return true, fmt.Errorf("Failed to set up vhost-net device, %s", err)
 		}
@@ -2176,6 +2177,47 @@ func (d *VirtualMachineController) processVmUpdate(origVMI *v1.VirtualMachineIns
 
 			}
 
+			// TODO(LUBO)
+			if virtutil.IsNonRootVMI(vmi) {
+				fmt.Print("\n loop \n")
+				res, err := d.podIsolationDetector.Detect(vmi)
+				if err != nil {
+					return err
+				}
+				for i := range origVMI.Spec.Volumes {
+					if volumeSource := &origVMI.Spec.Volumes[i].VolumeSource; volumeSource.HostDisk != nil {
+						volumeName := origVMI.Spec.Volumes[i].Name
+						diskPath := hostdisk.GetMountedHostDiskPath(volumeName, volumeSource.HostDisk.Path)
+						// err := diskutils.DefaultOwnershipManager.SetFileOwnership(filepath.Join(res.MountRoot(), diskPath))
+						err := os.Chmod(filepath.Join(res.MountRoot(), diskPath), 0777)
+						switch err.(type) {
+						case *os.PathError:
+							diskDir := hostdisk.GetMountedHostDiskDir(volumeName)
+							// if err := diskutils.DefaultOwnershipManager.SetFileOwnership(filepath.Join(res.MountRoot(), diskDir)); err != nil {
+							if err := os.Chmod(filepath.Join(res.MountRoot(), diskDir), 0777); err != nil {
+								return fmt.Errorf("Failed to change ownership of HostDisk dir %s, %s", volumeName, err)
+							}
+							unprivilegedContainerSELinuxLabel := "system_u:object_r:container_file_t:s0"
+							err = relabelFiles(unprivilegedContainerSELinuxLabel, filepath.Join(res.MountRoot(), diskDir))
+							if err != nil {
+								panic(fmt.Errorf("error relabeling required files: %v", err))
+							}
+
+						case nil:
+							unprivilegedContainerSELinuxLabel := "system_u:object_r:container_file_t:s0"
+							err = relabelFiles(unprivilegedContainerSELinuxLabel, filepath.Join(res.MountRoot(), diskPath))
+							if err != nil {
+								panic(fmt.Errorf("error relabeling required files: %v", err))
+							}
+						default:
+							return fmt.Errorf("Failed to change ownership of HostDisk %s, %s", volumeName, err)
+						}
+
+					}
+
+				}
+			}
+
 			// set runtime limits as needed
 			err = d.podIsolationDetector.AdjustResources(vmi)
 			if err != nil {
@@ -2449,4 +2491,19 @@ func setMissingSRIOVInterfacesNames(interfacesSpecByName map[string]v1.Interface
 			interfacesStatusByMac[ifaceSpec.MacAddress] = domainIfaceStatus
 		}
 	}
+}
+
+func relabelFiles(newLabel string, files ...string) error {
+	relabelArgs := []string{"selinux", "relabel", newLabel}
+	for _, file := range files {
+		cmd := exec.Command("virt-chroot", append(relabelArgs, file)...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			return fmt.Errorf("error relabeling file %s with label %s. Reason: %v", file, newLabel, err)
+		}
+	}
+
+	return nil
 }
