@@ -1725,7 +1725,7 @@ var _ = Describe("[owner:@sig-compute]Configurations", func() {
 			tests.UpdateKubeVirtConfigValueAndWait(originalConfig)
 		})
 
-		FIt("[test_id:1681]should set appropriate cache modes", func() {
+		It("[test_id:1681]should set appropriate cache modes", func() {
 			tests.SkipPVCTestIfRunnigOnKindInfra()
 
 			vmi := tests.NewRandomVMI()
