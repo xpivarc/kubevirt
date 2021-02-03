@@ -2179,7 +2179,6 @@ func (d *VirtualMachineController) processVmUpdate(origVMI *v1.VirtualMachineIns
 
 			// TODO(LUBO)
 			if virtutil.IsNonRootVMI(vmi) {
-				fmt.Print("\n loop \n")
 				res, err := d.podIsolationDetector.Detect(vmi)
 				if err != nil {
 					return err
@@ -2216,6 +2215,16 @@ func (d *VirtualMachineController) processVmUpdate(origVMI *v1.VirtualMachineIns
 					}
 
 				}
+				for i := range vmi.Spec.Volumes {
+					// ReplacePVCByHostDisk removed all non block pvc
+					if volumeSource := &origVMI.Spec.Volumes[i].VolumeSource; volumeSource.PersistentVolumeClaim != nil {
+						devPath := filepath.Join(string(filepath.Separator), "dev", origVMI.Spec.Volumes[i].Name)
+						if err := os.Chmod(filepath.Join(res.MountRoot(), devPath), 0777); err != nil {
+
+						}
+					}
+				}
+
 			}
 
 			// set runtime limits as needed
