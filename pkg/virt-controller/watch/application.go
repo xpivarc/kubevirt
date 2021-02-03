@@ -167,8 +167,6 @@ type VirtControllerApp struct {
 
 	// indicates if controllers were started with or without CDI/DataVolume support
 	hasCDI bool
-	// indicates if controller is serving non-root vms
-	nonRoot bool
 	// the channel used to trigger re-initialization.
 	reInitChan chan string
 
@@ -247,7 +245,6 @@ func Execute() {
 	app.clusterConfig = virtconfig.NewClusterConfig(configMapInformer, app.crdInformer, app.kubeVirtInformer, app.kubevirtNamespace)
 
 	app.reInitChan = make(chan string, 10)
-	app.nonRoot = app.clusterConfig.NonRootEnabled()
 	app.hasCDI = app.clusterConfig.HasDataVolumeAPI()
 	app.clusterConfig.SetConfigModifiedCallback(app.configModificationCallback)
 	app.clusterConfig.SetConfigModifiedCallback(app.shouldChangeLogVerbosity)
@@ -309,17 +306,6 @@ func Execute() {
 // Detects if a config has been applied that requires
 // re-initializing virt-controller.
 func (vca *VirtControllerApp) configModificationCallback() {
-	nonRootInConfig := vca.clusterConfig.NonRootEnabled()
-
-	if nonRootInConfig != vca.nonRoot {
-		if nonRootInConfig {
-			log.Log.Info("Reinitialize virt-controller, non-root feature gate was introduced")
-		} else {
-			log.Log.Info("Reinitialize virt-controller, non-root feature gate was removed")
-		}
-		vca.reInitChan <- "reinit"
-	}
-
 	newHasCDI := vca.clusterConfig.HasDataVolumeAPI()
 	if newHasCDI != vca.hasCDI {
 		if newHasCDI {
@@ -449,7 +435,6 @@ func (vca *VirtControllerApp) initCommon() {
 		virtClient,
 		vca.clusterConfig,
 		vca.launcherSubGid,
-		vca.nonRoot,
 	)
 
 	vca.vmiController = NewVMIController(vca.templateService, vca.vmiInformer, vca.kvPodInformer, vca.persistentVolumeClaimInformer, vca.vmiRecorder, vca.clientSet, vca.dataVolumeInformer)

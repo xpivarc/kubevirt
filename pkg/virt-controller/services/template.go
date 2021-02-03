@@ -108,7 +108,6 @@ type templateService struct {
 	virtClient                 kubecli.KubevirtClient
 	clusterConfig              *virtconfig.ClusterConfig
 	launcherSubGid             int64
-	nonRoot                    bool
 }
 
 type PvcNotFoundError error
@@ -333,8 +332,8 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 
 	var userId int64 = 0
 	var privileged bool = false
-
-	if t.nonRoot {
+	nonRoot := t.clusterConfig.NonRootEnabled()
+	if nonRoot {
 		userId = 1000
 		volumeMounts = append(volumeMounts, k8sv1.VolumeMount{
 			Name:      "private",
@@ -886,7 +885,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			"--less-pvc-space-toleration", strconv.Itoa(lessPVCSpaceToleration),
 			"--ovmf-path", ovmfPath,
 		}
-		if t.nonRoot {
+		if nonRoot {
 			command = append(command, "--run-as-nonroot")
 		}
 	}
@@ -958,7 +957,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 		Resources:     resources,
 		Ports:         ports,
 	}
-	if t.nonRoot {
+	if nonRoot {
 		compute.SecurityContext.RunAsGroup = &userId
 		t := true
 		compute.SecurityContext.RunAsNonRoot = &t
@@ -1101,7 +1100,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 				},
 			},
 		}
-		if t.nonRoot {
+		if nonRoot {
 			sidecar.SecurityContext.RunAsGroup = &userId
 			t := true
 			sidecar.SecurityContext.RunAsNonRoot = &t
@@ -1189,7 +1188,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 			VolumeMounts: initContainerVolumeMounts,
 			Resources:    initContainerResources,
 		}
-		if t.nonRoot {
+		if nonRoot {
 			cpInitContainer.SecurityContext.RunAsGroup = &userId
 			t := true
 			cpInitContainer.SecurityContext.RunAsNonRoot = &t
@@ -1230,7 +1229,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 		},
 	}
 
-	if t.nonRoot {
+	if nonRoot {
 		pod.Spec.SecurityContext.RunAsGroup = &userId
 		t := true
 		pod.Spec.SecurityContext.RunAsNonRoot = &t
@@ -1633,8 +1632,7 @@ func NewTemplateService(launcherImage string,
 	persistentVolumeClaimCache cache.Store,
 	virtClient kubecli.KubevirtClient,
 	clusterConfig *virtconfig.ClusterConfig,
-	launcherSubGid int64,
-	nonRoot bool) TemplateService {
+	launcherSubGid int64) TemplateService {
 
 	precond.MustNotBeEmpty(launcherImage)
 	svc := templateService{
@@ -1649,7 +1647,6 @@ func NewTemplateService(launcherImage string,
 		virtClient:                 virtClient,
 		clusterConfig:              clusterConfig,
 		launcherSubGid:             launcherSubGid,
-		nonRoot:                    nonRoot,
 	}
 	return &svc
 }
