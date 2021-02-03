@@ -58,7 +58,7 @@ import (
 
 type VMICreationFuncWithEFI func() *v1.VirtualMachineInstance
 
-var _ = FDescribe("Configurations", func() {
+var _ = Describe("Configurations", func() {
 
 	var err error
 	var virtClient kubecli.KubevirtClient
@@ -1736,7 +1736,7 @@ var _ = FDescribe("Configurations", func() {
 			tests.UpdateKubeVirtConfigValueAndWait(originalConfig)
 		})
 
-		FIt("[test_id:1681]should set appropriate cache modes", func() {
+		It("[test_id:1681]should set appropriate cache modes", func() {
 			tests.SkipPVCTestIfRunnigOnKindInfra()
 
 			vmi := tests.NewRandomVMI()
