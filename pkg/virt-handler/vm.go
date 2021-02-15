@@ -30,7 +30,6 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -447,11 +446,12 @@ func (d *VirtualMachineController) setPodNetworkPhase1(vmi *v1.VirtualMachineIns
 		return false, nil
 	}
 
-	// TODO(LUBO)
-	vhostNet := path.Join("proc", strconv.Itoa(res.Pid()), "root", "dev", "vhost-net")
-	err = os.Chmod(vhostNet, 0777)
-	if err != nil {
-		panic(err)
+	if virtutil.IsNonRootVMI(vmi) && virtutil.NeedVirtioNetDevice(vmi, d.clusterConfig.IsUseEmulation()) {
+		vhostNet := path.Join(res.MountRoot(), "dev", "vhost-net")
+		err := diskutils.DefaultOwnershipManager.SetFileOwnership(vhostNet)
+		if err != nil {
+			return true, fmt.Errorf("Failed to set up vhost-net device, %s", err)
+		}
 	}
 
 	err = res.DoNetNS(func() error { return network.SetupPodNetworkPhase1(vmi, pid, d.networkCacheStoreFactory) })
