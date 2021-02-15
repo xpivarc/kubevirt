@@ -71,6 +71,7 @@ var _ = Describe("[Serial][owner:@sig-compute]KubeVirtConfigmapConfiguration", f
 		tests.WaitForConfigToBePropagatedToComponent("kubevirt.io=virt-handler", cfg.ResourceVersion, tests.ExpectResourceVersionToBeEqualConfigVersion)
 	})
 
+	// TODO config-map test overide my kv feature gate
 	It("[test_id:4671]test kubevirt config-map is used for configuration when present", func() {
 
 		vmi := tests.NewRandomFedoraVMIWithDmidecode()
