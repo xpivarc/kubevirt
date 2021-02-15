@@ -80,6 +80,7 @@ var _ = Describe("Template", func() {
 			virtClient,
 			config,
 			qemuGid,
+			false,
 		)
 
 		// Set up mock clients
