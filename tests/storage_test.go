@@ -299,6 +299,7 @@ var _ = Describe("Storage", func() {
 			var pvc = "empty-pvc1"
 
 			BeforeEach(func() {
+				tests.SkipIfNonRoot(virtClient, "Virtio-fs")
 				tests.CreateHostPathPv(pvc, filepath.Join(tests.HostPathBase, pvc))
 				tests.CreateHostPathPVC(pvc, "1G")
 			}, 120)
