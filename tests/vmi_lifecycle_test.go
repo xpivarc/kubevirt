@@ -179,6 +179,7 @@ var _ = Describe("[rfe_id:273][crit:high][vendor:cnv-qe@redhat.com][level:compon
 			Expect(pod.Annotations).To(HaveKey("kubernetes.io/test"), "kubernetes annotation should not be carried to the pod")
 		})
 
+		// TODO find logs
 		It("[test_id:1622]should log libvirtd logs", func() {
 			Skip("Not sure why this doesn't find `At least....`")
 			vmi, err := virtClient.VirtualMachineInstance(tests.NamespaceTestDefault).Create(vmi)

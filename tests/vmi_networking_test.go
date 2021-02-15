@@ -437,6 +437,7 @@ var _ = Describe("[Serial][rfe_id:694][crit:medium][vendor:cnv-qe@redhat.com][le
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		// TODO(lubo) Once the cap will be resolved or skip
 		It("[test_id:1775]should not request a tun device", func() {
 			By("Creating random VirtualMachineInstance")
 			autoAttach := false
