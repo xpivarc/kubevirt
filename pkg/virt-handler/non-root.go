@@ -2,8 +2,11 @@ package virthandler
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	v1 "kubevirt.io/client-go/api/v1"
 	diskutils "kubevirt.io/kubevirt/pkg/ephemeral-disk-utils"
@@ -68,4 +71,77 @@ func (d *VirtualMachineController) prepareStorage(vmiWithOnlyBlockPVCS, vmiWithA
 	}
 
 	return changeOwnershipOfBlockDevices(vmiWithOnlyBlockPVCS, res)
+}
+
+func (d *VirtualMachineController) prepareTap(vmi *v1.VirtualMachineInstance) error {
+	macvtap := map[string]bool{}
+	for _, inf := range vmi.Spec.Domain.Devices.Interfaces {
+		if inf.Macvtap != nil {
+			macvtap[inf.Name] = true
+		}
+	}
+
+	netDevices := []string{}
+	for _, net := range vmi.Spec.Networks {
+		_, ok := macvtap[net.Name]
+		if ok {
+			netDevices = append(netDevices, net.Multus.NetworkName)
+		}
+	}
+	res, err := d.podIsolationDetector.Detect(vmi)
+	if err != nil {
+		return err
+	}
+
+	for _, tap := range netDevices {
+		path := filepath.Join(res.MountRoot(), "sys", "class", "net", tap, "ifindex")
+		b, err := ioutil.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("Failed to read if index, %v", err)
+		}
+
+		index, err := strconv.Atoi(strings.TrimSpace(string(b)))
+		if err != nil {
+			return err
+		}
+
+		pathToTap := filepath.Join(res.MountRoot(), "dev", fmt.Sprintf("tap%d", index))
+
+		if err := diskutils.DefaultOwnershipManager.SetFileOwnership(pathToTap); err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
+
+func (d *VirtualMachineController) prepareHugePages(vmi *v1.VirtualMachineInstance) error {
+	if vmi.Spec.Domain.Memory == nil || vmi.Spec.Domain.Memory.Hugepages == nil {
+		return nil
+	}
+
+	res, err := d.podIsolationDetector.Detect(vmi)
+	if err != nil {
+		return err
+	}
+	hugepages := filepath.Join(res.MountRoot(), "dev", "hugepages")
+	if err := diskutils.DefaultOwnershipManager.SetFileOwnership(hugepages); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *VirtualMachineController) nonRootSetUp(origVMI, vmi *v1.VirtualMachineInstance) error {
+	if err := d.prepareStorage(vmi, origVMI); err != nil {
+		return err
+	}
+	if err := d.prepareTap(origVMI); err != nil {
+		return err
+	}
+
+	if err := d.prepareHugePages(origVMI); err != nil {
+		return err
+	}
+	return nil
 }
