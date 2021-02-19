@@ -38,6 +38,7 @@ import (
 	v1 "kubevirt.io/client-go/api/v1"
 	"kubevirt.io/client-go/log"
 	"kubevirt.io/client-go/precond"
+	"kubevirt.io/kubevirt/pkg/util"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/converter"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/network/cache"
@@ -481,7 +482,11 @@ func (b *BridgeBindMechanism) preparePodNetworkInterfaces() error {
 		return err
 	}
 
-	err := createAndBindTapToBridge(tapDeviceName, b.bridgeInterfaceName, b.queueCount, *b.launcherPID, int(b.vif.Mtu), libvirtUserAndGroupId)
+	tapUserAndGroupId := libvirtUserAndGroupId
+	if util.IsNonRootVMI(b.vmi) {
+		tapUserAndGroupId = strconv.FormatInt(util.NonRootUID, 10)
+	}
+	err := createAndBindTapToBridge(tapDeviceName, b.bridgeInterfaceName, b.queueCount, *b.launcherPID, int(b.vif.Mtu), tapUserAndGroupId)
 	if err != nil {
 		log.Log.Reason(err).Errorf("failed to create tap device named %s", tapDeviceName)
 		return err
@@ -820,7 +825,12 @@ func (b *MasqueradeBindMechanism) preparePodNetworkInterfaces() error {
 	}
 
 	tapDeviceName := generateTapDeviceName(b.podInterfaceName)
-	err = createAndBindTapToBridge(tapDeviceName, b.bridgeInterfaceName, b.queueCount, *b.launcherPID, int(b.vif.Mtu), libvirtUserAndGroupId)
+
+	tapUserAndGroupId := libvirtUserAndGroupId
+	if util.IsNonRootVMI(b.vmi) {
+		tapUserAndGroupId = strconv.FormatInt(util.NonRootUID, 10)
+	}
+	err = createAndBindTapToBridge(tapDeviceName, b.bridgeInterfaceName, b.queueCount, *b.launcherPID, int(b.vif.Mtu), tapUserAndGroupId)
 	if err != nil {
 		log.Log.Reason(err).Errorf("failed to create tap device named %s", tapDeviceName)
 		return err
