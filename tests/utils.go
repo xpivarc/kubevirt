@@ -772,6 +772,7 @@ func AdjustKubeVirtResource() {
 		virtconfig.HostDiskGate,
 		virtconfig.VirtIOFSGate,
 		virtconfig.HotplugVolumesGate,
+		virtconfig.NonRoot,
 	}
 	kv.Spec.Configuration.SELinuxLauncherType = "virt_launcher.process"
 
