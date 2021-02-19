@@ -33,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	netutils "k8s.io/utils/net"
 
+	"kubevirt.io/kubevirt/pkg/util"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/converter"
 
 	"github.com/coreos/go-iptables/iptables"
@@ -316,13 +317,20 @@ func getPhase2Binding(vmi *v1.VirtualMachineInstance, iface *v1.Interface, netwo
 		if mac != nil {
 			vif.MAC = *mac
 		}
+
+		tapOwner := "0"
+		if util.IsNonRootVMI(vmi) {
+			tapOwner = "107"
+		}
 		return &BridgeBindMechanism{iface: iface,
 			virtIface:           &api.Interface{},
 			vmi:                 vmi,
 			vif:                 vif,
 			domain:              domain,
 			podInterfaceName:    podInterfaceName,
-			bridgeInterfaceName: fmt.Sprintf("k6t-%s", podInterfaceName)}, nil
+			bridgeInterfaceName: fmt.Sprintf("k6t-%s", podInterfaceName),
+			tapOwner:            tapOwner,
+		}, nil
 	}
 	if iface.Masquerade != nil {
 		mac, err := retrieveMacAddress(iface)
@@ -333,6 +341,11 @@ func getPhase2Binding(vmi *v1.VirtualMachineInstance, iface *v1.Interface, netwo
 		if mac != nil {
 			vif.MAC = *mac
 		}
+
+		tapOwner := "0"
+		if util.IsNonRootVMI(vmi) {
+			tapOwner = "107"
+		}
 		return &MasqueradeBindMechanism{iface: iface,
 			virtIface:           &api.Interface{},
 			vmi:                 vmi,
@@ -341,7 +354,9 @@ func getPhase2Binding(vmi *v1.VirtualMachineInstance, iface *v1.Interface, netwo
 			podInterfaceName:    podInterfaceName,
 			vmNetworkCIDR:       network.Pod.VMNetworkCIDR,
 			vmIpv6NetworkCIDR:   "", // TODO add ipv6 cidr to PodNetwork schema
-			bridgeInterfaceName: fmt.Sprintf("k6t-%s", podInterfaceName)}, nil
+			bridgeInterfaceName: fmt.Sprintf("k6t-%s", podInterfaceName),
+			tapOwner:            tapOwner,
+		}, nil
 	}
 	if iface.Slirp != nil {
 		return &SlirpBindMechanism{vmi: vmi, iface: iface, domain: domain}, nil
@@ -376,6 +391,7 @@ type BridgeBindMechanism struct {
 	podInterfaceName    string
 	bridgeInterfaceName string
 	arpIgnore           bool
+	tapOwner            string
 }
 
 func (b *BridgeBindMechanism) discoverPodNetworkInterface() error {
@@ -483,7 +499,7 @@ func (b *BridgeBindMechanism) preparePodNetworkInterfaces(queueNumber uint32, la
 		return err
 	}
 
-	err := createAndBindTapToBridge(tapDeviceName, b.bridgeInterfaceName, queueNumber, launcherPID, int(b.vif.Mtu))
+	err := createAndBindTapToBridge(tapDeviceName, b.bridgeInterfaceName, queueNumber, launcherPID, int(b.vif.Mtu), b.tapOwner)
 	if err != nil {
 		log.Log.Reason(err).Errorf("failed to create tap device named %s", tapDeviceName)
 		return err
@@ -694,6 +710,7 @@ type MasqueradeBindMechanism struct {
 	vmIpv6NetworkCIDR   string
 	gatewayAddr         *netlink.Addr
 	gatewayIpv6Addr     *netlink.Addr
+	tapOwner            string
 }
 
 func (b *MasqueradeBindMechanism) discoverPodNetworkInterface() error {
@@ -812,7 +829,7 @@ func (b *MasqueradeBindMechanism) preparePodNetworkInterfaces(queueNumber uint32
 	}
 
 	tapDeviceName := generateTapDeviceName(b.podInterfaceName)
-	err = createAndBindTapToBridge(tapDeviceName, b.bridgeInterfaceName, queueNumber, launcherPID, int(b.vif.Mtu))
+	err = createAndBindTapToBridge(tapDeviceName, b.bridgeInterfaceName, queueNumber, launcherPID, int(b.vif.Mtu), b.tapOwner)
 	if err != nil {
 		log.Log.Reason(err).Errorf("failed to create tap device named %s", tapDeviceName)
 		return err
@@ -1306,8 +1323,8 @@ func (b *MacvtapBindMechanism) startDHCP(vmi *v1.VirtualMachineInstance) error {
 	return nil
 }
 
-func createAndBindTapToBridge(deviceName string, bridgeIfaceName string, queueNumber uint32, launcherPID int, mtu int) error {
-	err := Handler.CreateTapDevice(deviceName, queueNumber, launcherPID, mtu)
+func createAndBindTapToBridge(deviceName string, bridgeIfaceName string, queueNumber uint32, launcherPID int, mtu int, tapOwner string) error {
+	err := Handler.CreateTapDevice(deviceName, queueNumber, launcherPID, mtu, tapOwner)
 	if err != nil {
 		return err
 	}
