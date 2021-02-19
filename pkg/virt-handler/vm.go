@@ -2441,7 +2441,9 @@ func (d *VirtualMachineController) vmUpdateHelperMigrationTarget(origVMI *v1.Vir
 	}
 
 	if virtutil.IsNonRootVMI(vmi) {
-		d.prepareStorage(vmi, origVMI)
+		if err := d.nonRootSetup(origVMI, vmi); err != nil {
+			return err
+		}
 	}
 
 	if err := client.SyncMigrationTarget(vmi); err != nil {
@@ -2519,7 +2521,9 @@ func (d *VirtualMachineController) vmUpdateHelperDefault(origVMI *v1.VirtualMach
 
 		}
 		if virtutil.IsNonRootVMI(vmi) {
-			d.prepareStorage(vmi, origVMI)
+			if err := d.nonRootSetup(origVMI, vmi); err != nil {
+				return err
+			}
 		}
 
 		// set runtime limits as needed
