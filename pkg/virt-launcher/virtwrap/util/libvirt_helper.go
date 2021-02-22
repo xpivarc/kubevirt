@@ -432,12 +432,6 @@ func (l LibvirtWraper) SetupLibvirt() error {
 	if err != nil {
 		return err
 	}
-	if envVarValue, ok := os.LookupEnv("VIRTIOFSD_DEBUG_LOGS"); ok && (envVarValue == "1") {
-		_, err = qemuConf.WriteString("virtiofsd_debug = 1\n")
-		if err != nil {
-			return err
-		}
-	}
 
 	if envVarValue, ok := os.LookupEnv("LIBVIRT_DEBUG_LOGS"); ok && (envVarValue == "1") {
 		// see https://libvirt.org/kbase/debuglogs.html for details
