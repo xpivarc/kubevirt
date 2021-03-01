@@ -391,7 +391,7 @@ func main() {
 	// only single domain should be present
 	domainName := api.VMINamespaceKeyFunc(vmi)
 
-	l.StartVirtlog(stopChan, domainName)
+	// l.StartVirtlog(stopChan, domainName)
 
 	domainConn := createLibvirtConnection(*runWithNonRoot)
 	defer domainConn.Close()
