@@ -392,9 +392,9 @@ func main() {
 	domainName := api.VMINamespaceKeyFunc(vmi)
 
 	// Need to find where are the logs when we are running in session mod
-	if !*runWithNonRoot {
-		l.StartVirtlog(stopChan, domainName)
-	}
+	// if !*runWithNonRoot {
+	l.StartVirtlog(stopChan, domainName)
+	// }
 
 	domainConn := createLibvirtConnection(*runWithNonRoot)
 	defer domainConn.Close()
