@@ -393,6 +393,7 @@ func main() {
 
 	// Need to find where are the logs when we are running in session mod
 	// if !*runWithNonRoot {
+	fmt.Println("Start of virtlog")
 	l.StartVirtlog(stopChan, domainName)
 	// }
 
