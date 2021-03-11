@@ -271,6 +271,7 @@ func (l LibvirtWraper) StartLibvirt(stopChan chan struct{}) {
 func (l LibvirtWraper) StartVirtlog(stopChan chan struct{}, domainName string) {
 	go func() {
 		for {
+			time.Sleep(1 * time.Minute)
 			var args []string
 			args = append(args, "-f")
 			args = append(args, "/etc/libvirt/virtlogd.conf")
