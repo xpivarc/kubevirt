@@ -33,6 +33,7 @@ import (
 
 	v1 "kubevirt.io/client-go/api/v1"
 	"kubevirt.io/client-go/log"
+	"kubevirt.io/kubevirt/pkg/util"
 	webhookutils "kubevirt.io/kubevirt/pkg/util/webhooks"
 	"kubevirt.io/kubevirt/pkg/virt-api/webhooks"
 	virtconfig "kubevirt.io/kubevirt/pkg/virt-config"
@@ -63,7 +64,8 @@ func (mutator *VMIsMutator) Mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 	if ar.Request.Operation == v1beta1.Create {
 		informers := webhooks.GetInformers()
 
-		if mutator.ClusterConfig.NonRootEnabled() {
+		// VirtioFS doesn't work with session mode and we have bug with cpu pinning https://bugzilla.redhat.com/show_bug.cgi?id=1935039
+		if mutator.ClusterConfig.NonRootEnabled() && !util.IsVMIVirtiofsEnabled(newVMI) && !(newVMI.Spec.Domain.CPU != nil && newVMI.Spec.Domain.CPU.DedicatedCPUPlacement) {
 			if newVMI.ObjectMeta.Annotations == nil {
 				newVMI.ObjectMeta.Annotations = make(map[string]string)
 			}

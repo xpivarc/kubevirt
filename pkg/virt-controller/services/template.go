@@ -368,7 +368,8 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 
 	var userId int64 = 0
 	var privileged bool = false
-	nonRoot := t.clusterConfig.NonRootEnabled()
+
+	nonRoot := util.IsNonRootVMI(vmi)
 	if nonRoot {
 		userId = 107
 		volumeMounts = append(volumeMounts, k8sv1.VolumeMount{
