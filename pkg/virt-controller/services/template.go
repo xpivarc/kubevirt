@@ -1699,18 +1699,20 @@ func alignPodMultiCategorySecurity(pod *k8sv1.Pod, selinuxType string) {
 	for i := range pod.Spec.Containers {
 		container := &pod.Spec.Containers[i]
 		if container.Name != "compute" {
-			container.SecurityContext = generateContainerSecurityContext(selinuxType)
+			generateContainerSecurityContext(selinuxType, container)
 		}
 	}
 }
 
-func generateContainerSecurityContext(selinuxType string) *k8sv1.SecurityContext {
-	return &k8sv1.SecurityContext{
-		SELinuxOptions: &k8sv1.SELinuxOptions{
-			Type:  selinuxType,
-			Level: "s0",
-		},
+func generateContainerSecurityContext(selinuxType string, container *k8sv1.Container) {
+	if container.SecurityContext == nil {
+		container.SecurityContext = &k8sv1.SecurityContext{}
 	}
+	if container.SecurityContext.SELinuxOptions == nil {
+		container.SecurityContext.SELinuxOptions = &k8sv1.SELinuxOptions{}
+	}
+	container.SecurityContext.SELinuxOptions.Type = selinuxType
+	container.SecurityContext.SELinuxOptions.Level = "s0"
 }
 
 func generatePodAnnotations(vmi *v1.VirtualMachineInstance) (map[string]string, error) {
