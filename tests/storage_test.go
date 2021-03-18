@@ -779,6 +779,7 @@ var _ = Describe("Storage", func() {
 						By("Checking if a disk image for PVC has been created")
 						Expect(strings.Contains(output, "disk.img")).To(BeTrue())
 					}
+					Expect(true).To(BeFalse())
 				})
 			})
 

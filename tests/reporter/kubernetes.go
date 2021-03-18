@@ -101,6 +101,7 @@ func (r *KubernetesReporter) Dump(duration time.Duration) {
 	duration += 5 * time.Second
 	since := time.Now().Add(-duration)
 
+	r.docker(virtCli)
 	r.logClusterOverview()
 	r.logEvents(virtCli, since)
 	r.logNamespaces(virtCli)
@@ -270,6 +271,46 @@ func (r *KubernetesReporter) logDMESG(virtCli kubecli.KubevirtClient, since time
 				}
 			}
 		}()
+	}
+}
+
+func (r *KubernetesReporter) docker(virtCli kubecli.KubevirtClient) {
+	cmd := []string{"/usr/bin/virt-chroot", "--mount", "/proc/1/ns/mnt",
+		"exec", "--", "/usr/bin/bash", "-c", "/usr/bin/docker ps -q | xargs -I{} /usr/bin/docker inspect {}",
+		// "/usr/bin/docker", "ps", "-q", "--", "|",
+		// "xargs", "-I{}", "/usr/bin/docker", "inspect", "{}",
+	}
+
+	nodes := getNodesWithVirtLauncher(virtCli)
+	for _, node := range nodes {
+		func() {
+			fileName := fmt.Sprintf("%d_docker_%s.log", r.failureCount, node)
+			f, err := os.OpenFile(filepath.Join(r.artifactsDir, fileName),
+				os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to open the file %s: %v", fileName, err)
+				return
+			}
+			defer f.Close()
+
+			pod, err := kubecli.NewVirtHandlerClient(virtCli).Namespace(flags.KubeVirtInstallNamespace).ForNode(node).Pod()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to get virt-handler pod on node %s: %v", node, err)
+				return
+			}
+
+			stdout, stderr, err := tests.ExecuteCommandOnPodV2(virtCli, pod, "virt-handler", cmd)
+			if err != nil {
+				fmt.Fprintf(
+					os.Stderr,
+					"failed to execute command %s on node %s, stdout: %s, stderr: %s, error: %v",
+					cmd, node, stdout, stderr, err,
+				)
+				return
+			}
+			f.Write([]byte(stdout))
+		}()
+
 	}
 }
 

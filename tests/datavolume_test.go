@@ -130,6 +130,7 @@ var _ = Describe("[Serial][owner:@sig-storage]DataVolume Integration", func() {
 				}
 				err = virtClient.CdiClient().CdiV1alpha1().DataVolumes(dataVolume.Namespace).Delete(context.Background(), dataVolume.Name, metav1.DeleteOptions{})
 				Expect(err).To(BeNil())
+				Expect(true).To(Equal(false))
 			})
 
 			It("[test_id:5252]should be successfully started when using a PVC volume owned by a DataVolume", func() {
