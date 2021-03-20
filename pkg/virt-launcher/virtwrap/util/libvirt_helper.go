@@ -233,6 +233,11 @@ func (l LibvirtWraper) StartLibvirt(stopChan chan struct{}) {
 			exitChan := make(chan struct{})
 			args := []string{"-f", "/var/run/libvirt/libvirtd.conf"}
 			cmd := exec.Command("/usr/sbin/libvirtd", args...)
+			if l.user != 0 {
+				cmd.SysProcAttr = &syscall.SysProcAttr{
+					AmbientCaps: []uintptr{10},
+				}
+			}
 
 			// connect libvirt's stderr to our own stdout in order to see the logs in the container logs
 			reader, err := cmd.StderrPipe()

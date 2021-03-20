@@ -44,9 +44,9 @@ go_binary(
 
 genrule(
     name = "setcaps",
-    srcs = [":virt-launcher"],
+    srcs = ["//cmd/non-root"],
     outs = ["virt-launcher.tar.gz"],
-    cmd = "path=$$(readlink -f $(location virt-launcher)) && cp $$path virt-launcher-cap && setcap 'cap_net_admin+ep cap_net_bind_service+ep'  virt-launcher-cap && tar --xattrs -czvf virt-launcher.tar.gz virt-launcher-cap && mv virt-launcher.tar.gz $@",
+    cmd = "path=$$(readlink -f $(location //cmd/non-root:non-root)) && cp $$path virt-launcher-cap && setcap 'cap_net_bind_service+p'  virt-launcher-cap && tar --xattrs -czvf virt-launcher.tar.gz virt-launcher-cap && mv virt-launcher.tar.gz $@",
     visibility = ["//visibility:public"],
 )
 
