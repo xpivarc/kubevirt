@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["non-root.go"],
+    importpath = "kubevirt.io/kubevirt/cmd/non-root",
+    visibility = ["//visibility:private"],
+    deps = ["//staging/src/kubevirt.io/client-go/log:go_default_library"],
+)
+
+go_binary(
+    name = "non-root",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

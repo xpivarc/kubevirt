@@ -491,6 +491,9 @@ func main() {
 func forkAndMonitor(containerDiskDir string) (int, error) {
 	defer cleanupContainerDiskDirectory(containerDiskDir)
 	cmd := exec.Command(os.Args[0], append(os.Args[1:], "--no-fork", "true")...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		AmbientCaps: []uintptr{10},
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
