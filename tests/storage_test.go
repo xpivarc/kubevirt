@@ -772,7 +772,7 @@ var _ = Describe("Storage", func() {
 
 				// Not a candidate for NFS testing because multiple VMIs are started
 				// TODO implement ownershipmanager in handler
-				It("[test_id:868]Should initialize an empty PVC by creating a disk.img", func() {
+				PIt("[test_id:868]Should initialize an empty PVC by creating a disk.img", func() {
 					for _, pvc := range pvcs {
 						By("starting VirtualMachineInstance")
 						vmi = tests.NewRandomVMIWithPVC(fmt.Sprintf("disk-%s", pvc))
