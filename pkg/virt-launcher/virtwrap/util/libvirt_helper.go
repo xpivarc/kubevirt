@@ -366,7 +366,7 @@ func startQEMUSeaBiosLogging(stopChan chan struct{}) {
 		return
 	}
 
-	QEMUPipe, err := os.OpenFile(QEMUSeaBiosDebugPipe, os.O_RDONLY, 0600)
+	QEMUPipe, err := os.OpenFile(QEMUSeaBiosDebugPipe, os.O_RDONLY, 0604)
 
 	if err != nil {
 		log.Log.Reason(err).Error(fmt.Sprintf("%s failed to open %s", logLinePrefix, QEMUSeaBiosDebugPipe))
