@@ -340,7 +340,19 @@ var _ = Describe("[Serial][rfe_id:393][crit:high][vendor:cnv-qe@redhat.com][leve
 				continue
 			}
 			words := strings.Fields(str)
-			Expect(len(words)).To(Equal(5))
+
+			root := true
+			for _, container := range pod.Spec.Containers {
+				if container.Name == "compute" && *container.SecurityContext.RunAsUser == 107 {
+					root = false
+					break
+				}
+			}
+			if root {
+				Expect(len(words)).To(Equal(5))
+			} else {
+				Expect(len(words)).To(Equal(7))
+			}
 
 			// verify it is numeric
 			_, err = strconv.Atoi(words[0])

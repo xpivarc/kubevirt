@@ -30,6 +30,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
+        "//vendor/k8s.io/utils/pointer:go_default_library",
         "//vendor/libvirt.org/libvirt-go:go_default_library",
     ],
 )
@@ -42,6 +43,16 @@ go_binary(
     visibility = ["//visibility:public"],
     x_defs = version_x_defs(),
 )
+
+genrule(
+    name = "setcaps",
+    srcs = ["//cmd/non-root"],
+    outs = ["virt-launcher.tar.gz"],
+    cmd = "path=$$(readlink -f $(location //cmd/non-root:non-root)) && cp $$path virt-launcher-cap && setcap 'cap_net_bind_service+p'  virt-launcher-cap && tar --xattrs -czvf virt-launcher.tar.gz virt-launcher-cap && mv virt-launcher.tar.gz $@",
+    visibility = ["//visibility:public"],
+)
+
+
 
 load(
     "@io_bazel_rules_docker//container:container.bzl",
@@ -151,5 +162,6 @@ container_image(
         ":virt-launcher",
         "//cmd/container-disk-v2alpha:container-disk",
     ],
+    tars = [":setcaps"],
     visibility = ["//visibility:public"],
 )
