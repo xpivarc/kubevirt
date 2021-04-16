@@ -738,6 +738,9 @@ var _ = Describe("[Serial]SRIOV", func() {
 		}
 
 		It("should create virt-launcher pod with CAP_SYS_RESOURCE capability", func() {
+			if tests.HasFeature(virtconfig.NonRoot) {
+				Skip("NonRoot implementation don't need CAP_SYS_RESOURCE")
+			}
 			tests.EnableFeatureGate(virtconfig.SRIOVLiveMigrationGate)
 			defer tests.UpdateKubeVirtConfigValueAndWait(tests.KubeVirtDefaultConfig)
 

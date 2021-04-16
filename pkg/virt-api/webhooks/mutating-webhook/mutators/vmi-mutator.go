@@ -33,6 +33,7 @@ import (
 
 	v1 "kubevirt.io/client-go/api/v1"
 	"kubevirt.io/client-go/log"
+	"kubevirt.io/kubevirt/pkg/util"
 	webhookutils "kubevirt.io/kubevirt/pkg/util/webhooks"
 	"kubevirt.io/kubevirt/pkg/virt-api/webhooks"
 	virtconfig "kubevirt.io/kubevirt/pkg/virt-config"
@@ -62,6 +63,23 @@ func (mutator *VMIsMutator) Mutate(ar *admissionv1.AdmissionReview) *admissionv1
 	// Patch the spec with defaults if we deal with a create operation
 	if ar.Request.Operation == admissionv1.Create {
 		informers := webhooks.GetInformers()
+
+		// hugepages are temporarily not working with non-root implementation
+		// This need to sync the owneship change of /dev/hugepages with libvird startup
+		hugepages := false
+		if newVMI.Spec.Domain.Memory != nil && newVMI.Spec.Domain.Memory.Hugepages != nil {
+			hugepages = true
+
+		}
+		// VirtioFS doesn't work with session mode
+		if mutator.ClusterConfig.NonRootEnabled() {
+			if !util.IsVMIVirtiofsEnabled(newVMI) && !hugepages {
+				if newVMI.ObjectMeta.Annotations == nil {
+					newVMI.ObjectMeta.Annotations = make(map[string]string)
+				}
+				newVMI.ObjectMeta.Annotations["nonroot"] = ""
+			}
+		}
 
 		// Apply presets
 		err = applyPresets(newVMI, informers.VMIPresetInformer)

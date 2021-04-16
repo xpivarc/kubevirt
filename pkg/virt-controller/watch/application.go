@@ -304,10 +304,8 @@ func Execute() {
 	app.initWorkloadUpdaterController()
 	go app.Run()
 
-	select {
-	case <-app.reInitChan:
-		cancel()
-	}
+	<-app.reInitChan
+	cancel()
 }
 
 // Detects if a config has been applied that requires

@@ -923,4 +923,15 @@ var _ = Describe("VirtualMachineInstance Mutator", func() {
 			}),
 	)
 
+	It("Should tag vmi as non-root when feature gate is enabled", func() {
+		testutils.UpdateFakeClusterConfig(configMapInformer, &k8sv1.ConfigMap{
+			Data: map[string]string{
+				virtconfig.FeatureGatesKey: virtconfig.NonRoot,
+			},
+		})
+
+		_, meta := getVMISpecMetaFromResponse()
+		Expect(meta.Annotations).NotTo(BeNil())
+		Expect(meta.Annotations).To(HaveKeyWithValue("nonroot", ""))
+	})
 })
