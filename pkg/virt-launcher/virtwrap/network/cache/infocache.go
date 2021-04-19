@@ -123,7 +123,7 @@ func writeToCachedFile(obj interface{}, fileName string) error {
 		return fmt.Errorf("error marshaling cached object: %v", err)
 	}
 
-	err = ioutil.WriteFile(fileName, buf, 0600)
+	err = ioutil.WriteFile(fileName, buf, 0604)
 	if err != nil {
 		return fmt.Errorf("error writing cached object: %v", err)
 	}
