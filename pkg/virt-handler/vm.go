@@ -2240,7 +2240,7 @@ func (d *VirtualMachineController) handleTargetMigrationProxy(vmi *v1.VirtualMac
 		destSocketFile := migrationproxy.SourceUnixFile(baseDir, key)
 		migrationTargetSockets = append(migrationTargetSockets, destSocketFile)
 	}
-	err = d.migrationProxy.StartTargetListener(string(vmi.UID), migrationTargetSockets)
+	err = d.migrationProxy.StartTargetListener(string(vmi.UID), migrationTargetSockets, virtutil.IsNonRootVMI(vmi))
 	if err != nil {
 		return err
 	}
@@ -2275,6 +2275,7 @@ func (d *VirtualMachineController) handleSourceMigrationProxy(vmi *v1.VirtualMac
 		vmi.Status.MigrationState.TargetNodeAddress,
 		vmi.Status.MigrationState.TargetDirectMigrationNodePorts,
 		baseDir,
+		util.IsNonRootVMI(vmi),
 	)
 	if err != nil {
 		return err

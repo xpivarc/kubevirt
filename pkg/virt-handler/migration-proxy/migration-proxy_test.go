@@ -65,7 +65,7 @@ var _ = Describe("MigrationProxy", func() {
 
 				defer listener.Close()
 
-				sourceProxy := NewSourceProxy(sourceSock, "127.0.0.1:12345", tlsConfig, tlsConfig, "123")
+				sourceProxy := NewSourceProxy(sourceSock, "127.0.0.1:12345", tlsConfig, tlsConfig, "123", false)
 				defer sourceProxy.Stop()
 
 				err = sourceProxy.Start()
@@ -107,8 +107,8 @@ var _ = Describe("MigrationProxy", func() {
 
 				defer libvirtdListener.Close()
 
-				targetProxy := NewTargetProxy("0.0.0.0", 12345, tlsConfig, tlsConfig, libvirtdSock, "123")
-				sourceProxy := NewSourceProxy(sourceSock, "127.0.0.1:12345", tlsConfig, tlsConfig, "123")
+				targetProxy := NewTargetProxy("0.0.0.0", 12345, tlsConfig, tlsConfig, libvirtdSock, "123", false)
+				sourceProxy := NewSourceProxy(sourceSock, "127.0.0.1:12345", tlsConfig, tlsConfig, "123", false)
 				defer targetProxy.Stop()
 				defer sourceProxy.Stop()
 
@@ -153,9 +153,9 @@ var _ = Describe("MigrationProxy", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 
 				manager := NewMigrationProxyManager(tlsConfig, tlsConfig)
-				manager.StartTargetListener("mykey", []string{libvirtdSock, directSock})
+				manager.StartTargetListener("mykey", []string{libvirtdSock, directSock}, false)
 				destSrcPortMap := manager.GetTargetListenerPorts("mykey")
-				manager.StartSourceListener("mykey", "127.0.0.1", destSrcPortMap, tmpDir)
+				manager.StartSourceListener("mykey", "127.0.0.1", destSrcPortMap, tmpDir, false)
 
 				defer manager.StopTargetListener("myKey")
 				defer manager.StopSourceListener("myKey")
@@ -216,10 +216,10 @@ var _ = Describe("MigrationProxy", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 
 				manager := NewMigrationProxyManager(tlsConfig, tlsConfig)
-				err = manager.StartTargetListener(key1, []string{libvirtdSock, directSock})
+				err = manager.StartTargetListener(key1, []string{libvirtdSock, directSock}, false)
 				Expect(err).ShouldNot(HaveOccurred())
 				destSrcPortMap := manager.GetTargetListenerPorts(key1)
-				err = manager.StartSourceListener(key1, "127.0.0.1", destSrcPortMap, tmpDir)
+				err = manager.StartSourceListener(key1, "127.0.0.1", destSrcPortMap, tmpDir, false)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				defer manager.StopTargetListener(key1)
@@ -230,11 +230,11 @@ var _ = Describe("MigrationProxy", func() {
 				count := manager.OpenListenerCount()
 				Expect(count).To(Equal(2))
 
-				err = manager.StartTargetListener(key2, []string{libvirtdSock, directSock})
+				err = manager.StartTargetListener(key2, []string{libvirtdSock, directSock}, false)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).To(Equal("unable to process new migration connections during virt-handler shutdown"))
 
-				err = manager.StartSourceListener(key2, "127.0.0.1", destSrcPortMap, tmpDir)
+				err = manager.StartSourceListener(key2, "127.0.0.1", destSrcPortMap, tmpDir, false)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).To(Equal("unable to process new migration connections during virt-handler shutdown"))
 

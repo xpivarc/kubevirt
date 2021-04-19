@@ -27,6 +27,7 @@ import (
 	v1 "kubevirt.io/client-go/api/v1"
 	"kubevirt.io/client-go/log"
 	"kubevirt.io/kubevirt/pkg/hooks"
+	virtutil "kubevirt.io/kubevirt/pkg/util"
 	"kubevirt.io/kubevirt/pkg/util/net/ip"
 	migrationproxy "kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
@@ -100,7 +101,7 @@ func (l *LibvirtDomainManager) prepareMigrationTarget(vmi *v1.VirtualMachineInst
 		key := migrationproxy.ConstructProxyKey(string(vmi.UID), port)
 		curDirectAddress := net.JoinHostPort(loopbackAddress, strconv.Itoa(port))
 		unixSocketPath := migrationproxy.SourceUnixFile(l.virtShareDir, key)
-		migrationProxy := migrationproxy.NewSourceProxy(unixSocketPath, curDirectAddress, nil, nil, string(vmi.UID))
+		migrationProxy := migrationproxy.NewSourceProxy(unixSocketPath, curDirectAddress, nil, nil, string(vmi.UID), virtutil.IsNonRootVMI(vmi))
 
 		err := migrationProxy.Start()
 		if err != nil {

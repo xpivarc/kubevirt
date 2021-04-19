@@ -44,11 +44,11 @@ const (
 var migrationPortsRange = []int{LibvirtDirectMigrationPort, LibvirtBlockMigrationPort}
 
 type ProxyManager interface {
-	StartTargetListener(key string, targetUnixFiles []string) error
+	StartTargetListener(key string, targetUnixFiles []string, nonRootLibvird bool) error
 	GetTargetListenerPorts(key string) map[string]int
 	StopTargetListener(key string)
 
-	StartSourceListener(key string, targetAddress string, destSrcPortMap map[string]int, baseDir string) error
+	StartSourceListener(key string, targetAddress string, destSrcPortMap map[string]int, baseDir string, nonRootLibvird bool) error
 	GetSourceListenerFiles(key string) []string
 	StopSourceListener(key string)
 
@@ -86,7 +86,8 @@ type migrationProxy struct {
 	serverTLSConfig *tls.Config
 	clientTLSConfig *tls.Config
 
-	logger *log.FilteredLogger
+	logger          *log.FilteredLogger
+	nonRootLibvirtd bool
 }
 
 func (m *migrationProxyManager) InitiateGracefulShutdown() {
@@ -124,7 +125,7 @@ func SourceUnixFile(baseDir string, key string) string {
 	return filepath.Join(baseDir, "migrationproxy", key+"-source.sock")
 }
 
-func (m *migrationProxyManager) StartTargetListener(key string, targetUnixFiles []string) error {
+func (m *migrationProxyManager) StartTargetListener(key string, targetUnixFiles []string, nonRootLibvird bool) error {
 	m.managerLock.Lock()
 	defer m.managerLock.Unlock()
 
@@ -167,7 +168,7 @@ func (m *migrationProxyManager) StartTargetListener(key string, targetUnixFiles 
 	proxiesList := []*migrationProxy{}
 	for _, targetUnixFile := range targetUnixFiles {
 		// 0 means random port is used
-		proxy := NewTargetProxy(zeroAddress, 0, m.serverTLSConfig, m.clientTLSConfig, targetUnixFile, key)
+		proxy := NewTargetProxy(zeroAddress, 0, m.serverTLSConfig, m.clientTLSConfig, targetUnixFile, key, nonRootLibvird)
 
 		err := proxy.Start()
 		if err != nil {
@@ -247,7 +248,7 @@ func (m *migrationProxyManager) StopTargetListener(key string) {
 	}
 }
 
-func (m *migrationProxyManager) StartSourceListener(key string, targetAddress string, destSrcPortMap map[string]int, baseDir string) error {
+func (m *migrationProxyManager) StartSourceListener(key string, targetAddress string, destSrcPortMap map[string]int, baseDir string, nonRootLibvird bool) error {
 	m.managerLock.Lock()
 	defer m.managerLock.Unlock()
 
@@ -294,7 +295,7 @@ func (m *migrationProxyManager) StartSourceListener(key string, targetAddress st
 		filePath := SourceUnixFile(baseDir, proxyKey)
 
 		os.RemoveAll(filePath)
-		proxy := NewSourceProxy(filePath, targetFullAddr, m.serverTLSConfig, m.clientTLSConfig, key)
+		proxy := NewSourceProxy(filePath, targetFullAddr, m.serverTLSConfig, m.clientTLSConfig, key, nonRootLibvird)
 
 		err := proxy.Start()
 		if err != nil {
@@ -330,7 +331,7 @@ func (m *migrationProxyManager) StopSourceListener(key string) {
 // SRC POD ENV(migration unix socket) <-> HOST ENV (tcp client) <-----> HOST ENV (tcp server) <-> TARGET POD ENV (libvirtd unix socket)
 
 // Source proxy exposes a unix socket server and pipes to an outbound TCP connection.
-func NewSourceProxy(unixSocketPath string, tcpTargetAddress string, serverTLSConfig *tls.Config, clientTLSConfig *tls.Config, vmiUID string) *migrationProxy {
+func NewSourceProxy(unixSocketPath string, tcpTargetAddress string, serverTLSConfig *tls.Config, clientTLSConfig *tls.Config, vmiUID string, nonRootLibvirtd bool) *migrationProxy {
 	return &migrationProxy{
 		unixSocketPath:  unixSocketPath,
 		targetAddress:   tcpTargetAddress,
@@ -341,12 +342,12 @@ func NewSourceProxy(unixSocketPath string, tcpTargetAddress string, serverTLSCon
 		serverTLSConfig: serverTLSConfig,
 		clientTLSConfig: clientTLSConfig,
 		logger:          log.Log.CustomField("uid", vmiUID).CustomField("listening", filepath.Base(unixSocketPath)).CustomField("outbound", tcpTargetAddress),
+		nonRootLibvirtd: nonRootLibvirtd,
 	}
 }
 
 // Target proxy listens on a tcp socket and pipes to a libvirtd unix socket
-func NewTargetProxy(tcpBindAddress string, tcpBindPort int, serverTLSConfig *tls.Config, clientTLSConfig *tls.Config, libvirtdSocketPath string, vmiUID string) *migrationProxy {
-
+func NewTargetProxy(tcpBindAddress string, tcpBindPort int, serverTLSConfig *tls.Config, clientTLSConfig *tls.Config, libvirtdSocketPath string, vmiUID string, nonRoot bool) *migrationProxy {
 	return &migrationProxy{
 		tcpBindAddress:  tcpBindAddress,
 		tcpBindPort:     tcpBindPort,
@@ -358,6 +359,7 @@ func NewTargetProxy(tcpBindAddress string, tcpBindPort int, serverTLSConfig *tls
 		serverTLSConfig: serverTLSConfig,
 		clientTLSConfig: clientTLSConfig,
 		logger:          log.Log.CustomField("uid", vmiUID).CustomField("outbound", filepath.Base(libvirtdSocketPath)),
+		nonRootLibvirtd: nonRoot,
 	}
 
 }
@@ -404,9 +406,11 @@ func (m *migrationProxy) createUnixListener() error {
 		m.logger.Reason(err).Error("failed to create unix socket for proxy service")
 		return err
 	}
-	if err := diskutils.DefaultOwnershipManager.SetFileOwnership(m.unixSocketPath); err != nil {
-		log.Log.Reason(err).Error("failed to change ownership on migration unix socket")
-		return err
+	if m.nonRootLibvirtd {
+		if err := diskutils.DefaultOwnershipManager.SetFileOwnership(m.unixSocketPath); err != nil {
+			log.Log.Reason(err).Error("failed to change ownership on migration unix socket")
+			return err
+		}
 	}
 
 	m.listener = listener
