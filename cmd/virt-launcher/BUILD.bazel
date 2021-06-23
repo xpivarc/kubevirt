@@ -45,9 +45,9 @@ go_binary(
 
 genrule(
     name = "setcaps",
-    srcs = ["//cmd/non-root"],
+    srcs = [":virt-launcher"],
     outs = ["virt-launcher.tar.gz"],
-    cmd = "path=$$(readlink -f $(location //cmd/non-root:non-root)) && cp $$path virt-launcher-cap && setcap 'cap_net_bind_service+p'  virt-launcher-cap && tar --xattrs -czvf virt-launcher.tar.gz virt-launcher-cap && mv virt-launcher.tar.gz $@",
+    cmd = "path=$$(readlink -f $(location virt-launcher)) && cp $$path virt-launcher && setcap 'cap_net_bind_service+eip'  virt-launcher && tar --xattrs -czvf virt-launcher.tar.gz virt-launcher && mv virt-launcher.tar.gz $@",
     visibility = ["//visibility:public"],
 )
 
@@ -140,6 +140,7 @@ container_image(
             ":libvirt-config",
             ":passwd-tar",
             "//rpm:launcherbase_x86_64",
+            ":helper",
         ],
     }),
 )
@@ -159,6 +160,17 @@ container_image(
         "//cmd/container-disk-v2alpha:container-disk",
         "//cmd/virt-probe",
     ],
-    tars = [":setcaps"],
+    tars = [
+        ":setcaps",
+    ],
     visibility = ["//visibility:public"],
+)
+
+pkg_tar(
+    name = "helper",
+    srcs = [
+        ":helper.sh",
+    ],
+    mode = "0777",
+    package_dir = "/usr/bin",
 )

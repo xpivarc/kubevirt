@@ -28,6 +28,7 @@ import (
 	k8sv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"kubevirt.io/kubevirt/tests/framework/checks"
 	"kubevirt.io/kubevirt/tests/util"
 
 	v1 "kubevirt.io/client-go/api/v1"
@@ -238,7 +239,7 @@ var _ = Describe("[Serial][sig-compute]SecurityFeatures", func() {
 				}
 			}
 			caps := *container.SecurityContext.Capabilities
-			if tests.HasFeature(virtconfig.NonRoot) {
+			if checks.HasFeature(virtconfig.NonRoot) {
 				Expect(caps.Add).To(BeEmpty(), fmt.Sprintf("Found capabilities %s", caps.Add))
 			} else {
 				Expect(len(caps.Add)).To(Equal(1), fmt.Sprintf("Found capabilities %s, expecting SYS_NICE", caps.Add))

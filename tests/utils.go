@@ -784,6 +784,7 @@ func AdjustKubeVirtResource() {
 		virtconfig.HotplugVolumesGate,
 		virtconfig.DownwardMetricsFeatureGate,
 		virtconfig.NUMAFeatureGate,
+		virtconfig.NonRoot,
 	)
 	kv.Spec.Configuration.SELinuxLauncherType = "virt_launcher.process"
 
@@ -3385,7 +3386,7 @@ func BeforeAll(fn func()) {
 }
 
 func SkipIfNonRoot(virtClient kubecli.KubevirtClient, feature string) {
-	if HasFeature(virtconfig.NonRoot) {
+	if checks.HasFeature(virtconfig.NonRoot) {
 		Skip(fmt.Sprintf("NonRoot implementation doesn't support %s", feature))
 	}
 }
@@ -3958,7 +3959,7 @@ func CreateHostDiskImage(diskPath string) *k8sv1.Pod {
 	dir := filepath.Dir(diskPath)
 
 	command := fmt.Sprintf(`dd if=/dev/zero of=%s bs=1 count=0 seek=1G && ls -l %s`, diskPath, dir)
-	if HasFeature(virtconfig.NonRoot) {
+	if checks.HasFeature(virtconfig.NonRoot) {
 		command = command + fmt.Sprintf(" && chown 107:107 %s", diskPath)
 	}
 

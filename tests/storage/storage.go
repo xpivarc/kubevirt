@@ -751,7 +751,7 @@ var _ = SIGDescribe("Storage", func() {
 						Eventually(getStatus, 30, 1).Should(Equal(k8sv1.PodSucceeded))
 					})
 
-					It("[test_id:2306]Should use existing disk image and start", func() {
+					FIt("[test_id:2306]Should use existing disk image and start", func() {
 						By("Starting VirtualMachineInstance")
 						vmi = tests.NewRandomVMIWithHostDisk(diskPath, v1.HostDiskExists, nodeName)
 						tests.RunVMIAndExpectLaunch(vmi, 30)
@@ -806,7 +806,7 @@ var _ = SIGDescribe("Storage", func() {
 						hostpath := filepath.Join(tests.HostPathBase, pvc)
 						node = tests.CreateHostPathPv(pvc, hostpath)
 						tests.CreateHostPathPVC(pvc, "1G")
-						if tests.HasFeature(virtconfig.NonRoot) {
+						if checks.HasFeature(virtconfig.NonRoot) {
 							nodeSelector = map[string]string{"kubernetes.io/hostname": node}
 							By("changing permissions to qemu")
 							args := []string{fmt.Sprintf(`chown 107 %s`, hostpath)}

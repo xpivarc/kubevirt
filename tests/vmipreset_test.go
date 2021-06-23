@@ -34,6 +34,7 @@ import (
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 
+	"kubevirt.io/kubevirt/tests/framework/checks"
 	"kubevirt.io/kubevirt/tests/util"
 
 	v1 "kubevirt.io/client-go/api/v1"
@@ -376,7 +377,7 @@ var _ = Describe("[rfe_id:609][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Verifying VMI")
-			if tests.HasFeature(virtconfig.NonRoot) {
+			if checks.HasFeature(virtconfig.NonRoot) {
 				Expect(newVmi.Annotations).To(Equal(map[string]string{"kubevirt.io/nonroot": ""}))
 			} else {
 				Expect(newVmi.Annotations).To(BeNil())
