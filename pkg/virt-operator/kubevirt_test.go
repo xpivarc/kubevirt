@@ -82,9 +82,9 @@ const (
 
 	NAMESPACE = "kubevirt-test"
 
-	resourceCount = 57
+	resourceCount = 61
 	patchCount    = 38
-	updateCount   = 20
+	updateCount   = 24
 )
 
 type KubeVirtTestData struct {
@@ -1155,8 +1155,10 @@ func (k *KubeVirtTestData) addAllWithExclusionMap(config *util.KubeVirtDeploymen
 	// cr
 	all = append(all, components.NewPrometheusRuleCR(config.GetNamespace(), config.WorkloadUpdatesEnabled()))
 	// sccs
-	all = append(all, components.NewKubeVirtControllerSCC(NAMESPACE))
-	all = append(all, components.NewKubeVirtHandlerSCC(NAMESPACE))
+	sccs := components.GetAllSCC(NAMESPACE, true)
+	for i := range sccs {
+		all = append(all, sccs[i])
+	}
 	// services and deployments
 	all = append(all, components.NewOperatorWebhookService(NAMESPACE))
 	all = append(all, components.NewPrometheusService(NAMESPACE))
@@ -2176,7 +2178,7 @@ var _ = Describe("KubeVirt Operator", func() {
 			Expect(len(kvTestData.controller.stores.DaemonSetCache.List())).To(Equal(0))
 			Expect(len(kvTestData.controller.stores.ValidationWebhookCache.List())).To(Equal(3))
 			Expect(len(kvTestData.controller.stores.PodDisruptionBudgetCache.List())).To(Equal(1))
-			Expect(len(kvTestData.controller.stores.SCCCache.List())).To(Equal(3))
+			Expect(len(kvTestData.controller.stores.SCCCache.List())).To(Equal(7))
 			Expect(len(kvTestData.controller.stores.ServiceMonitorCache.List())).To(Equal(1))
 			Expect(len(kvTestData.controller.stores.PrometheusRuleCache.List())).To(Equal(1))
 
