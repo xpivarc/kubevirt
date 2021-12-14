@@ -35,6 +35,7 @@ import (
 
 	v1 "kubevirt.io/api/core/v1"
 	clientutil "kubevirt.io/client-go/util"
+	virtconfig "kubevirt.io/kubevirt/pkg/virt-config"
 )
 
 const (
@@ -67,6 +68,9 @@ const (
 
 	// lookup key in AdditionalProperties
 	AdditionalPropertiesMigrationNetwork = "MigrationNetwork"
+
+	// lookup key in AdditionalProperties
+	AdditionalPropertiesNoManagedSCC = "NoManagedSCC"
 
 	// account to use if one is not explicitly named
 	DefaultMonitorAccount = "prometheus-k8s"
@@ -157,6 +161,14 @@ func GetTargetConfigFromKV(kv *v1.KubeVirt) *KubeVirtDeploymentConfig {
 		kv.Spec.Configuration.MigrationConfiguration.Network != nil {
 		additionalProperties[AdditionalPropertiesMigrationNetwork] = *kv.Spec.Configuration.MigrationConfiguration.Network
 	}
+	if kv.Spec.Configuration.DeveloperConfiguration != nil {
+		for _, feature := range kv.Spec.Configuration.DeveloperConfiguration.FeatureGates {
+			if feature == virtconfig.NoManagedSCC {
+				additionalProperties[AdditionalPropertiesNoManagedSCC] = ""
+			}
+		}
+	}
+
 	// don't use status.target* here, as that is always set, but we need to know if it was set by the spec and with that
 	// overriding shasums from env vars
 	return getConfig(kv.Spec.ImageRegistry,
@@ -425,6 +437,11 @@ func (c *KubeVirtDeploymentConfig) GetMigrationNetwork() *string {
 	} else {
 		return nil
 	}
+}
+
+func (c *KubeVirtDeploymentConfig) NoManagedSCCEnabled() bool {
+	_, enabled := c.AdditionalProperties[AdditionalPropertiesNoManagedSCC]
+	return enabled
 }
 
 func (c *KubeVirtDeploymentConfig) GetMonitorNamespaces() []string {
