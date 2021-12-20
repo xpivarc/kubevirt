@@ -7,6 +7,12 @@ metadata:
   name: vmi-ephemeral
 spec:
   domain:
+    memory:
+      hugepages:
+        pageSize: "2Mi"
+    cpu:
+      cores: 2
+        # dedicatedCpuPlacement: true
     devices:
       disks:
       - disk:

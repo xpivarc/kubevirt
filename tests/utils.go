@@ -759,7 +759,7 @@ func AdjustKubeVirtResource() {
 		virtconfig.MacvtapGate,
 		virtconfig.ExpandDisksGate,
 	)
-	kv.Spec.Configuration.SELinuxLauncherType = "virt_launcher.process"
+	kv.Spec.Configuration.SELinuxLauncherType = "container_t"
 
 	if kv.Spec.Configuration.NetworkConfiguration == nil {
 		testDefaultPermitSlirpInterface := true

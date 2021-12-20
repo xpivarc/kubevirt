@@ -954,6 +954,18 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 			},
 		})
 
+		// fake it till you make it
+		volumeMounts = append(volumeMounts, k8sv1.VolumeMount{
+			Name:      "libvirt-hp",
+			MountPath: filepath.Join("/dev/hugepages/libvirt/qemu"),
+		})
+		volumes = append(volumes, k8sv1.Volume{
+			Name: "libvirt-hp",
+			VolumeSource: k8sv1.VolumeSource{
+				EmptyDir: &k8sv1.EmptyDirVolumeSource{},
+			},
+		})
+
 		reqMemDiff := resource.NewScaledQuantity(0, resource.Kilo)
 		limMemDiff := resource.NewScaledQuantity(0, resource.Kilo)
 		// In case the guest memory and the requested memeory are different, add the difference
@@ -1440,9 +1452,6 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 	}
 
 	if nonRoot {
-		if util.HasHugePages(vmi) {
-			pod.Spec.SecurityContext.FSGroup = &userId
-		}
 		pod.Spec.SecurityContext.RunAsGroup = &userId
 		pod.Spec.SecurityContext.RunAsNonRoot = &nonRoot
 	}
