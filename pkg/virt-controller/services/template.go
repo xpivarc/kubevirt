@@ -1808,12 +1808,11 @@ func haveSlirp(vmi *v1.VirtualMachineInstance) bool {
 
 func getRequiredCapabilities(vmi *v1.VirtualMachineInstance, config *virtconfig.ClusterConfig) []k8sv1.Capability {
 	if util.IsNonRootVMI(vmi) {
-		return []k8sv1.Capability{CAP_NET_BIND_SERVICE}
+		return []k8sv1.Capability{}
 	}
+
 	capabilities := []k8sv1.Capability{}
-	if requireDHCP(vmi) || haveSlirp(vmi) {
-		capabilities = append(capabilities, CAP_NET_BIND_SERVICE)
-	}
+
 	// add a CAP_SYS_NICE capability to allow setting cpu affinity
 	if vmi.Spec.Domain.CPU != nil && vmi.Spec.Domain.CPU.DedicatedCPUPlacement {
 		capabilities = append(capabilities, CAP_SYS_NICE)
