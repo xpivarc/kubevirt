@@ -174,6 +174,17 @@ func newControllerClusterRole() *rbacv1.ClusterRole {
 					"",
 				},
 				Resources: []string{
+					"serviceaccounts",
+				},
+				Verbs: []string{
+					"get",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
 					"persistentvolumeclaims",
 				},
 				Verbs: []string{

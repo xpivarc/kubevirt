@@ -277,7 +277,7 @@ var _ = Describe("[Serial][sig-operator] SCC", func() {
 			shouldFailToCreate(vmi)
 		},
 			table.Entry("with base SCC should fail", createSaAndSCC("kubevirt-base"), false),
-			table.FEntry("with cpu-pinning SCC should success", createSaAndSCC("kubevirt-cpu-pinning"), true),
+			table.Entry("with cpu-pinning SCC should success", createSaAndSCC("kubevirt-cpu-pinning"), true),
 			table.Entry("with cpu-pinning & host-disk SCC should success", createSaAndSCC("kubevirt-cpu-pinning-and-host-disk"), true),
 			table.Entry("with host-disk SCC should fail", createSaAndSCC("kubevirt-host-disk"), false),
 		)

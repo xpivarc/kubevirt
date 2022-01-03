@@ -545,8 +545,6 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 		},
 	})
 
-	serviceAccountName := ""
-
 	for _, volume := range vmi.Spec.Volumes {
 		if hotplugVolumes[volume.Name] {
 			continue
@@ -675,7 +673,28 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 		}
 
 		if volume.ServiceAccount != nil {
-			serviceAccountName = volume.ServiceAccount.ServiceAccountName
+			sa, err := t.virtClient.CoreV1().ServiceAccounts(vmi.Namespace).Get(context.TODO(), volume.ServiceAccount.ServiceAccountName, metav1.GetOptions{})
+			if err != nil {
+				return nil, err
+			}
+			if len(sa.Secrets) == 0 {
+				return nil, fmt.Errorf("There is no token to propagate")
+			}
+			secretName := sa.Secrets[0].Name
+
+			volumes = append(volumes, k8sv1.Volume{
+				Name: "service-account",
+				VolumeSource: k8sv1.VolumeSource{
+					Secret: &k8sv1.SecretVolumeSource{
+						SecretName: secretName,
+					},
+				},
+			})
+
+			volumeMounts = append(volumeMounts, k8sv1.VolumeMount{
+				Name:      "service-account",
+				MountPath: config.ServiceAccountDiskDir,
+			})
 		}
 
 		if volume.DownwardMetrics != nil {
@@ -1459,15 +1478,11 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 	enableServiceLinks := false
 	pod.Spec.EnableServiceLinks = &enableServiceLinks
 
-	if len(serviceAccountName) > 0 {
-		pod.Spec.ServiceAccountName = serviceAccountName
+	if vmi.Spec.ServiceAccountName != "" {
+		pod.Spec.ServiceAccountName = vmi.Spec.ServiceAccountName
 		automount := true
 		pod.Spec.AutomountServiceAccountToken = &automount
 	} else if istio.ProxyInjectionEnabled(vmi) {
-		automount := true
-		pod.Spec.AutomountServiceAccountToken = &automount
-	} else if vmi.Spec.ServiceAccountName != "" {
-		pod.Spec.ServiceAccountName = vmi.Spec.ServiceAccountName
 		automount := true
 		pod.Spec.AutomountServiceAccountToken = &automount
 	} else {

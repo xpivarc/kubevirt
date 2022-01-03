@@ -65,7 +65,8 @@ var (
 	// DownwardAPISourceDir represents a location where downwardapi is attached to the pod
 	DownwardAPISourceDir = mountBaseDir + "/downwardapi"
 	// ServiceAccountSourceDir represents the location where the ServiceAccount token is attached to the pod
-	ServiceAccountSourceDir = "/var/run/secrets/kubernetes.io/serviceaccount/"
+	// by Kubevirt
+	ServiceAccountSourceDir = mountBaseDir + "serviceaccount"
 
 	// ConfigMapDisksDir represents a path to ConfigMap iso images
 	ConfigMapDisksDir = mountBaseDir + "/config-map-disks"

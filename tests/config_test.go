@@ -267,7 +267,7 @@ var _ = Describe("[Serial][rfe_id:899][crit:medium][vendor:cnv-qe@redhat.com][le
 
 	})
 
-	Context("With a ServiceAccount defined", func() {
+	FContext("With a ServiceAccount defined", func() {
 
 		serviceAccountPath := config.ServiceAccountSourceDir
 
