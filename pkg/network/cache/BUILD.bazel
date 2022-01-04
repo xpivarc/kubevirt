@@ -9,7 +9,6 @@ go_library(
     importpath = "kubevirt.io/kubevirt/pkg/network/cache",
     visibility = ["//visibility:public"],
     deps = [
-        "//pkg/ephemeral-disk-utils:go_default_library",
         "//pkg/os/fs:go_default_library",
         "//pkg/util:go_default_library",
         "//pkg/virt-launcher/virtwrap/api:go_default_library",

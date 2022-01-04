@@ -19,7 +19,12 @@ func changeOwnershipOfBlockDevices(vmiWithOnlyBlockPVCs *v1.VirtualMachineInstan
 	for i := range vmiWithOnlyBlockPVCs.Spec.Volumes {
 		if volumeSource := &vmiWithOnlyBlockPVCs.Spec.Volumes[i].VolumeSource; volumeSource.PersistentVolumeClaim != nil {
 			devPath := filepath.Join(string(filepath.Separator), "dev", vmiWithOnlyBlockPVCs.Spec.Volumes[i].Name)
-			if err := diskutils.DefaultOwnershipManager.SetFileOwnership(filepath.Join(res.MountRoot(), devPath)); err != nil {
+
+			ownershipManager, err := ownerShipManagerFor(res.Pid())
+			if err != nil {
+				return err
+			}
+			if err := ownershipManager.SetFileOwnership(filepath.Join(res.MountRoot(), devPath)); err != nil {
 				return err
 			}
 		}
@@ -27,8 +32,12 @@ func changeOwnershipOfBlockDevices(vmiWithOnlyBlockPVCs *v1.VirtualMachineInstan
 	return nil
 }
 
-func changeOwnershipAndRelabel(path string) error {
-	err := diskutils.DefaultOwnershipManager.SetFileOwnership(path)
+func changeOwnershipAndRelabel(pid int, path string) error {
+	ownershipManager, err := ownerShipManagerFor(pid)
+	if err != nil {
+		return err
+	}
+	err = ownershipManager.SetFileOwnership(path)
 	if err != nil {
 		return err
 	}
@@ -55,7 +64,7 @@ func changeOwnershipOfHostDisks(vmiWithAllPVCs *v1.VirtualMachineInstance, res i
 			if err != nil {
 				if os.IsNotExist(err) {
 					diskDir := hostdisk.GetMountedHostDiskDir(volumeName)
-					if err := changeOwnershipAndRelabel(filepath.Join(res.MountRoot(), diskDir)); err != nil {
+					if err := changeOwnershipAndRelabel(res.Pid(), filepath.Join(res.MountRoot(), diskDir)); err != nil {
 						return fmt.Errorf("Failed to change ownership of HostDisk dir %s, %s", volumeName, err)
 					}
 					continue
@@ -63,7 +72,7 @@ func changeOwnershipOfHostDisks(vmiWithAllPVCs *v1.VirtualMachineInstance, res i
 				return fmt.Errorf("Failed to recognize if hostdisk contains image, %s", err)
 			}
 
-			err = changeOwnershipAndRelabel(filepath.Join(res.MountRoot(), diskPath))
+			err = changeOwnershipAndRelabel(res.Pid(), filepath.Join(res.MountRoot(), diskPath))
 			if err != nil {
 				return fmt.Errorf("Failed to change ownership of HostDisk image: %s", err)
 			}
@@ -114,7 +123,11 @@ func (d *VirtualMachineController) prepareTap(vmi *v1.VirtualMachineInstance, re
 
 		pathToTap := filepath.Join(res.MountRoot(), "dev", fmt.Sprintf("tap%d", index))
 
-		if err := diskutils.DefaultOwnershipManager.SetFileOwnership(pathToTap); err != nil {
+		ownershipManager, err := ownerShipManagerFor(res.Pid())
+		if err != nil {
+			return err
+		}
+		if err := ownershipManager.SetFileOwnership(pathToTap); err != nil {
 			return err
 		}
 	}
@@ -134,4 +147,12 @@ func (d *VirtualMachineController) nonRootSetup(origVMI, vmi *v1.VirtualMachineI
 		return err
 	}
 	return nil
+}
+
+func ownerShipManagerFor(pid int) (diskutils.OwnershipManagerInterface, error) {
+	uid, gid, err := diskutils.GetUidAndGidFor(pid)
+	if err != nil {
+		return nil, err
+	}
+	return diskutils.OwnerShipManagerFor(uid, gid), nil
 }

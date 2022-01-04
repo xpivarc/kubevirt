@@ -22,9 +22,8 @@ package cache
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
-
-	dutils "kubevirt.io/kubevirt/pkg/ephemeral-disk-utils"
 
 	v1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/kubevirt/pkg/os/fs"
@@ -171,7 +170,7 @@ func writeToCachedFile(fs fs.Fs, obj interface{}, fileName string) error {
 	if err != nil {
 		return fmt.Errorf("error writing cached object: %v", err)
 	}
-	return dutils.DefaultOwnershipManager.SetFileOwnership(fileName)
+	return os.Chmod(fileName, 0666)
 }
 
 func readFromCachedFile(fs fs.Fs, obj interface{}, fileName string) error {

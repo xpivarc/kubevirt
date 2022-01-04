@@ -377,7 +377,11 @@ func (d *VirtualMachineController) startDomainNotifyPipe(domainPipeStopChan chan
 	}
 
 	if util.IsNonRootVMI(vmi) {
-		err := diskutils.DefaultOwnershipManager.SetFileOwnership(socketPath)
+		ownershipManager, err := d.ownerShipManagerFor(vmi)
+		if err != nil {
+			return err
+		}
+		err = ownershipManager.SetFileOwnership(socketPath)
 		if err != nil {
 			log.Log.Reason(err).Error("unable to change ownership for domain notify")
 			return err
@@ -505,7 +509,11 @@ func (d *VirtualMachineController) setPodNetworkPhase1(vmi *v1.VirtualMachineIns
 
 	if virtutil.IsNonRootVMI(vmi) && virtutil.WantVirtioNetDevice(vmi) {
 		rootMount := res.MountRoot()
-		err := d.claimDeviceOwnership(rootMount, "vhost-net")
+		ownershipManager, err := d.ownerShipManagerFor(vmi)
+		if err != nil {
+			return err
+		}
+		err = d.claimDeviceOwnership(ownershipManager, rootMount, "vhost-net")
 		if err != nil {
 			return neterrors.CreateCriticalNetworkError(fmt.Errorf("failed to set up vhost-net device, %s", err))
 		}
@@ -2546,7 +2554,11 @@ func (d *VirtualMachineController) vmUpdateHelperMigrationTarget(origVMI *v1.Vir
 	}
 	virtLauncherRootMount := isolationRes.MountRoot()
 
-	err = d.claimDeviceOwnership(virtLauncherRootMount, "kvm")
+	ownershipManager, err := d.ownerShipManagerFor(vmi)
+	if err != nil {
+		return err
+	}
+	err = d.claimDeviceOwnership(ownershipManager, virtLauncherRootMount, "kvm")
 	if err != nil {
 		return fmt.Errorf("failed to set up file ownership for /dev/kvm: %v", err)
 	}
@@ -2555,7 +2567,7 @@ func (d *VirtualMachineController) vmUpdateHelperMigrationTarget(origVMI *v1.Vir
 	minimumPVCReserveBytes := d.clusterConfig.GetMinimumReservePVCBytes()
 
 	// initialize disks images for empty PVC
-	hostDiskCreator := hostdisk.NewHostDiskCreator(d.recorder, lessPVCSpaceToleration, minimumPVCReserveBytes, virtLauncherRootMount)
+	hostDiskCreator := hostdisk.NewHostDiskCreator(d.recorder, lessPVCSpaceToleration, minimumPVCReserveBytes, virtLauncherRootMount, ownershipManager)
 	err = hostDiskCreator.Create(vmi)
 	if err != nil {
 		return fmt.Errorf("preparing host-disks failed: %v", err)
@@ -2635,7 +2647,11 @@ func (d *VirtualMachineController) vmUpdateHelperDefault(origVMI *v1.VirtualMach
 		}
 		virtLauncherRootMount := isolationRes.MountRoot()
 
-		err = d.claimDeviceOwnership(virtLauncherRootMount, "kvm")
+		ownershipManager, err := d.ownerShipManagerFor(vmi)
+		if err != nil {
+			return err
+		}
+		err = d.claimDeviceOwnership(ownershipManager, virtLauncherRootMount, "kvm")
 		if err != nil {
 			return fmt.Errorf("failed to set up file ownership for /dev/kvm: %v", err)
 		}
@@ -2644,7 +2660,7 @@ func (d *VirtualMachineController) vmUpdateHelperDefault(origVMI *v1.VirtualMach
 		minimumPVCReserveBytes := d.clusterConfig.GetMinimumReservePVCBytes()
 
 		// initialize disks images for empty PVC
-		hostDiskCreator := hostdisk.NewHostDiskCreator(d.recorder, lessPVCSpaceToleration, minimumPVCReserveBytes, virtLauncherRootMount)
+		hostDiskCreator := hostdisk.NewHostDiskCreator(d.recorder, lessPVCSpaceToleration, minimumPVCReserveBytes, virtLauncherRootMount, ownershipManager)
 		err = hostDiskCreator.Create(vmi)
 		if err != nil {
 			return fmt.Errorf("preparing host-disks failed: %v", err)
@@ -2914,7 +2930,7 @@ func (d *VirtualMachineController) isHostModelMigratable(vmi *v1.VirtualMachineI
 	return nil
 }
 
-func (d *VirtualMachineController) claimDeviceOwnership(virtLauncherRootMount, deviceName string) error {
+func (d *VirtualMachineController) claimDeviceOwnership(ownershipManager diskutils.OwnershipManagerInterface, virtLauncherRootMount, deviceName string) error {
 	kvmPath := filepath.Join(virtLauncherRootMount, "dev", deviceName)
 
 	softwareEmulation, err := util.UseSoftwareEmulationForDevice(kvmPath, d.clusterConfig.AllowEmulation())
@@ -2922,7 +2938,22 @@ func (d *VirtualMachineController) claimDeviceOwnership(virtLauncherRootMount, d
 		return err
 	}
 
-	return diskutils.DefaultOwnershipManager.SetFileOwnership(kvmPath)
+	return ownershipManager.SetFileOwnership(kvmPath)
+}
+
+func (d *VirtualMachineController) ownerShipManagerFor(vmi *v1.VirtualMachineInstance) (diskutils.OwnershipManagerInterface, error) {
+	if !util.IsNonRootVMI(vmi) {
+		return diskutils.DefaultOwnershipManager, nil
+	}
+	res, err := d.podIsolationDetector.Detect(vmi)
+	if err != nil {
+		return nil, err
+	}
+	uid, gid, err := diskutils.GetUidAndGidFor(res.Pid())
+	if err != nil {
+		return nil, err
+	}
+	return diskutils.OwnerShipManagerFor(uid, gid), nil
 }
 
 func nodeHasHostModelLabel(node *k8sv1.Node) bool {

@@ -2,7 +2,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = ["utils.go"],
+    srcs = [
+        "ownershipmanager.go",
+        "utils.go",
+    ],
     importpath = "kubevirt.io/kubevirt/pkg/ephemeral-disk-utils",
     visibility = ["//visibility:public"],
     deps = ["//pkg/virt-launcher/virtwrap/api:go_default_library"],

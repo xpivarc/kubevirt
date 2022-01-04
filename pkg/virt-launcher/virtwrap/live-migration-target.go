@@ -22,12 +22,12 @@ package virtwrap
 import (
 	"fmt"
 	"net"
+	"os"
 	"path/filepath"
 	"strconv"
 
 	v1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/client-go/log"
-	diskutils "kubevirt.io/kubevirt/pkg/ephemeral-disk-utils"
 	cmdv1 "kubevirt.io/kubevirt/pkg/handler-launcher-com/cmd/v1"
 	"kubevirt.io/kubevirt/pkg/hooks"
 	"kubevirt.io/kubevirt/pkg/util"
@@ -109,7 +109,7 @@ func (l *LibvirtDomainManager) prepareMigrationTarget(
 			logger.Reason(err).Error("failed to create the migration sockets directory")
 			return err
 		}
-		if err := diskutils.DefaultOwnershipManager.SetFileOwnership(migrationSocketsPath); err != nil {
+		if err := os.Chmod(migrationSocketsPath, 0666); err != nil {
 			logger.Reason(err).Error("failed to change ownership on migration sockets directory")
 			return err
 		}

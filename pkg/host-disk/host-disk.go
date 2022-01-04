@@ -180,15 +180,17 @@ type DiskImgCreator struct {
 	lessPVCSpaceToleration int
 	minimumPVCReserveBytes uint64
 	mountRoot              string
+	ownerShipManager       ephemeraldiskutils.OwnershipManagerInterface
 }
 
-func NewHostDiskCreator(recorder record.EventRecorder, lessPVCSpaceToleration int, minimumPVCReserveBytes uint64, mountRoot string) DiskImgCreator {
+func NewHostDiskCreator(recorder record.EventRecorder, lessPVCSpaceToleration int, minimumPVCReserveBytes uint64, mountRoot string, ownerShipManager ephemeraldiskutils.OwnershipManagerInterface) DiskImgCreator {
 	return DiskImgCreator{
 		dirBytesAvailableFunc:  dirBytesAvailable,
 		recorder:               recorder,
 		lessPVCSpaceToleration: lessPVCSpaceToleration,
 		minimumPVCReserveBytes: minimumPVCReserveBytes,
 		mountRoot:              mountRoot,
+		ownerShipManager:       ownerShipManager,
 	}
 }
 
@@ -224,7 +226,7 @@ func (hdc *DiskImgCreator) mountHostDiskAndSetOwnership(vmi *v1.VirtualMachineIn
 		}
 	}
 	// Change file ownership to the qemu user.
-	if err := ephemeraldiskutils.DefaultOwnershipManager.SetFileOwnership(diskPath); err != nil {
+	if err := hdc.ownerShipManager.SetFileOwnership(diskPath); err != nil {
 		log.Log.Reason(err).Errorf("Couldn't set Ownership on %s: %v", diskPath, err)
 		return err
 	}
