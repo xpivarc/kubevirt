@@ -456,12 +456,14 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 	var volumeMounts []k8sv1.VolumeMount
 	var imagePullSecrets []k8sv1.LocalObjectReference
 
-	var userId int64 = util.RootUser
+	var uid int64 = util.RootUser
+	var userId *int64 = &uid
 	var privileged bool = false
 
 	nonRoot := util.IsNonRootVMI(vmi)
 	if nonRoot {
-		userId = util.NonRootUID
+		// uid = util.NonRootUID
+		userId = nil
 	}
 
 	volumeMounts = append(volumeMounts, k8sv1.VolumeMount{
@@ -1148,7 +1150,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 		Image:           t.launcherImage,
 		ImagePullPolicy: imagePullPolicy,
 		SecurityContext: &k8sv1.SecurityContext{
-			RunAsUser:  &userId,
+			RunAsUser:  userId,
 			Privileged: &privileged,
 			Capabilities: &k8sv1.Capabilities{
 				Add:  capabilities,
@@ -1162,7 +1164,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 		Ports:         ports,
 	}
 	if nonRoot {
-		compute.SecurityContext.RunAsGroup = &userId
+		compute.SecurityContext.RunAsGroup = userId
 		compute.SecurityContext.RunAsNonRoot = &nonRoot
 		compute.Env = append(compute.Env,
 			k8sv1.EnvVar{
@@ -1329,7 +1331,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 			Args:            requestedHookSidecar.Args,
 			Resources:       resources,
 			SecurityContext: &k8sv1.SecurityContext{
-				RunAsUser:  &userId,
+				RunAsUser:  userId,
 				Privileged: &privileged,
 			},
 			VolumeMounts: []k8sv1.VolumeMount{
@@ -1340,7 +1342,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 			},
 		}
 		if nonRoot {
-			sidecar.SecurityContext.RunAsGroup = &userId
+			sidecar.SecurityContext.RunAsGroup = userId
 			sidecar.SecurityContext.RunAsNonRoot = &nonRoot
 		}
 		containers = append(containers, sidecar)
@@ -1393,7 +1395,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 			Image:           t.launcherImage,
 			ImagePullPolicy: imagePullPolicy,
 			SecurityContext: &k8sv1.SecurityContext{
-				RunAsUser:  &userId,
+				RunAsUser:  userId,
 				Privileged: &privileged,
 			},
 			Command:      initContainerCommand,
@@ -1401,7 +1403,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 			Resources:    initContainerResources,
 		}
 		if nonRoot {
-			cpInitContainer.SecurityContext.RunAsGroup = &userId
+			cpInitContainer.SecurityContext.RunAsGroup = userId
 			cpInitContainer.SecurityContext.RunAsNonRoot = &nonRoot
 		}
 
@@ -1436,7 +1438,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 			Hostname:  hostName,
 			Subdomain: vmi.Spec.Subdomain,
 			SecurityContext: &k8sv1.PodSecurityContext{
-				RunAsUser: &userId,
+				RunAsUser: userId,
 			},
 			TerminationGracePeriodSeconds: &gracePeriodKillAfter,
 			RestartPolicy:                 k8sv1.RestartPolicyNever,
@@ -1452,7 +1454,7 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 	}
 
 	if nonRoot {
-		pod.Spec.SecurityContext.RunAsGroup = &userId
+		pod.Spec.SecurityContext.RunAsGroup = userId
 		pod.Spec.SecurityContext.RunAsNonRoot = &nonRoot
 	}
 
