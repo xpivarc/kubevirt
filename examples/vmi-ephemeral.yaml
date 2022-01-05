@@ -7,12 +7,6 @@ metadata:
   name: vmi-ephemeral
 spec:
   domain:
-    memory:
-      hugepages:
-        pageSize: "2Mi"
-    cpu:
-      cores: 2
-        # dedicatedCpuPlacement: true
     devices:
       disks:
       - disk:
@@ -24,5 +18,5 @@ spec:
   terminationGracePeriodSeconds: 0
   volumes:
   - containerDisk:
-      image: registry:5000/kubevirt/cirros-container-disk-demo:devel
+      image: quay.io/lpivarc/cirros-container-disk-demo:devel
     name: containerdisk

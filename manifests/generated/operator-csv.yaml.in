@@ -275,6 +275,10 @@ spec:
           resourceNames:
           - kubevirt-handler
           - kubevirt-controller
+          - kubevirt-base
+          - kubevirt-cpu-pinning
+          - kubevirt-host-disk
+          - kubevirt-cpu-pinning-and-host-disk
           resources:
           - securitycontextconstraints
           verbs:
@@ -533,6 +537,12 @@ spec:
           - list
           - create
           - delete
+        - apiGroups:
+          - ""
+          resources:
+          - serviceaccounts
+          verbs:
+          - get
         - apiGroups:
           - ""
           resources:

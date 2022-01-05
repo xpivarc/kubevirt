@@ -48,6 +48,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/config"
 	containerdisk "kubevirt.io/kubevirt/pkg/container-disk"
 	ephemeraldisk "kubevirt.io/kubevirt/pkg/ephemeral-disk"
+	diskutils "kubevirt.io/kubevirt/pkg/ephemeral-disk-utils"
 	"kubevirt.io/kubevirt/pkg/hooks"
 	hotplugdisk "kubevirt.io/kubevirt/pkg/hotplug-disk"
 	"kubevirt.io/kubevirt/pkg/ignition"
@@ -395,6 +396,9 @@ func main() {
 		panic(fmt.Errorf("Simulated virt-launcher crash"))
 	}
 
+	if runWithNonRoot != nil && *runWithNonRoot {
+		diskutils.MockDefaultOwnershipManager()
+	}
 	// Block until all requested hookSidecars are ready
 	hookManager := hooks.GetManager()
 	err := hookManager.Collect(*hookSidecars, *qemuTimeout)

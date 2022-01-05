@@ -311,7 +311,7 @@ func generateContainerFromVolume(vmi *v1.VirtualMachineInstance, imageIDs map[st
 	}
 
 	nonRoot := true
-	var userId int64 = util.NonRootUID
+	// var userId int64 = util.NonRootUID
 
 	container := &kubev1.Container{
 		Name:            name,
@@ -331,7 +331,7 @@ func generateContainerFromVolume(vmi *v1.VirtualMachineInstance, imageIDs map[st
 		},
 		Resources: resources,
 		SecurityContext: &kubev1.SecurityContext{
-			RunAsUser:    &userId,
+			RunAsUser:    nil,
 			RunAsNonRoot: &nonRoot,
 		},
 	}
