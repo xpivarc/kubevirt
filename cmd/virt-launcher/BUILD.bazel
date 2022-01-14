@@ -73,6 +73,7 @@ xattrs(
     capabilities = {
         "/usr/bin/virt-launcher": [
             "cap_net_bind_service",
+            # "cap_chown",
         ],
     },
     selinux_labels = {
