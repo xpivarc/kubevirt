@@ -1683,7 +1683,10 @@ var _ = Describe("[rfe_id:393][crit:high][vendor:cnv-qe@redhat.com][level:system
 
 			},
 				table.Entry("with simple VMI", func() *v1.VirtualMachineInstance {
-					return libvmi.NewAlpine()
+					return libvmi.NewAlpine(
+						libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
+						libvmi.WithNetwork(v1.DefaultPodNetwork()),
+					)
 				}, console.LoginToAlpine),
 
 				table.Entry("with DataVolume", func() *v1.VirtualMachineInstance {
