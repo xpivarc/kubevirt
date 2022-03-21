@@ -20,6 +20,8 @@
 package tests_test
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -27,6 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"kubevirt.io/kubevirt/tests/framework/matcher"
+	"kubevirt.io/kubevirt/tests/libvmi"
 	"kubevirt.io/kubevirt/tests/util"
 
 	v1 "kubevirt.io/api/core/v1"
@@ -44,11 +48,12 @@ var _ = Describe("[Serial][sig-compute]VMIDefaults", func() {
 	BeforeEach(func() {
 		virtClient, err = kubecli.GetKubevirtClient()
 		util.PanicOnError(err)
+
+		tests.BeforeTestCleanup()
 	})
 
 	Context("Disk defaults", func() {
 		BeforeEach(func() {
-			tests.BeforeTestCleanup()
 			// create VMI with missing disk target
 			vmi = tests.NewRandomVMI()
 			vmi.Spec = v1.VirtualMachineInstanceSpec{
@@ -97,7 +102,6 @@ var _ = Describe("[Serial][sig-compute]VMIDefaults", func() {
 		var kvConfiguration v1.KubeVirtConfiguration
 
 		BeforeEach(func() {
-			tests.BeforeTestCleanup()
 			// create VMI with missing disk target
 			vmi = tests.NewRandomVMI()
 
@@ -206,4 +210,35 @@ var _ = Describe("[Serial][sig-compute]VMIDefaults", func() {
 
 	})
 
+	Context("CPU allocation ratio", func() {
+
+		It("should work", func() {
+			By("Setting CPU allocation ratio to 4")
+			kv := util.GetCurrentKv(virtClient)
+			kv.Spec.Configuration.DeveloperConfiguration.CPUAllocationRatio = 4
+			tests.UpdateKubeVirtConfigValueAndWait(kv.Spec.Configuration)
+
+			withCPUCores := func(cores uint32) func(vmi *v1.VirtualMachineInstance) {
+				return func(vmi *v1.VirtualMachineInstance) {
+					vmi.Spec.Domain.CPU = &v1.CPU{
+						Cores:   cores,
+						Sockets: 1,
+						Threads: 1,
+					}
+				}
+			}
+
+			By("Creating a virtual machine with 12 cores")
+			vmi := libvmi.NewCirros(withCPUCores(12))
+			vmi, err = virtClient.VirtualMachineInstance(util.NamespaceTestDefault).Create(vmi)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Expecting to request 3 cores on virt-launcher")
+			Eventually(matcher.ThisVMI(vmi), 15*time.Second).Should(matcher.BeInPhase(v1.Scheduled))
+			launcher := tests.GetPodByVirtualMachineInstance(vmi)
+			cpu := launcher.Spec.Containers[0].Resources.Requests.Cpu()
+			Expect(*cpu).To(Equal(resource.MustParse("3")))
+		})
+
+	})
 })
