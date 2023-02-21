@@ -76,8 +76,8 @@ var (
 	DownwardAPIDisksDir = filepath.Join(mountBaseDir, "downwardapi-disks")
 	// DownwardMetricDisksDir represents a path to DownwardMetric block disk
 	DownwardMetricDisksDir = filepath.Join(mountBaseDir, "downwardmetric-disk")
-	// DownwardMetricDisks represents the disk location for the DownwardMetric disk
-	DownwardMetricDisk = filepath.Join(DownwardAPIDisksDir, "vhostmd0")
+	// DownwardMetricDisk represents the disk location for the DownwardMetric disk
+	DownwardMetricDisk = filepath.Join(DownwardMetricDisksDir, "vhostmd0")
 	// ServiceAccountDiskDir represents a path to the ServiceAccount iso image
 	ServiceAccountDiskDir = filepath.Join(mountBaseDir, "service-account-disk")
 	// ServiceAccountDiskName represents the name of the ServiceAccount iso image
