@@ -25,6 +25,7 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -42,6 +43,7 @@ import (
 	"github.com/Masterminds/semver"
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/google/go-github/v32/github"
+	expect "github.com/google/goexpect"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v12 "k8s.io/api/apps/v1"
@@ -71,6 +73,7 @@ import (
 	sdkapi "kubevirt.io/controller-lifecycle-operator-sdk/api"
 
 	"kubevirt.io/kubevirt/pkg/controller"
+	"kubevirt.io/kubevirt/pkg/downwardmetrics/vhostmd/api"
 	virtconfig "kubevirt.io/kubevirt/pkg/virt-config"
 	"kubevirt.io/kubevirt/pkg/virt-operator/resource/apply"
 	"kubevirt.io/kubevirt/pkg/virt-operator/resource/generate/components"
@@ -1747,6 +1750,40 @@ spec:
 				}, 180*time.Second, 1*time.Second).Should(BeTrue())
 			}
 
+			getDownwardMetrics := func(vmi *v1.VirtualMachineInstance) (*api.Metrics, error) {
+				res, err := console.SafeExpectBatchWithResponse(vmi, []expect.Batcher{
+					&expect.BSnd{S: `sudo vm-dump-metrics 2> /dev/null` + "\n"},
+					&expect.BExp{R: `(?s)(<metrics>.+</metrics>)`},
+				}, 5)
+				if err != nil {
+					return nil, err
+				}
+				metricsStr := res[0].Match[2]
+				metrics := &api.Metrics{}
+				Expect(xml.Unmarshal([]byte(metricsStr), metrics)).To(Succeed())
+				return metrics, nil
+			}
+
+			getTimeFromMetrics := func(metrics *api.Metrics) int {
+
+				for _, m := range metrics.Metrics {
+					if m.Name == "Time" {
+						val, err := strconv.Atoi(m.Value)
+						Expect(err).ToNot(HaveOccurred())
+						return val
+					}
+				}
+				Fail("no Time in metrics XML")
+				return -1
+			}
+
+			//Lets create VM with downward metrics
+			opts := libvmi.WithMasqueradeNetworking()
+			downwardMetricsVMI := libvmi.NewFedora(opts...)
+			downwardMetricsVMI.Namespace = util2.NamespaceTestDefault
+			tests.AddDownwardMetricsVolume(downwardMetricsVMI, "vhostmd")
+			migratableVMIs = append(migratableVMIs, downwardMetricsVMI)
+
 			By("Starting multiple migratable VMIs before performing update")
 			startAllVMIs(migratableVMIs)
 
@@ -1907,6 +1944,18 @@ spec:
 			By("Verifying all migratable vmi workloads are updated via live migration")
 			verifyVMIsUpdated(migratableVMIs, launcherSha)
 
+			{
+				// Ensure it is working properly after update
+				metrics, err := getDownwardMetrics(downwardMetricsVMI)
+				Expect(err).ToNot(HaveOccurred())
+				timestamp := getTimeFromMetrics(metrics)
+				Eventually(func() int {
+					metrics, err = getDownwardMetrics(downwardMetricsVMI)
+					Expect(err).ToNot(HaveOccurred())
+					return getTimeFromMetrics(metrics)
+				}, 10*time.Second, 1*time.Second).ShouldNot(Equal(timestamp))
+			}
+
 			if len(migratableVMIs) > 0 {
 				By("Verifying that a once migrated VMI after an update can be migrated again")
 				vmi := migratableVMIs[0]
@@ -1921,7 +1970,7 @@ spec:
 			By("Deleting KubeVirt object")
 			deleteAllKvAndWait(false)
 		},
-			Entry("by patching KubeVirt CR", false),
+			FEntry("by patching KubeVirt CR", false),
 			Entry("by updating virt-operator", true),
 		)
 	})
