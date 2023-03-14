@@ -17497,6 +17497,15 @@
      }
     }
    },
+   "v1.MemoryStatus": {
+    "type": "object",
+    "properties": {
+     "guest": {
+      "description": "Guest allows to specifying the amount of memory which is visible inside the Guest OS. The Guest must lie between Requests and Limits from the resources section. Defaults to the requested memory in the resources section if not specified.",
+      "$ref": "#/definitions/k8s.io.apimachinery.pkg.api.resource.Quantity"
+     }
+    }
+   },
    "v1.MigrateOptions": {
     "description": "MigrateOptions may be provided on migrate request.",
     "type": "object",
@@ -19432,6 +19441,10 @@
      "launcherContainerImageVersion": {
       "description": "LauncherContainerImageVersion indicates what container image is currently active for the vmi.",
       "type": "string"
+     },
+     "memory": {
+      "description": "Reflects the memory available for guest",
+      "$ref": "#/definitions/v1.MemoryStatus"
      },
      "migrationMethod": {
       "description": "Represents the method using which the vmi can be migrated: live migration or block migration",

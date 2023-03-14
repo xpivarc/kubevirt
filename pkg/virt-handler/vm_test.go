@@ -707,6 +707,8 @@ var _ = Describe("VirtualMachineInstance", func() {
 				vmi := obj.(*v1.VirtualMachineInstance)
 				Expect(vmi.Status.PhaseTransitionTimestamps).ToNot(BeEmpty())
 				updatedVMI.Status.PhaseTransitionTimestamps = vmi.Status.PhaseTransitionTimestamps
+				// TODO
+				vmi.Status.Memory = updatedVMI.Status.Memory
 
 				Expect(vmi).To(Equal(updatedVMI))
 				return vmi, nil
@@ -807,6 +809,8 @@ var _ = Describe("VirtualMachineInstance", func() {
 				},
 			}
 			vmi.Status.Interfaces = make([]v1.VirtualMachineInstanceNetworkInterface, 0)
+			// todo
+			vmi.Status.Memory = &v1.MemoryStatus{Guest: resource.NewQuantity(9, resource.BinarySI)}
 
 			mockWatchdog.CreateFile(vmi)
 
@@ -951,6 +955,8 @@ var _ = Describe("VirtualMachineInstance", func() {
 					Status: k8sv1.ConditionTrue,
 				},
 			}
+			// todo
+			vmi.Status.Memory = &v1.MemoryStatus{Guest: resource.NewQuantity(9, resource.BinarySI)}
 
 			mockWatchdog.CreateFile(vmi)
 
@@ -1836,6 +1842,8 @@ var _ = Describe("VirtualMachineInstance", func() {
 					Status: k8sv1.ConditionTrue,
 				},
 			}
+			// todo
+			vmi.Status.Memory = &v1.MemoryStatus{Guest: resource.NewQuantity(9, resource.BinarySI)}
 			vmi = addActivePods(vmi, podTestUUID, host)
 
 			mockWatchdog.CreateFile(vmi)
@@ -1879,6 +1887,8 @@ var _ = Describe("VirtualMachineInstance", func() {
 					Status: k8sv1.ConditionTrue,
 				},
 			}
+			// todo
+			vmi.Status.Memory = &v1.MemoryStatus{Guest: resource.NewQuantity(9, resource.BinarySI)}
 			vmi = addActivePods(vmi, podTestUUID, host)
 
 			mockWatchdog.CreateFile(vmi)

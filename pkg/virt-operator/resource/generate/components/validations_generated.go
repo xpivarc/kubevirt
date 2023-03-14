@@ -11001,6 +11001,20 @@ var CRDsValidation map[string]string = map[string]string{
           description: LauncherContainerImageVersion indicates what container image
             is currently active for the vmi.
           type: string
+        memory:
+          description: Reflects the memory available for guest
+          properties:
+            guest:
+              anyOf:
+              - type: integer
+              - type: string
+              description: Guest allows to specifying the amount of memory which is
+                visible inside the Guest OS. The Guest must lie between Requests and
+                Limits from the resources section. Defaults to the requested memory
+                in the resources section if not specified.
+              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+              x-kubernetes-int-or-string: true
+          type: object
         migrationMethod:
           description: 'Represents the method using which the vmi can be migrated:
             live migration or block migration'
