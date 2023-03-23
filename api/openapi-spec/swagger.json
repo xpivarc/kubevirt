@@ -11487,6 +11487,63 @@
      }
     ]
    },
+   "/apis/subresources.kubevirt.io/v1/namespaces/{namespace:[a-z0-9][a-z0-9\\-]*}/virtualmachineinstances/{name:[a-z0-9][a-z0-9\\-]*}/hotplugmemory": {
+    "put": {
+     "description": "Hotplug memory to a running Virtual Machine Instance.",
+     "operationId": "v1vmi-hotplugmemory",
+     "parameters": [
+      {
+       "name": "body",
+       "in": "body",
+       "required": true,
+       "schema": {
+        "$ref": "#/definitions/v1.MemoryHotplugOption"
+       }
+      }
+     ],
+     "responses": {
+      "200": {
+       "description": "OK",
+       "schema": {
+        "type": "string"
+       }
+      },
+      "400": {
+       "description": "Bad Request",
+       "schema": {
+        "type": "string"
+       }
+      },
+      "401": {
+       "description": "Unauthorized"
+      },
+      "500": {
+       "description": "Internal Server Error",
+       "schema": {
+        "type": "string"
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "Name of the resource",
+      "name": "name",
+      "in": "path",
+      "required": true
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "Object name and auth scope, such as for teams and projects",
+      "name": "namespace",
+      "in": "path",
+      "required": true
+     }
+    ]
+   },
    "/apis/subresources.kubevirt.io/v1/namespaces/{namespace:[a-z0-9][a-z0-9\\-]*}/virtualmachineinstances/{name:[a-z0-9][a-z0-9\\-]*}/pause": {
     "put": {
      "description": "Pause a VirtualMachineInstance object.",
@@ -13000,6 +13057,63 @@
       },
       "401": {
        "description": "Unauthorized"
+      }
+     }
+    },
+    "parameters": [
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "Name of the resource",
+      "name": "name",
+      "in": "path",
+      "required": true
+     },
+     {
+      "uniqueItems": true,
+      "type": "string",
+      "description": "Object name and auth scope, such as for teams and projects",
+      "name": "namespace",
+      "in": "path",
+      "required": true
+     }
+    ]
+   },
+   "/apis/subresources.kubevirt.io/v1alpha3/namespaces/{namespace:[a-z0-9][a-z0-9\\-]*}/virtualmachineinstances/{name:[a-z0-9][a-z0-9\\-]*}/hotplugmemory": {
+    "put": {
+     "description": "Hotplug memory to a running Virtual Machine Instance.",
+     "operationId": "v1alpha3vmi-hotplugmemory",
+     "parameters": [
+      {
+       "name": "body",
+       "in": "body",
+       "required": true,
+       "schema": {
+        "$ref": "#/definitions/v1.MemoryHotplugOption"
+       }
+      }
+     ],
+     "responses": {
+      "200": {
+       "description": "OK",
+       "schema": {
+        "type": "string"
+       }
+      },
+      "400": {
+       "description": "Bad Request",
+       "schema": {
+        "type": "string"
+       }
+      },
+      "401": {
+       "description": "Unauthorized"
+      },
+      "500": {
+       "description": "Internal Server Error",
+       "schema": {
+        "type": "string"
+       }
       }
      }
     },
@@ -17494,6 +17608,16 @@
      "readOnly": {
       "description": "Will force the ReadOnly setting in VolumeMounts. Default false.",
       "type": "boolean"
+     }
+    }
+   },
+   "v1.MemoryHotplugOption": {
+    "description": "MemoryHotplugOption is used to request memory hotplug",
+    "type": "object",
+    "properties": {
+     "guest": {
+      "description": "Guest specifies what should be the new guest's memory",
+      "$ref": "#/definitions/k8s.io.apimachinery.pkg.api.resource.Quantity"
      }
     }
    },

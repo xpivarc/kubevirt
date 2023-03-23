@@ -525,6 +525,16 @@ func (app *virtAPIApp) composeSubresources() {
 			Returns(http.StatusOK, "OK", "").
 			Returns(http.StatusBadRequest, httpStatusBadRequestMessage, ""))
 
+		subws.Route(subws.PUT(definitions.NamespacedResourcePath(subresourcesvmiGVR)+definitions.SubResourcePath("hotplugmemory")).
+			To(subresourceApp.MemoryHotplugVMIRequestHandler).
+			Reads(v1.MemoryHotplugOption{}).
+			Param(definitions.NamespaceParam(subws)).Param(definitions.NameParam(subws)).
+			Operation(version.Version+"vmi-hotplugmemory").
+			Doc("Hotplug memory to a running Virtual Machine Instance.").
+			Returns(http.StatusOK, "OK", "").
+			Returns(http.StatusInternalServerError, httpStatusInternalServerError, "").
+			Returns(http.StatusBadRequest, httpStatusBadRequestMessage, ""))
+
 		// Return empty api resource list.
 		// K8s expects to be able to retrieve a resource list for each aggregated
 		// app in order to discover what resources it provides. Without returning

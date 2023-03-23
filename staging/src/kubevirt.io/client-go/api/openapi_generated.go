@@ -403,6 +403,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubevirt.io/api/core/v1.MediatedHostDevice":                                                 schema_kubevirtio_api_core_v1_MediatedHostDevice(ref),
 		"kubevirt.io/api/core/v1.Memory":                                                             schema_kubevirtio_api_core_v1_Memory(ref),
 		"kubevirt.io/api/core/v1.MemoryDumpVolumeSource":                                             schema_kubevirtio_api_core_v1_MemoryDumpVolumeSource(ref),
+		"kubevirt.io/api/core/v1.MemoryHotplugOption":                                                schema_kubevirtio_api_core_v1_MemoryHotplugOption(ref),
 		"kubevirt.io/api/core/v1.MemoryStatus":                                                       schema_kubevirtio_api_core_v1_MemoryStatus(ref),
 		"kubevirt.io/api/core/v1.MigrateOptions":                                                     schema_kubevirtio_api_core_v1_MigrateOptions(ref),
 		"kubevirt.io/api/core/v1.MigrationConfiguration":                                             schema_kubevirtio_api_core_v1_MigrationConfiguration(ref),
@@ -18492,6 +18493,27 @@ func schema_kubevirtio_api_core_v1_MemoryDumpVolumeSource(ref common.ReferenceCa
 				Required: []string{"claimName"},
 			},
 		},
+	}
+}
+
+func schema_kubevirtio_api_core_v1_MemoryHotplugOption(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "MemoryHotplugOption is used to request memory hotplug",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"guest": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Guest specifies what should be the new guest's memory",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 

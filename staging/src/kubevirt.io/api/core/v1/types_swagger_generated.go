@@ -87,6 +87,13 @@ func (MemoryStatus) SwaggerDoc() map[string]string {
 	}
 }
 
+func (MemoryHotplugOption) SwaggerDoc() map[string]string {
+	return map[string]string{
+		"":      "MemoryHotplugOption is used to request memory hotplug",
+		"guest": "Guest specifies what should be the new guest's memory",
+	}
+}
+
 func (PersistentVolumeClaimInfo) SwaggerDoc() map[string]string {
 	return map[string]string{
 		"":                   "PersistentVolumeClaimInfo contains the relavant information virt-handler needs cached about a PVC",

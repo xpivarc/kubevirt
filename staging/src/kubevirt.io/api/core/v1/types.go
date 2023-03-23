@@ -283,6 +283,12 @@ type MemoryStatus struct {
 	Guest *resource.Quantity `json:"guest,omitempty"`
 }
 
+// MemoryHotplugOption is used to request memory hotplug
+type MemoryHotplugOption struct {
+	// Guest specifies what should be the new guest's memory
+	Guest resource.Quantity `json:"guest,omitempty"`
+}
+
 // PersistentVolumeClaimInfo contains the relavant information virt-handler needs cached about a PVC
 type PersistentVolumeClaimInfo struct {
 	// AccessModes contains the desired access modes the volume should have.

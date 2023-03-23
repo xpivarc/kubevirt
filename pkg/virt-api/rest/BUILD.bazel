@@ -9,6 +9,7 @@ go_library(
         "expand.go",
         "generated_mock_authorizer.go",
         "interfacehotplug.go",
+        "memoryhotplugsubresource.go",
         "portforward.go",
         "profiler.go",
         "streamer.go",
