@@ -1214,6 +1214,10 @@ func (c *VMIController) sync(vmi *virtv1.VirtualMachineInstance, pod *k8sv1.Pod,
 				}
 			}
 		}
+		if isPodReady(pod) {
+			// insert Pod hotplug logic - in-place or migration based
+			// once Pod is prepared update requestedGuest to indicate virt-launcher can hotplug memory.
+		}
 	}
 	return nil
 }

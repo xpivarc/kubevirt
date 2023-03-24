@@ -1265,6 +1265,10 @@ func (d *VirtualMachineController) updateVMIStatus(origVMI *v1.VirtualMachineIns
 		if vmi.Status.Memory.Guest == nil || vmi.Status.Memory.Guest != observedMemory {
 			vmi.Status.Memory.Guest = observedMemory
 		}
+
+		if vmi.Status.Memory.RequestedGuest == nil {
+			vmi.Status.Memory.RequestedGuest = observedMemory
+		}
 	}
 
 	// Handle sync error
