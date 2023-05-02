@@ -39,6 +39,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/errors"
 
 	"kubevirt.io/kubevirt/pkg/virt-controller/watch/topology"
+	"kubevirt.io/kubevirt/pkg/virt-handler/device-manager/usb"
 	"kubevirt.io/kubevirt/pkg/virt-handler/selinux"
 	"kubevirt.io/kubevirt/pkg/virtiofs"
 
@@ -193,6 +194,7 @@ func NewController(
 	migrationProxy migrationproxy.ProxyManager,
 	capabilities *nodelabellerapi.Capabilities,
 	hostCpuModel string,
+	nodeConfigInformer cache.SharedIndexInformer,
 ) *VirtualMachineController {
 
 	queue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "virt-handler-vm")
@@ -273,6 +275,10 @@ func NewController(
 		device_manager.PermanentHostDevicePlugins(maxDevices, permissions),
 		clusterConfig,
 		clientset.CoreV1())
+
+	nodeConfigqueue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "virt-handler-nodeconfig")
+	c.usbManager = usb.NewUSBManager(nodeConfigInformer, nodeConfigqueue)
+
 	c.heartBeat = heartbeat.NewHeartBeat(clientset.CoreV1(), c.deviceManagerController, clusterConfig, host)
 
 	return c
@@ -294,6 +300,7 @@ type VirtualMachineController struct {
 	heartBeatInterval        time.Duration
 	watchdogTimeoutSeconds   int
 	deviceManagerController  *device_manager.DeviceController
+	usbManager               usb.USBManager
 	migrationProxy           migrationproxy.ProxyManager
 	podIsolationDetector     isolation.PodIsolationDetector
 	containerDiskMounter     container_disk.Mounter

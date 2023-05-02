@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"kubevirt.io/api/snapshot"
+	"kubevirt.io/api/usb/v1alpha1"
 
 	"kubevirt.io/api/clone"
 	clonev1alpha1 "kubevirt.io/api/clone/v1alpha1"
@@ -298,6 +299,8 @@ type KubeInformerFactory interface {
 	Pod() cache.SharedIndexInformer
 
 	K8SInformerFactory() informers.SharedInformerFactory
+
+	NodeConfig() cache.SharedIndexInformer
 }
 
 type kubeInformerFactory struct {
@@ -1268,6 +1271,13 @@ func (f *kubeInformerFactory) Pod() cache.SharedIndexInformer {
 	return f.getInformer("podInformer", func() cache.SharedIndexInformer {
 		lw := cache.NewListWatchFromClient(f.clientSet.CoreV1().RESTClient(), "pods", k8sv1.NamespaceAll, fields.Everything())
 		return cache.NewSharedIndexInformer(lw, &k8sv1.Pod{}, f.defaultResync, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
+	})
+}
+
+func (f *kubeInformerFactory) NodeConfig() cache.SharedIndexInformer {
+	return f.getInformer("nodeConfigInformer", func() cache.SharedIndexInformer {
+		lw := cache.NewListWatchFromClient(f.clientSet.CoreV1().RESTClient(), "nodeConfigs", k8sv1.NamespaceAll, fields.Everything())
+		return cache.NewSharedIndexInformer(lw, &v1alpha1.NodeConfig{}, f.defaultResync, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
 	})
 }
 

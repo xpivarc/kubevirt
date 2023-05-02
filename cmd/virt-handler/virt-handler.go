@@ -261,6 +261,7 @@ func (app *virtHandlerApp) Run() {
 
 	vmiSourceInformer := factory.VMISourceHost(app.HostOverride)
 	vmiTargetInformer := factory.VMITargetHost(app.HostOverride)
+	nodeConfigInformer := factory.NodeConfig()
 
 	// Wire Domain controller
 	domainSharedInformer, err := virtcache.NewSharedInformer(app.VirtShareDir, int(app.WatchdogTimeoutDuration.Seconds()), recorder, vmiSourceInformer.GetStore(), time.Duration(app.domainResyncPeriodSeconds)*time.Second)
@@ -377,6 +378,7 @@ func (app *virtHandlerApp) Run() {
 		migrationProxy,
 		capabilities,
 		hostCpuModel,
+		nodeConfigInformer,
 	)
 
 	promErrCh := make(chan error)

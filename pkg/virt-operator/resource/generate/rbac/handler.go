@@ -156,6 +156,19 @@ func newHandlerClusterRole() *rbacv1.ClusterRole {
 					"get", "list", "watch",
 				},
 			},
+			{
+				APIGroups: []string{
+					"usb.kubevirt.io",
+				},
+				Resources: []string{
+					"nodeconfigs",
+				},
+				Verbs: []string{
+					"get",
+					"list",
+					"watch",
+				},
+			},
 		},
 	}
 }
