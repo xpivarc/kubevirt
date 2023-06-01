@@ -1,0 +1,10 @@
+apiVersion: usb.kubevirt.io/v1alpha1
+kind: NodeConfig
+metadata:
+  name: test
+  namespace: default
+spec:
+  usb:
+    resourceName: kubevirt.io/webcam
+    usbHostDevices:
+      - usbVendorSelector: 145f:019f
