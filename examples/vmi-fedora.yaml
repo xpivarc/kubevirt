@@ -15,6 +15,11 @@ spec:
       - disk:
           bus: virtio
         name: cloudinitdisk
+      clientPassthrough: {}
+      hostDevices:
+        - deviceName: kubevirt.io/webcam
+          name: my-webcam
+
       rng: {}
     resources:
       requests:
