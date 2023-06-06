@@ -3518,6 +3518,58 @@ var CRDsValidation map[string]string = map[string]string{
   - spec
   type: object
 `,
+	"nodeconfig": `openAPIV3Schema:
+  description: NodeConfig represents a subset of Node resources that we want to expose
+    to virtual machines.
+  properties:
+    apiVersion:
+      description: 'APIVersion defines the versioned schema of this representation
+        of an object. Servers should convert recognized schemas to the latest internal
+        value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+      type: string
+    kind:
+      description: 'Kind is a string value representing the REST resource this object
+        represents. Servers may infer this from the endpoint the client submits requests
+        to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+      type: string
+    metadata:
+      type: object
+    spec:
+      properties:
+        usb:
+          properties:
+            resourceName:
+              description: TODO
+              type: string
+            usbHostDevices:
+              items:
+                properties:
+                  usbVendorSelector:
+                    description: 'This is the selector for the USB device. To identify
+                      a USB device in a node, the minimum necessary is its vendor:product
+                      information. As we could have multiple devices with the same
+                      vendor:product information, a few other optional informations
+                      can be used to select the device, by using either serial number
+                      or specifying device''s Bus and Device Number: Minimal example:
+                      "0951:1666" TODO: With serial number: "0951:1666,serial=E0D55E6CBD23E691583A004D"
+                      With bus and device number: "0951:1666,bus=2,device=4"'
+                    type: string
+                required:
+                - usbVendorSelector
+                type: object
+              type: array
+              x-kubernetes-list-type: atomic
+          required:
+          - resourceName
+          type: object
+      type: object
+    status:
+      description: TODO
+      type: object
+  required:
+  - spec
+  type: object
+`,
 	"virtualmachine": `openAPIV3Schema:
   description: VirtualMachine handles the VirtualMachines that are not running or
     are in a stopped state The VirtualMachine contains the template to create the
