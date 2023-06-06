@@ -46,6 +46,5 @@ type NodeConfigStatus struct{}
 type NodeConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	// +listType=atomic
-	Items []NodeConfig `json:"items"`
+	Items           []NodeConfig `json:"items"`
 }
