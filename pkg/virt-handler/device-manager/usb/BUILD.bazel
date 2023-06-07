@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/controller:go_default_library",
+        "//pkg/safepath:go_default_library",
         "//pkg/util:go_default_library",
         "//pkg/virt-handler/device-manager:go_default_library",
         "//pkg/virt-handler/device-manager/deviceplugin/v1beta1:go_default_library",

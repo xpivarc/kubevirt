@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"kubevirt.io/client-go/log"
 
+	"kubevirt.io/kubevirt/pkg/safepath"
 	"kubevirt.io/kubevirt/pkg/util"
 	device_manager "kubevirt.io/kubevirt/pkg/virt-handler/device-manager"
 	devicepluginapi "kubevirt.io/kubevirt/pkg/virt-handler/device-manager/deviceplugin/v1beta1"
@@ -188,6 +189,17 @@ func (plugin *usbDevicePlugin) Allocate(_ context.Context, allocRequest *devicep
 			}
 			if path == "/" {
 				log.Log.V(5).Infof("usb disappeared: %s", id)
+				continue
+			}
+
+			spath, err := safepath.JoinAndResolveWithRelativeRoot(path)
+			if err != nil {
+				return nil, fmt.Errorf("error opening the socket %s: %v", path, err)
+			}
+
+			err = safepath.ChownAtNoFollow(spath, util.NonRootUID, util.NonRootUID)
+			if err != nil {
+				return nil, fmt.Errorf("error setting the permission the socket %s: %v", path, err)
 			}
 
 			containerResponse := &devicepluginapi.ContainerAllocateResponse{
