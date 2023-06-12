@@ -15,11 +15,6 @@ spec:
       - disk:
           bus: virtio
         name: cloudinitdisk
-      clientPassthrough: {}
-      hostDevices:
-        - deviceName: kubevirt.io/storage
-          name: qemu-storage
-
       rng: {}
     resources:
       requests:

@@ -685,6 +685,22 @@ rpm(
 )
 
 rpm(
+    name = "coreutils-0__8.32-34.el9.x86_64",
+    sha256 = "b9154b4318aad0f472cf2b678f536440dd1b76a97cff233ff22bf6b99bfd8324",
+    urls = [
+        "http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/coreutils-8.32-34.el9.x86_64.rpm",
+    ],
+)
+
+rpm(
+    name = "coreutils-common-0__8.32-34.el9.x86_64",
+    sha256 = "1f43fe705fba7d1aed1d427f31759959eaab26220cfa2eaa4d5f12485cbecbd5",
+    urls = [
+        "http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/coreutils-common-8.32-34.el9.x86_64.rpm",
+    ],
+)
+
+rpm(
     name = "coreutils-single-0__8.32-34.el9.aarch64",
     sha256 = "9ab931a79d42f2cf38ef98283603792abbef8c99d7cc112e04c69d0a66fb074c",
     urls = [
@@ -1410,18 +1426,18 @@ rpm(
 )
 
 rpm(
-    name = "glibc-langpack-lzh-0__2.34-68.el9.x86_64",
-    sha256 = "e59431f9f8a3aa58930be3ba88e0c91537769efa3e0625d2bf771e49d45acb07",
+    name = "glibc-langpack-csb-0__2.34-68.el9.x86_64",
+    sha256 = "5c7c4d5400ba45eb7cfe5ad4f635b91c49795f4a9113caf2297d9fa6d3f5dfbf",
     urls = [
-        "http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/glibc-langpack-lzh-2.34-68.el9.x86_64.rpm",
+        "http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/glibc-langpack-csb-2.34-68.el9.x86_64.rpm",
     ],
 )
 
 rpm(
-    name = "glibc-langpack-ti-0__2.34-68.el9.aarch64",
-    sha256 = "fd1f81b69d1563bc3468d72cdb9d11d98286532a698f3b7ac917b2e41fb84424",
+    name = "glibc-langpack-tg-0__2.34-68.el9.aarch64",
+    sha256 = "b46cc5b57865c80f2f2993e450dfd641b89caab3bf4d123c36ad5970671005f9",
     urls = [
-        "http://mirror.stream.centos.org/9-stream/BaseOS/aarch64/os/Packages/glibc-langpack-ti-2.34-68.el9.aarch64.rpm",
+        "http://mirror.stream.centos.org/9-stream/BaseOS/aarch64/os/Packages/glibc-langpack-tg-2.34-68.el9.aarch64.rpm",
     ],
 )
 

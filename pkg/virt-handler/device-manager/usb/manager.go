@@ -24,6 +24,7 @@ type USBManagerInterface interface {
 type USBManager struct {
 	nodeConfigInformer cache.SharedIndexInformer
 	queue              workqueue.RateLimitingInterface
+	discoveryFunc      func() []*usbDevice
 	handlers           map[string]pluginHandler
 	handlersLock       sync.Mutex
 }
@@ -41,11 +42,13 @@ type usbDeviceSelector struct {
 	product      int
 }
 
-func NewUSBManager(nodeConfigInformer cache.SharedIndexInformer, queue workqueue.RateLimitingInterface) *USBManager {
+func NewUSBManager(nodeConfigInformer cache.SharedIndexInformer) *USBManager {
+	queue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "virt-handler-nodeconfig")
 	manager := &USBManager{
 		nodeConfigInformer: nodeConfigInformer,
 		queue:              queue,
 		handlers:           make(map[string]pluginHandler),
+		discoveryFunc:      discoverUSBDevices,
 	}
 	nodeConfigInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    manager.addFunc,
@@ -98,7 +101,7 @@ func (manager *USBManager) execute(key string) error {
 		return fmt.Errorf("failed to get object for key %s, %v", key, err)
 	}
 
-	if !exists {
+	if !exists || obj == nil {
 		// TODO clean old conf?
 		return nil
 	}
@@ -107,13 +110,7 @@ func (manager *USBManager) execute(key string) error {
 	return manager.syncDevicePlugin(nodeConfig)
 }
 
-func (manager *USBManager) syncDevicePlugin(nodeConfig *v1alpha1.NodeConfig) error {
-	// Sanity check
-	if nodeConfig == nil || len(nodeConfig.Spec.USB) == 0 {
-		log.Log.V(5).Infof("No USB devices")
-		return nil
-	}
-
+func constructPermittedUSBDevicesMap(nodeConfig *v1alpha1.NodeConfig) map[int][]usbDeviceSelector {
 	// Iterate over requested USB Devices and map it vendor:product
 	permittedUSBDevices := make(map[int][]usbDeviceSelector)
 	for indexUsbType, usbType := range nodeConfig.Spec.USB {
@@ -151,13 +148,45 @@ func (manager *USBManager) syncDevicePlugin(nodeConfig *v1alpha1.NodeConfig) err
 				})
 		}
 	}
+	return permittedUSBDevices
+}
 
-	localDevicesFound := manager.discoverPermittedUSBDevices(permittedUSBDevices)
+func (manager *USBManager) syncDevicePlugin(nodeConfig *v1alpha1.NodeConfig) error {
+	log.Log.Infof("%s sync", nodeConfig.Name)
+
+	// Sanity check
+	if nodeConfig == nil || len(nodeConfig.Spec.USB) == 0 {
+		log.Log.V(5).Infof("No USB devices")
+		return nil
+	}
+	localDevicesFound := manager.discoveryFunc()
 	if len(localDevicesFound) == 0 {
 		log.Log.V(5).Info("No USB devices found in this node")
 		return nil
 	}
 
+	permittedDevicesPerVendor := constructPermittedUSBDevicesMap(nodeConfig)
+
+	devicesToExport := map[string][]*usbDevice{}
+	for _, device := range localDevicesFound {
+		permittedDevices, vendorMatched := permittedDevicesPerVendor[device.Vendor]
+		if !vendorMatched {
+			continue
+		}
+		for _, permpermittedDevice := range permittedDevices {
+			if permpermittedDevice.product != device.Product {
+				continue
+			}
+
+			resourceName := permpermittedDevice.resourceName
+
+			_, ok := devicesToExport[resourceName]
+			if !ok {
+				devicesToExport[resourceName] = []*usbDevice{}
+			}
+			devicesToExport[resourceName] = append(devicesToExport[resourceName], device)
+		}
+	}
 	// TODO here we need to start the device plugin for each
 	// resource we want to expose (e.g webcam, weathercam, termostat) with
 	// usb device nodes that corresponds to the resource
@@ -171,7 +200,7 @@ func (manager *USBManager) syncDevicePlugin(nodeConfig *v1alpha1.NodeConfig) err
 	// if yes - is it in sync? did we remove or added devices by modifying the selecotr
 	// if not - create new plugin
 
-	for resourceName, devices := range localDevicesFound {
+	for resourceName, devices := range devicesToExport {
 		manager.startPlugin(NewUSBDevicePlugin(resourceName, devices))
 	}
 	return nil
@@ -183,8 +212,11 @@ func (manager *USBManager) startPlugin(plugin Plugin) {
 	manager.handlersLock.Lock()
 	defer manager.handlersLock.Unlock()
 	if _, ok := manager.handlers[plugin.Name()]; ok {
+		log.Log.V(9).Infof("USB pluggin %s is already started", plugin.Name())
 		return
 	}
+
+	log.Log.Infof("USB pluggin %s starting", plugin.Name())
 
 	handler := pluginHandler{
 		stopChan: make(chan struct{}),
@@ -197,6 +229,7 @@ func (manager *USBManager) startPlugin(plugin Plugin) {
 		for {
 			err := plugin.Start(handler.stopChan)
 			if err == nil {
+				handler.started = true
 				logger.Reason(err).Infof("Started %s USB pluggin.", plugin.Name())
 				return
 			}
@@ -220,8 +253,6 @@ func (manager *USBManager) startPlugin(plugin Plugin) {
 			}
 		}
 	}()
-
-	handler.started = true
 	manager.handlers[plugin.Name()] = handler
 }
 
@@ -281,8 +312,8 @@ func parseSysUeventFile(path string) *usbDevice {
 	return &u
 }
 
-func (manager *USBManager) discoverPermittedUSBDevices(permittedUSBDevices map[int][]usbDeviceSelector) map[string][]*usbDevice {
-	usbDevices := make(map[string][]*usbDevice, 0)
+func discoverUSBDevices() []*usbDevice {
+	usbDevices := make([]*usbDevice, 0)
 	err := filepath.Walk("/sys/bus/usb/devices", func(path string, info os.FileInfo, err error) error {
 		// Ignore named usb controllers
 		if strings.HasPrefix(info.Name(), "usb") {
@@ -298,20 +329,9 @@ func (manager *USBManager) discoverPermittedUSBDevices(permittedUSBDevices map[i
 		if device == nil {
 			return nil
 		}
+		usbDevices = append(usbDevices, device)
 
 		// FIXME: Check if device is available ?
-
-		permitted, ok := permittedUSBDevices[device.Vendor]
-		if !ok {
-			return nil
-		}
-
-		for _, selector := range permitted {
-			if device.Product == selector.product {
-				usbDevices[selector.resourceName] = append(usbDevices[selector.resourceName], device)
-				return nil
-			}
-		}
 		return nil
 	})
 

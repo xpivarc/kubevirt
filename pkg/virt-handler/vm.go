@@ -287,8 +287,7 @@ func NewController(
 		clusterConfig,
 		clientset.CoreV1())
 
-	nodeConfigqueue := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "virt-handler-nodeconfig")
-	c.usbManager = usb.NewUSBManager(nodeConfigInformer, nodeConfigqueue)
+	c.usbManager = usb.NewUSBManager(nodeConfigInformer)
 
 	c.heartBeat = heartbeat.NewHeartBeat(clientset.CoreV1(), c.deviceManagerController, clusterConfig, host)
 
