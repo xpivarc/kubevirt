@@ -4265,6 +4265,14 @@ rpm(
 )
 
 rpm(
+    name = "qemu-kvm-device-usb-host-17__7.2.0-14.el9.x86_64",
+    sha256 = "2d7b8ca480f3f55ea6704e51037a23652935d69dfdc121606b7b8d98d2b68b38",
+    urls = [
+        "http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/qemu-kvm-device-usb-host-7.2.0-14.el9.x86_64.rpm",
+    ],
+)
+
+rpm(
     name = "qemu-kvm-device-usb-redirect-17__7.2.0-14.el9.x86_64",
     sha256 = "b4072028518f3af376f578b49ecb1e8cc3f1104ad6749f818009728bf6f526ee",
     urls = [

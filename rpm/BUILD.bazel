@@ -781,6 +781,7 @@ rpmtree(
         "@qemu-img-17__7.2.0-14.el9.x86_64//rpm",
         "@qemu-kvm-common-17__7.2.0-14.el9.x86_64//rpm",
         "@qemu-kvm-core-17__7.2.0-14.el9.x86_64//rpm",
+        "@qemu-kvm-device-usb-host-17__7.2.0-14.el9.x86_64//rpm",
         "@qemu-kvm-device-usb-redirect-17__7.2.0-14.el9.x86_64//rpm",
         "@readline-0__8.1-4.el9.x86_64//rpm",
         "@rpm-0__4.16.1.3-23.el9.x86_64//rpm",
