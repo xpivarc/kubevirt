@@ -17,26 +17,29 @@ type NodeConfig struct {
 }
 
 type NodeConfigSpec struct {
-	USB USB `json:"usb,omitempty"`
+	// +listType=atomic
+	USB []USB `json:"usb,omitempty"`
 }
 
 type USB struct {
-	// TODO
+	// The resource name which identifies the list of USB host devices.
+	// e.g: kubevirt.io/storage for generic storages or kubevirt.io/bootable-usb
 	ResourceName string `json:"resourceName"`
 	// +listType=atomic
 	USBHostDevices []USBHostDevices `json:"usbHostDevices,omitempty"`
 }
 
 type USBHostDevices struct {
-	// This is the selector for the USB device. To identify a USB device in a node, the minimum
-	// necessary is its vendor:product information. As we could have multiple devices with the
-	// same vendor:product information, a few other optional informations can be used to select the
-	// device, by using either serial number or specifying device's Bus and Device Number:
-	// Minimal example: "0951:1666"
+	// The vendor:product of the devices we want to select.
+	// e.g: "0951:1666"
+	SelectByVendorProduct string `json:"selectByVendorProduct"`
 	// TODO:
-	// With serial number: "0951:1666,serial=E0D55E6CBD23E691583A004D"
-	// With bus and device number: "0951:1666,bus=2,device=4"
-	USBVendorSelector string `json:"usbVendorSelector"`
+	// Optional: If Serial Number is set, use that as a selector.
+	// e.g: "E0D55E6CBD23E691583A004D"
+	// SelectBySerialNumber:
+	// Optional: Use Bus and Device number as selector
+	// e.g: "02-03"
+	// SelectByBusDeviceNumber
 }
 
 // TODO
