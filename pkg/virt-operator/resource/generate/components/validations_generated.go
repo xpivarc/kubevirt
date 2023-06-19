@@ -3537,31 +3537,29 @@ var CRDsValidation map[string]string = map[string]string{
     spec:
       properties:
         usb:
-          properties:
-            resourceName:
-              description: TODO
-              type: string
-            usbHostDevices:
-              items:
-                properties:
-                  usbVendorSelector:
-                    description: 'This is the selector for the USB device. To identify
-                      a USB device in a node, the minimum necessary is its vendor:product
-                      information. As we could have multiple devices with the same
-                      vendor:product information, a few other optional informations
-                      can be used to select the device, by using either serial number
-                      or specifying device''s Bus and Device Number: Minimal example:
-                      "0951:1666" TODO: With serial number: "0951:1666,serial=E0D55E6CBD23E691583A004D"
-                      With bus and device number: "0951:1666,bus=2,device=4"'
-                    type: string
-                required:
-                - usbVendorSelector
-                type: object
-              type: array
-              x-kubernetes-list-type: atomic
-          required:
-          - resourceName
-          type: object
+          items:
+            properties:
+              resourceName:
+                description: 'The resource name which identifies the list of USB host
+                  devices. e.g: kubevirt.io/storage for generic storages or kubevirt.io/bootable-usb'
+                type: string
+              usbHostDevices:
+                items:
+                  properties:
+                    selectByVendorProduct:
+                      description: 'The vendor:product of the devices we want to select.
+                        e.g: "0951:1666"'
+                      type: string
+                  required:
+                  - selectByVendorProduct
+                  type: object
+                type: array
+                x-kubernetes-list-type: atomic
+            required:
+            - resourceName
+            type: object
+          type: array
+          x-kubernetes-list-type: atomic
       type: object
     status:
       description: TODO

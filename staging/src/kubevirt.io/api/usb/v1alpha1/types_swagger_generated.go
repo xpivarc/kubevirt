@@ -9,18 +9,21 @@ func (NodeConfig) SwaggerDoc() map[string]string {
 }
 
 func (NodeConfigSpec) SwaggerDoc() map[string]string {
-	return map[string]string{}
+	return map[string]string{
+		"usb": "+listType=atomic",
+	}
 }
 
 func (USB) SwaggerDoc() map[string]string {
 	return map[string]string{
+		"resourceName":   "The resource name which identifies the list of USB host devices.\ne.g: kubevirt.io/storage for generic storages or kubevirt.io/bootable-usb",
 		"usbHostDevices": "+listType=atomic",
 	}
 }
 
 func (USBHostDevices) SwaggerDoc() map[string]string {
 	return map[string]string{
-		"usbVendorSelector": "This is the selector for the USB device. To identify a USB device in a node, the minimum\nnecessary is its vendor:product information. As we could have multiple devices with the\nsame vendor:product information, a few other optional informations can be used to select the\ndevice, by using either serial number or specifying device's Bus and Device Number:\nMinimal example: \"0951:1666\"\nWith serial number: \"0951:1666,serial=E0D55E6CBD23E691583A004D\"\nWith bus and device number: \"0951:1666,bus=2,device=4\"",
+		"selectByVendorProduct": "The vendor:product of the devices we want to select.\ne.g: \"0951:1666\"",
 	}
 }
 
