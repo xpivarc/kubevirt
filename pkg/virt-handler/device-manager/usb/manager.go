@@ -35,6 +35,12 @@ type pluginHandler struct {
 	plugin   Plugin
 }
 
+type usbDeviceSelector struct {
+	resourceName string
+	vendor       int
+	product      int
+}
+
 func NewUSBManager(nodeConfigInformer cache.SharedIndexInformer, queue workqueue.RateLimitingInterface) *USBManager {
 	manager := &USBManager{
 		nodeConfigInformer: nodeConfigInformer,
@@ -103,37 +109,47 @@ func (manager *USBManager) execute(key string) error {
 
 func (manager *USBManager) syncDevicePlugin(nodeConfig *v1alpha1.NodeConfig) error {
 	// Sanity check
-	if nodeConfig == nil || len(nodeConfig.Spec.USB.USBHostDevices) == 0 {
+	if nodeConfig == nil || len(nodeConfig.Spec.USB) == 0 {
 		log.Log.V(5).Infof("No USB devices")
 		return nil
 	}
 
 	// Iterate over requested USB Devices and map it vendor:product
-	permittedUSBDevices := make(map[int]int)
-	for index, dev := range nodeConfig.Spec.USB.USBHostDevices {
-		sep := strings.Index(dev.USBVendorSelector, ":")
-		if sep == -1 {
-			log.Log.Warningf("Failed to parse USBHostDevices[%d] = %s",
-				index, dev.USBVendorSelector)
-			continue
-		}
-		val, err := strconv.ParseInt(dev.USBVendorSelector[:sep], 16, 32)
-		if err != nil {
-			log.Log.Warningf("Failed to convert vendor from base16 string to int: %s",
-				dev.USBVendorSelector[:sep])
-			continue
-		}
-		vendor := int(val)
+	permittedUSBDevices := make(map[int][]usbDeviceSelector)
+	for indexUsbType, usbType := range nodeConfig.Spec.USB {
+		resourceName := usbType.ResourceName
+		log.Log.Infof("Iterating over %s, at %d with %d usb host devices",
+			resourceName, indexUsbType, len(usbType.USBHostDevices))
+		for index, dev := range usbType.USBHostDevices {
+			sep := strings.Index(dev.SelectByVendorProduct, ":")
+			if sep == -1 {
+				log.Log.Warningf("Failed to parse USBHostDevices[%d] = %s",
+					index, dev.SelectByVendorProduct)
+				continue
+			}
+			val, err := strconv.ParseInt(dev.SelectByVendorProduct[:sep], 16, 32)
+			if err != nil {
+				log.Log.Warningf("Failed to convert vendor from base16 string to int: %s",
+					dev.SelectByVendorProduct[:sep])
+				continue
+			}
+			vendor := int(val)
 
-		val, err = strconv.ParseInt(dev.USBVendorSelector[sep+1:], 16, 32)
-		if err != nil {
-			log.Log.Warningf("Failed to convert product from base16 string to int: %s",
-				dev.USBVendorSelector[:sep])
-			continue
-		}
-		product := int(val)
+			val, err = strconv.ParseInt(dev.SelectByVendorProduct[sep+1:], 16, 32)
+			if err != nil {
+				log.Log.Warningf("Failed to convert product from base16 string to int: %s",
+					dev.SelectByVendorProduct[:sep])
+				continue
+			}
+			product := int(val)
 
-		permittedUSBDevices[vendor] = product
+			permittedUSBDevices[vendor] = append(permittedUSBDevices[vendor],
+				usbDeviceSelector{
+					resourceName: resourceName,
+					vendor:       vendor,
+					product:      product,
+				})
+		}
 	}
 
 	localDevicesFound := manager.discoverPermittedUSBDevices(permittedUSBDevices)
@@ -154,7 +170,10 @@ func (manager *USBManager) syncDevicePlugin(nodeConfig *v1alpha1.NodeConfig) err
 	// Do I have a device plugin already for this resource name?
 	// if yes - is it in sync? did we remove or added devices by modifying the selecotr
 	// if not - create new plugin
-	manager.startPlugin(NewUSBDevicePlugin(nodeConfig.Spec.USB.ResourceName, localDevicesFound))
+
+	for resourceName, devices := range localDevicesFound {
+		manager.startPlugin(NewUSBDevicePlugin(resourceName, devices))
+	}
 	return nil
 }
 
@@ -262,8 +281,8 @@ func parseSysUeventFile(path string) *usbDevice {
 	return &u
 }
 
-func (manager *USBManager) discoverPermittedUSBDevices(permittedUSBDevices map[int]int) []*usbDevice {
-	usbDevices := make([]*usbDevice, 0)
+func (manager *USBManager) discoverPermittedUSBDevices(permittedUSBDevices map[int][]usbDeviceSelector) map[string][]*usbDevice {
+	usbDevices := make(map[string][]*usbDevice, 0)
 	err := filepath.Walk("/sys/bus/usb/devices", func(path string, info os.FileInfo, err error) error {
 		// Ignore named usb controllers
 		if strings.HasPrefix(info.Name(), "usb") {
@@ -280,13 +299,19 @@ func (manager *USBManager) discoverPermittedUSBDevices(permittedUSBDevices map[i
 			return nil
 		}
 
-		if permittedProduct, ok := permittedUSBDevices[device.Vendor]; !ok || device.Product != permittedProduct {
+		// FIXME: Check if device is available ?
+
+		permitted, ok := permittedUSBDevices[device.Vendor]
+		if !ok {
 			return nil
 		}
 
-		// FIXME: Check if device is available ?
-
-		usbDevices = append(usbDevices, device)
+		for _, selector := range permitted {
+			if device.Product == selector.product {
+				usbDevices[selector.resourceName] = append(usbDevices[selector.resourceName], device)
+				return nil
+			}
+		}
 		return nil
 	})
 
