@@ -5,6 +5,6 @@ metadata:
   namespace: default
 spec:
   usb:
-    resourceName: kubevirt.io/storage
-    usbHostDevices:
-      - usbVendorSelector: 46f4:0001
+    - resourceName: kubevirt.io/storage
+      usbHostDevices:
+        - selectByVendorProduct: 46f4:0001
