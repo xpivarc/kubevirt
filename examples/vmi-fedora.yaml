@@ -17,8 +17,8 @@ spec:
         name: cloudinitdisk
       clientPassthrough: {}
       hostDevices:
-        - deviceName: kubevirt.io/webcam
-          name: my-webcam
+        - deviceName: kubevirt.io/storage
+          name: qemu-storage
 
       rng: {}
     resources:
