@@ -25,6 +25,7 @@ type USBManager struct {
 	nodeConfigInformer cache.SharedIndexInformer
 	queue              workqueue.RateLimitingInterface
 	discoveryFunc      func() []*usbDevice
+	factoryFunc        factory
 	handlers           map[string]pluginHandler
 	handlersLock       sync.Mutex
 }
@@ -49,12 +50,14 @@ func NewUSBManager(nodeConfigInformer cache.SharedIndexInformer) *USBManager {
 		queue:              queue,
 		handlers:           make(map[string]pluginHandler),
 		discoveryFunc:      discoverUSBDevices,
+		factoryFunc:        NewUSBDevicePlugin,
 	}
 	nodeConfigInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    manager.addFunc,
 		UpdateFunc: manager.updateFunc,
 		DeleteFunc: manager.deleteFunc,
 	})
+
 	return manager
 }
 
@@ -201,7 +204,7 @@ func (manager *USBManager) syncDevicePlugin(nodeConfig *v1alpha1.NodeConfig) err
 	// if not - create new plugin
 
 	for resourceName, devices := range devicesToExport {
-		manager.startPlugin(NewUSBDevicePlugin(resourceName, devices))
+		manager.startPlugin(manager.factoryFunc(resourceName, devices))
 	}
 	return nil
 }
@@ -229,14 +232,22 @@ func (manager *USBManager) startPlugin(plugin Plugin) {
 		for {
 			err := plugin.Start(handler.stopChan)
 			if err == nil {
+				manager.handlersLock.Lock()
+				defer manager.handlersLock.Unlock()
+				handler = manager.handlers[plugin.Name()]
 				handler.started = true
 				logger.Reason(err).Infof("Started %s USB pluggin.", plugin.Name())
+				manager.handlers[plugin.Name()] = handler
 				return
 			}
 			retries++
 			if retries > 10 {
+				manager.handlersLock.Lock()
+				defer manager.handlersLock.Unlock()
+				handler = manager.handlers[plugin.Name()]
 				logger.Reason(err).Errorf("Unable to start %s USB pluggin", plugin.Name())
 				handler.failed = true
+				manager.handlers[plugin.Name()] = handler
 				return
 			}
 

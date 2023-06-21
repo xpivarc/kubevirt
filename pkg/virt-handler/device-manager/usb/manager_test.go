@@ -2,6 +2,7 @@ package usb
 
 import (
 	"strconv"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -61,6 +62,8 @@ var _ = Describe("USB Manager", func() {
 	})
 
 	Context("sanity test", func() {
+		const resourceName = "kubevirt.io/usb-storage"
+
 		BeforeEach(func() {
 			feeder.Add(&v1alpha1.NodeConfig{
 				ObjectMeta: v1.ObjectMeta{
@@ -70,7 +73,7 @@ var _ = Describe("USB Manager", func() {
 				Spec: v1alpha1.NodeConfigSpec{
 					USB: []v1alpha1.USB{
 						{
-							ResourceName: "kubevirt.io/usb-storage",
+							ResourceName: resourceName,
 							USBHostDevices: []v1alpha1.USBHostDevices{
 								{
 									SelectByVendorProduct: "145f:019f",
@@ -83,6 +86,9 @@ var _ = Describe("USB Manager", func() {
 		})
 
 		It("should start plugin", func() {
+			manager.factoryFunc = func(_ string, _ []*usbDevice) Plugin {
+				return stub{resourceName}
+			}
 			manager.discoveryFunc = func() []*usbDevice {
 				vendor, _ := strconv.ParseInt("145f", 16, 32)
 				product, _ := strconv.ParseInt("019f", 16, 32)
@@ -95,7 +101,12 @@ var _ = Describe("USB Manager", func() {
 				}
 			}
 			manager.Execute()
-			Expect(manager.handlers).To(HaveKey("kubevirt.io/usb-storage"))
+			Expect(manager.handlers).To(HaveKey(resourceName))
+			Eventually(func() bool {
+				manager.handlersLock.Lock()
+				defer manager.handlersLock.Unlock()
+				return manager.handlers[resourceName].started
+			}, 2*time.Second).Should(BeTrue(), "Plugin should be started")
 		})
 
 	})

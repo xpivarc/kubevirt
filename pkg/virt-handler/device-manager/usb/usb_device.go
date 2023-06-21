@@ -19,6 +19,15 @@ import (
 	devicepluginapi "kubevirt.io/kubevirt/pkg/virt-handler/device-manager/deviceplugin/v1beta1"
 )
 
+var _ Plugin = &usbDevicePlugin{}
+
+type Plugin interface {
+	Start(stop <-chan struct{}) (err error)
+	Name() string
+}
+
+type factory func(resourceName string, usbdevs []*usbDevice) Plugin
+
 type usbDevice struct {
 	Name         string
 	Manufacturer string
@@ -225,11 +234,6 @@ func (plugin *usbDevicePlugin) Allocate(_ context.Context, allocRequest *devicep
 
 func (plugin *usbDevicePlugin) PreStartContainer(context.Context, *devicepluginapi.PreStartContainerRequest) (*devicepluginapi.PreStartContainerResponse, error) {
 	return &devicepluginapi.PreStartContainerResponse{}, nil
-}
-
-type Plugin interface {
-	Start(stop <-chan struct{}) (err error)
-	Name() string
 }
 
 func NewUSBDevicePlugin(resourceName string, usbdevs []*usbDevice) Plugin {
