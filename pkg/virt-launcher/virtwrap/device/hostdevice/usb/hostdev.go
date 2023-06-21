@@ -1,7 +1,6 @@
 package usb
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -17,7 +16,8 @@ func CreateHostDevices(vmiHostDevices []v1.HostDevice) ([]api.HostDevice, error)
 		env := util.ResourceNameToEnvVar("USB", device.DeviceName)
 		addressString, ok := os.LookupEnv(env)
 		if !ok {
-			return nil, fmt.Errorf("todo")
+			// TODO
+			continue
 		}
 		evnS := strings.Split(addressString, ":")
 		bus, device := evnS[0], evnS[1]

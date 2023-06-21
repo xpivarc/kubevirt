@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "manager.go",
         "manager_setup.go",
+        "plugin_stub.go",
         "usb_device.go",
     ],
     importpath = "kubevirt.io/kubevirt/pkg/virt-handler/device-manager/usb",
