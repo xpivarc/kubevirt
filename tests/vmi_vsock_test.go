@@ -247,6 +247,7 @@ var _ = Describe("[sig-compute]VSOCK", Serial, decorators.SigCompute, func() {
 
 		By("Connect to the guest on invalide port")
 		_, err = virtClient.VirtualMachineInstance(vmi.Namespace).VSOCK(vmi.Name, &v1.VSOCKOptions{TargetPort: uint32(0)})
+		//Specify err
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -269,6 +270,7 @@ var _ = Describe("[sig-compute]VSOCK", Serial, decorators.SigCompute, func() {
 		Expect(vsock.Stream(kubecli.StreamOptions{
 			In:  svrConn,
 			Out: svrConn,
+			// Specify what type of error
 		})).NotTo(Succeed())
 	})
 })
