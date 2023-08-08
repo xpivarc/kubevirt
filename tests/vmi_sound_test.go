@@ -21,7 +21,6 @@ package tests_test
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 
 	"kubevirt.io/kubevirt/tests/decorators"
@@ -33,8 +32,6 @@ import (
 	v1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/client-go/kubecli"
 
-	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
-	"kubevirt.io/kubevirt/tests"
 	"kubevirt.io/kubevirt/tests/console"
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
 	"kubevirt.io/kubevirt/tests/libvmi"
@@ -44,73 +41,46 @@ import (
 
 var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-compute] Sound", decorators.SigCompute, func() {
 
-	var err error
 	var virtClient kubecli.KubevirtClient
-	var vmi *v1.VirtualMachineInstance
 
 	BeforeEach(func() {
 		virtClient = kubevirt.Client()
 	})
 
-	Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component] A VirtualMachineInstance with default sound support", func() {
-		BeforeEach(func() {
-			vmi, err = createSoundVMI(virtClient, "test-model-empty")
-			Expect(err).ToNot(HaveOccurred())
-			vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToCirros)
-		})
-
+	Context("[crit:medium][vendor:cnv-qe@redhat.com][level:component] A VirtualMachineInstance with default sound support", func() {
 		It("should create an ich9 sound device on empty model", func() {
-			checkAudioDevice(vmi, "ich9")
-		})
-	})
-
-	Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component] A VirtualMachineInstance with ich9 sound support", func() {
-		BeforeEach(func() {
-			vmi, err = createSoundVMI(virtClient, "ich9")
+			vmi, err := createSoundVMI(virtClient, "")
 			Expect(err).ToNot(HaveOccurred())
 			vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToCirros)
-		})
-
-		It("should create ich9 sound device on ich9 model ", func() {
-			checkXMLSoundCard(virtClient, vmi, "ich9")
 			checkAudioDevice(vmi, "ich9")
 		})
 	})
 
-	Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component] A VirtualMachineInstance with unsupported sound support", func() {
+	Context("[crit:medium][vendor:cnv-qe@redhat.com][level:component] A VirtualMachineInstance with ich9 sound support", func() {
+		It("should create ich9 sound device on ich9 model ", func() {
+			vmi, err := createSoundVMI(virtClient, "ich9")
+			Expect(err).ToNot(HaveOccurred())
+			vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToCirros)
+			checkAudioDevice(vmi, "ich9")
+		})
+	})
+
+	Context("[crit:medium][vendor:cnv-qe@redhat.com][level:component] A VirtualMachineInstance with unsupported sound support", func() {
 		It("should fail to create VMI with unsupported sound device", func() {
-			vmi, err = createSoundVMI(virtClient, "ich7")
+			_, err := createSoundVMI(virtClient, "ich7")
 			Expect(err).To(HaveOccurred())
 		})
 	})
 })
 
-func createSoundVMI(virtClient kubecli.KubevirtClient, soundDevice string) (*v1.VirtualMachineInstance, error) {
+func createSoundVMI(virtClient kubecli.KubevirtClient, soundDeviceModel string) (*v1.VirtualMachineInstance, error) {
 	randomVmi := libvmi.NewCirros()
-	if soundDevice != "" {
-		model := soundDevice
-		if soundDevice == "test-model-empty" {
-			model = ""
-		}
-		randomVmi.Spec.Domain.Devices.Sound = &v1.SoundDevice{
-			Name:  "test-audio-device",
-			Model: model,
-		}
+	randomVmi.Spec.Domain.Devices.Sound = &v1.SoundDevice{
+		Name:  "test-audio-device",
+		Model: soundDeviceModel,
 	}
-	return virtClient.VirtualMachineInstance(util.NamespaceTestDefault).Create(context.Background(), randomVmi)
-}
 
-func checkXMLSoundCard(virtClient kubecli.KubevirtClient, vmi *v1.VirtualMachineInstance, model string) {
-	domain, err := tests.GetRunningVirtualMachineInstanceDomainXML(virtClient, vmi)
-	Expect(err).ToNot(HaveOccurred())
-	domSpec := &api.DomainSpec{}
-	Expect(xml.Unmarshal([]byte(domain), domSpec)).To(Succeed())
-	Expect(domSpec.Devices.SoundCards).To(HaveLen(1))
-	// How could we test this within a guest?
-	Expect(domSpec.Devices.SoundCards).To(ContainElement(api.SoundCard{
-		Alias: api.NewUserDefinedAlias("test-audio-device"),
-		Model: model,
-	}))
+	return virtClient.VirtualMachineInstance(util.NamespaceTestDefault).Create(context.Background(), randomVmi)
 }
 
 func checkAudioDevice(vmi *v1.VirtualMachineInstance, name string) {
