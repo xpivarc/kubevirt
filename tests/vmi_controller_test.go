@@ -34,6 +34,7 @@ var _ = Describe("[sig-compute]Controller devices", decorators.SigCompute, func(
 			domSpec := &api.DomainSpec{}
 			Expect(xml.Unmarshal([]byte(domain), domSpec)).To(Succeed())
 			found := false
+			// How could we test this within a guest?
 			for _, controller := range domSpec.Devices.Controllers {
 				if controller.Type == "scsi" {
 					found = true

@@ -249,6 +249,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 			libvmi.WithNetwork(v1.DefaultPodNetwork()),
 		)
 
+		// How could we test this within a guest?
 		DescribeTable("with memory configuration", func(vmiOptions []libvmi.Option, expectedGuestMemory int) {
 			vmi := libvmi.New(vmiOptions...)
 
@@ -343,6 +344,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 
 				Expect(err).ToNot(HaveOccurred())
 			})
+			// How could we test this within a guest?
 			It("[test_id:4624]should set a correct memory units", func() {
 				vmi.Spec.Domain.Resources = v1.ResourceRequirements{
 					Requests: kubev1.ResourceList{
@@ -480,6 +482,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 				Expect(err).ToNot(HaveOccurred())
 				libwait.WaitForSuccessfulVMIStart(vmi)
 
+				// How could we test this within a guest?
 				domXml, err := tests.GetRunningVirtualMachineInstanceDomainXML(virtClient, vmi)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(domXml).To(ContainSubstring("queues='3'"))
@@ -509,6 +512,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 
 				domXml, err := tests.GetRunningVirtualMachineInstanceDomainXML(virtClient, vmi)
 				Expect(err).ToNot(HaveOccurred())
+				// How could we test this within a guest?
 				Expect(domXml).To(ContainSubstring("driver name='vhost' queues='3'"))
 				// make sure that there are not block queues configured
 				Expect(domXml).ToNot(ContainSubstring("cache='none' queues='3'"))
@@ -530,6 +534,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 
 				domXml, err := tests.GetRunningVirtualMachineInstanceDomainXML(virtClient, vmi)
 				Expect(err).ToNot(HaveOccurred())
+				// How could we test this within a guest?
 				Expect(domXml).ToNot(ContainSubstring("queues='"))
 			})
 		})

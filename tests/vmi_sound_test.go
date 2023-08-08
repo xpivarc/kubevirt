@@ -106,6 +106,7 @@ func checkXMLSoundCard(virtClient kubecli.KubevirtClient, vmi *v1.VirtualMachine
 	domSpec := &api.DomainSpec{}
 	Expect(xml.Unmarshal([]byte(domain), domSpec)).To(Succeed())
 	Expect(domSpec.Devices.SoundCards).To(HaveLen(1))
+	// How could we test this within a guest?
 	Expect(domSpec.Devices.SoundCards).To(ContainElement(api.SoundCard{
 		Alias: api.NewUserDefinedAlias("test-audio-device"),
 		Model: model,

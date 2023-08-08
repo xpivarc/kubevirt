@@ -137,6 +137,7 @@ var _ = Describe("[Serial][sig-compute]GPU", Serial, decorators.GPU, decorators.
 			Expect(err).ToNot(HaveOccurred())
 			addrList := parseDeviceAddress(gpuOutput)
 
+			// How could we test this within a guest?
 			Expect(addrList).To(HaveLen(len(domSpec.Devices.HostDevices)))
 			for n, addr := range addrList {
 				Expect(domSpec.Devices.HostDevices[n].Type).To(Equal(api.HostDevicePCI))

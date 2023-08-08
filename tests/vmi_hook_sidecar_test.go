@@ -176,10 +176,12 @@ var _ = Describe("[sig-compute]HookSidecars", decorators.SigCompute, func() {
 
 			It("[test_id:3158]should update domain XML with SM BIOS properties", func() {
 				By("Reading domain XML using virsh")
+				// WHAT?
 				clientcmd.SkipIfNoCmd("kubectl")
 				vmi, err = virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(context.Background(), vmi)
 				libwait.WaitForSuccessfulVMIStart(vmi)
 				domainXml, err := tests.GetRunningVirtualMachineInstanceDomainXML(virtClient, vmi)
+				// How could we test this within a guest?
 				Expect(err).NotTo(HaveOccurred())
 				Expect(domainXml).Should(ContainSubstring("<sysinfo type='smbios'>"))
 				Expect(domainXml).Should(ContainSubstring("<smbios mode='sysinfo'/>"))

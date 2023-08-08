@@ -66,6 +66,7 @@ var _ = Describe("[sig-compute]IOThreads", decorators.SigCompute, func() {
 			availableCPUs = libnode.GetHighestCPUNumberAmongNodes(virtClient)
 		})
 
+		// How could we test this within a guest?
 		It("[test_id:4122]Should honor shared ioThreadsPolicy for single disk", func() {
 			policy := v1.IOThreadsPolicyShared
 			vmi.Spec.Domain.IOThreadsPolicy = &policy
@@ -92,6 +93,7 @@ var _ = Describe("[sig-compute]IOThreads", decorators.SigCompute, func() {
 			Expect(newVMI.Spec.Domain.Devices.Disks).To(HaveLen(1))
 		})
 
+		// How could we test this within a guest?
 		It("[test_id:864][ref_id:2065] Should honor a mix of shared and dedicated ioThreadsPolicy", func() {
 			policy := v1.IOThreadsPolicyShared
 			vmi.Spec.Domain.IOThreadsPolicy = &policy

@@ -452,6 +452,7 @@ var _ = Describe("[rfe_id:151][crit:high][vendor:cnv-qe@redhat.com][level:compon
 				By("checking cloudinit network-config")
 				CheckCloudInitFile(vmi, "openstack/latest/network_data.json", testNetworkData)
 			})
+			// How could we test this within a guest?
 			It("[test_id:4622]should have cloud-init meta_data with tagged devices", func() {
 				testInstancetype := "testInstancetype"
 				vmi := tests.NewRandomVMIWithEphemeralDiskAndConfigDriveUserdataNetworkData(
@@ -474,6 +475,8 @@ var _ = Describe("[rfe_id:151][crit:high][vendor:cnv-qe@redhat.com][level:compon
 				nic := domSpec.Devices.Interfaces[0]
 				address := nic.Address
 				pciAddrStr := fmt.Sprintf("%s:%s:%s.%s", address.Domain[2:], address.Bus[2:], address.Slot[2:], address.Function[2:])
+				// This seems to be the only part from xml
+				// We can just check in guest
 				deviceData := []cloudinit.DeviceData{
 					{
 						Type:    cloudinit.NICMetadataType,

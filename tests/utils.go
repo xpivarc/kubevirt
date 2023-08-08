@@ -1271,6 +1271,7 @@ func renderPrivilegedContainerSpec(imgPath string, name string, cmd []string, ar
 	}
 }
 
+// How could we test this within a guest?
 func GetRunningVirtualMachineInstanceDomainXML(virtClient kubecli.KubevirtClient, vmi *v1.VirtualMachineInstance) (string, error) {
 	vmiPod, err := getRunningPodByVirtualMachineInstance(vmi, testsuite.GetTestNamespace(vmi))
 	if err != nil {
@@ -1713,6 +1714,7 @@ func GetRunningVMIDomainSpec(vmi *v1.VirtualMachineInstance) (*launcherApi.Domai
 	runningVMISpec := launcherApi.DomainSpec{}
 	cli := kubevirt.Client()
 
+	// How could we test this within a guest?
 	domXML, err := GetRunningVirtualMachineInstanceDomainXML(cli, vmi)
 	if err != nil {
 		return nil, err

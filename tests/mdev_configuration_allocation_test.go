@@ -276,6 +276,7 @@ var _ = Describe("[Serial][sig-compute]MediatedDevices", Serial, decorators.VGPU
 			Expect(err).ToNot(HaveOccurred())
 			// make sure that one mdev has display and ramfb on
 			By("Maiking sure that a boot display is enabled")
+			// How could we test this within a guest?
 			Expect(domXml).To(MatchRegexp(`<hostdev .*display=.?on.?`), "Display should be on")
 			Expect(domXml).To(MatchRegexp(`<hostdev .*ramfb=.?on.?`), "RamFB should be on")
 		})
@@ -305,6 +306,7 @@ var _ = Describe("[Serial][sig-compute]MediatedDevices", Serial, decorators.VGPU
 			Expect(err).ToNot(HaveOccurred())
 			// make sure that another mdev explicitly turned off its display
 			By("Maiking sure that a boot display is disabled")
+			// How could we test this within a guest?
 			Expect(domXml).ToNot(MatchRegexp(`<hostdev .*display=.?on.?`), "Display should not be enabled")
 			Expect(domXml).ToNot(MatchRegexp(`<hostdev .*ramfb=.?on.?`), "RamFB should not be enabled")
 		})

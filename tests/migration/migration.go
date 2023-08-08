@@ -2706,6 +2706,7 @@ var _ = SIGMigrationDescribe("VM Live Migration", func() {
 				Expect(err).ToNot(HaveOccurred())
 				domSpec := &api.DomainSpec{}
 				Expect(xml.Unmarshal([]byte(domXml), domSpec)).To(Succeed())
+				// How could we test this within a guest?
 				Expect(domSpec.Devices.Ballooning.FreePageReporting).To(BeEquivalentTo("on"))
 
 				By("starting the migration")
@@ -2718,6 +2719,7 @@ var _ = SIGMigrationDescribe("VM Live Migration", func() {
 				Expect(err).ToNot(HaveOccurred())
 				domSpec = &api.DomainSpec{}
 				Expect(xml.Unmarshal([]byte(domXml), domSpec)).To(Succeed())
+				// How could we test this within a guest?
 				Expect(domSpec.Devices.Ballooning.FreePageReporting).To(BeEquivalentTo("on"))
 			})
 
