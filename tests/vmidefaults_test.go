@@ -85,14 +85,14 @@ var _ = Describe("[Serial][sig-compute]VMIDefaults", Serial, decorators.SigCompu
 		})
 
 		It("[test_id:4115]Should be applied to VMIs", func() {
-			// create the VMI first
-			_, err = virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(context.Background(), vmi)
+			By("Creating VMI without disk bus")
+			vmi := libvmi.New(libvmi.WithContainerImage("dummy"))
+			vmi.Spec.Domain.Devices.Disks[0].Disk.Bus = ""
+
+			newVMI, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(context.Background(), vmi)
 			Expect(err).ToNot(HaveOccurred())
 
-			newVMI, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Get(context.Background(), vmi.Name, &metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
-
-			// check defaults
+			By("Checking the bus was defaulted")
 			disk := newVMI.Spec.Domain.Devices.Disks[0]
 			Expect(disk.Disk).ToNot(BeNil(), "DiskTarget should not be nil")
 			Expect(disk.Disk.Bus).ToNot(BeEmpty(), "DiskTarget's bus should not be empty")
