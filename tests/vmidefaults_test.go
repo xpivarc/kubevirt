@@ -39,5 +39,4 @@ var _ = Describe("[Serial][sig-compute]VMIDefaults", Serial, decorators.SigCompu
 		virtClient = kubevirt.Client()
 		Expect(virtClient).ToNot(BeEmpty())
 	})
-
 })
