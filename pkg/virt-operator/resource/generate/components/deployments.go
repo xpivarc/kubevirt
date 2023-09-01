@@ -582,10 +582,10 @@ func NewOperatorDeployment(namespace, repository, imagePrefix, version, verbosit
 									Value: image,
 								},
 								{
-									Name: "WATCH_NAMESPACE", // not used yet
+									Name: "NAMESPACE",
 									ValueFrom: &corev1.EnvVarSource{
 										FieldRef: &corev1.ObjectFieldSelector{
-											FieldPath: "metadata.annotations['olm.targetNamespaces']", // filled by OLM
+											FieldPath: "metadata.namespace",
 										},
 									},
 								},

@@ -254,7 +254,7 @@ func (app *virtHandlerApp) Run() {
 	recorder := broadcaster.NewRecorder(scheme.Scheme, k8sv1.EventSource{Component: "virt-handler", Host: app.HostOverride})
 
 	// Wire VirtualMachineInstance controller
-	factory := controller.NewKubeInformerFactory(app.virtCli.RestClient(), app.virtCli, nil, app.namespace)
+	factory := controller.NewKubeInformerFactory(app.virtCli.RestClient(), app.virtCli, nil, app.namespace, app.KubevirtNamespaceOnly)
 
 	vmiSourceInformer := factory.VMISourceHost(app.HostOverride)
 	vmiTargetInformer := factory.VMITargetHost(app.HostOverride)

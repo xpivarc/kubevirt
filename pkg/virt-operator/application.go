@@ -190,7 +190,7 @@ func Execute() {
 		os.Exit(0)
 	}
 
-	app.informerFactory = controller.NewKubeInformerFactory(app.restClient, app.clientSet, app.aggregatorClient, app.operatorNamespace)
+	app.informerFactory = controller.NewKubeInformerFactory(app.restClient, app.clientSet, app.aggregatorClient, app.operatorNamespace, app.KubevirtNamespaceOnly)
 
 	app.kubeVirtInformer = app.informerFactory.KubeVirt()
 	app.kubeVirtCache = app.kubeVirtInformer.GetStore()

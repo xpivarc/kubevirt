@@ -309,13 +309,14 @@ type kubeInformerFactory struct {
 	lock             sync.Mutex
 	defaultResync    time.Duration
 
-	informers         map[string]cache.SharedIndexInformer
-	startedInformers  map[string]bool
-	kubevirtNamespace string
-	k8sInformers      informers.SharedInformerFactory
+	informers             map[string]cache.SharedIndexInformer
+	startedInformers      map[string]bool
+	kubevirtNamespace     string
+	kubevirtNamespaceOnly bool
+	k8sInformers          informers.SharedInformerFactory
 }
 
-func NewKubeInformerFactory(restClient *rest.RESTClient, clientSet kubecli.KubevirtClient, aggregatorClient aggregatorclient.Interface, kubevirtNamespace string) KubeInformerFactory {
+func NewKubeInformerFactory(restClient *rest.RESTClient, clientSet kubecli.KubevirtClient, aggregatorClient aggregatorclient.Interface, kubevirtNamespace string, kubevirtNamespaceOnly bool) KubeInformerFactory {
 	return &kubeInformerFactory{
 		restClient:       restClient,
 		clientSet:        clientSet,
@@ -326,6 +327,8 @@ func NewKubeInformerFactory(restClient *rest.RESTClient, clientSet kubecli.Kubev
 		startedInformers:  make(map[string]bool),
 		kubevirtNamespace: kubevirtNamespace,
 		k8sInformers:      informers.NewSharedInformerFactoryWithOptions(clientSet, 0),
+
+		kubevirtNamespaceOnly: kubevirtNamespaceOnly,
 	}
 }
 
@@ -912,7 +915,11 @@ func (f *kubeInformerFactory) ControllerRevision() cache.SharedIndexInformer {
 
 func (f *kubeInformerFactory) KubeVirt() cache.SharedIndexInformer {
 	return f.getInformer("kubeVirtInformer", func() cache.SharedIndexInformer {
-		lw := cache.NewListWatchFromClient(f.restClient, "kubevirts", k8sv1.NamespaceAll, fields.Everything())
+		namespace := k8sv1.NamespaceAll
+		if f.kubevirtNamespaceOnly {
+			namespace = f.kubevirtNamespace
+		}
+		lw := cache.NewListWatchFromClient(f.restClient, "kubevirts", namespace, fields.Everything())
 		return cache.NewSharedIndexInformer(lw, &kubev1.KubeVirt{}, f.defaultResync, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
 	})
 }

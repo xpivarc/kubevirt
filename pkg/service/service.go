@@ -39,9 +39,10 @@ type Service interface {
 }
 
 type ServiceListen struct {
-	Name        string
-	BindAddress string
-	Port        int
+	Name                  string
+	BindAddress           string
+	Port                  int
+	KubevirtNamespaceOnly bool
 }
 
 type ServiceLibvirt struct {
@@ -61,6 +62,7 @@ func (service *ServiceListen) InitFlags() {
 func (service *ServiceListen) AddCommonFlags() {
 	flag.StringVar(&service.BindAddress, "listen", service.BindAddress, "Address where to listen on")
 	flag.IntVar(&service.Port, "port", service.Port, "Port to listen on")
+	flag.BoolVar(&service.KubevirtNamespaceOnly, "kubevirt-namespace-only", true, "Controll if Kubevirt CR should be only in installed namespace")
 }
 
 func (service *ServiceLibvirt) AddLibvirtFlags() {

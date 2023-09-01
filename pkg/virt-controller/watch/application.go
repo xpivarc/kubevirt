@@ -319,7 +319,7 @@ func Execute() {
 	stopChan := ctx.Done()
 	app.ctx = ctx
 
-	app.informerFactory = controller.NewKubeInformerFactory(app.restClient, app.clientSet, nil, app.kubevirtNamespace)
+	app.informerFactory = controller.NewKubeInformerFactory(app.restClient, app.clientSet, nil, app.kubevirtNamespace, app.KubevirtNamespaceOnly)
 
 	app.crdInformer = app.informerFactory.CRD()
 	app.kubeVirtInformer = app.informerFactory.KubeVirt()
