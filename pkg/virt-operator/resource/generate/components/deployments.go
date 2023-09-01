@@ -310,7 +310,7 @@ func newPodAntiAffinity(key, topologyKey string, operator metav1.LabelSelectorOp
 	}
 }
 
-func NewApiServerDeployment(namespace, repository, imagePrefix, version, productName, productVersion, productComponent, image string, pullPolicy corev1.PullPolicy, imagePullSecrets []corev1.LocalObjectReference, verbosity string, extraEnv map[string]string) (*appsv1.Deployment, error) {
+func NewApiServerDeployment(namespace, repository, imagePrefix, version, productName, productVersion, productComponent, image string, pullPolicy corev1.PullPolicy, imagePullSecrets []corev1.LocalObjectReference, verbosity string, extraEnv map[string]string, shouldOnlyWatchKubevirt bool) (*appsv1.Deployment, error) {
 	podAntiAffinity := newPodAntiAffinity(kubevirtLabelKey, kubernetesHostnameTopologyKey, metav1.LabelSelectorOpIn, []string{VirtAPIName})
 	deploymentName := VirtAPIName
 	imageName := fmt.Sprintf("%s%s", imagePrefix, deploymentName)
@@ -343,6 +343,9 @@ func NewApiServerDeployment(namespace, repository, imagePrefix, version, product
 		"--subresources-only",
 		"-v",
 		verbosity,
+	}
+	if shouldOnlyWatchKubevirt {
+		container.Args = append(container.Args, "--kubevirt-namespace-only=false")
 	}
 	container.Ports = []corev1.ContainerPort{
 		{
@@ -388,7 +391,7 @@ func NewApiServerDeployment(namespace, repository, imagePrefix, version, product
 	return deployment, nil
 }
 
-func NewControllerDeployment(namespace, repository, imagePrefix, controllerVersion, launcherVersion, exportServerVersion, productName, productVersion, productComponent, image, launcherImage, exporterImage string, pullPolicy corev1.PullPolicy, imagePullSecrets []corev1.LocalObjectReference, verbosity string, extraEnv map[string]string) (*appsv1.Deployment, error) {
+func NewControllerDeployment(namespace, repository, imagePrefix, controllerVersion, launcherVersion, exportServerVersion, productName, productVersion, productComponent, image, launcherImage, exporterImage string, pullPolicy corev1.PullPolicy, imagePullSecrets []corev1.LocalObjectReference, verbosity string, extraEnv map[string]string, shouldOnlyWatchKubevirt bool) (*appsv1.Deployment, error) {
 	podAntiAffinity := newPodAntiAffinity(kubevirtLabelKey, kubernetesHostnameTopologyKey, metav1.LabelSelectorOpIn, []string{VirtControllerName})
 	deploymentName := VirtControllerName
 	imageName := fmt.Sprintf("%s%s", imagePrefix, deploymentName)
@@ -425,6 +428,9 @@ func NewControllerDeployment(namespace, repository, imagePrefix, controllerVersi
 		"8443",
 		"-v",
 		verbosity,
+	}
+	if shouldOnlyWatchKubevirt {
+		container.Args = append(container.Args, "--kubevirt-namespace-only=false")
 	}
 
 	container.Ports = []corev1.ContainerPort{
@@ -489,7 +495,6 @@ func NewControllerDeployment(namespace, repository, imagePrefix, controllerVersi
 func NewOperatorDeployment(namespace, repository, imagePrefix, version, verbosity, kubeVirtVersionEnv, virtApiShaEnv, virtControllerShaEnv, virtHandlerShaEnv, virtLauncherShaEnv, virtExportProxyShaEnv,
 	virtExportServerShaEnv, gsShaEnv, prHelperShaEnv, runbookURLTemplate, virtApiImageEnv, virtControllerImageEnv, virtHandlerImageEnv, virtLauncherImageEnv, virtExportProxyImageEnv, virtExportServerImageEnv, gsImage, prHelperImage,
 	image string, pullPolicy corev1.PullPolicy) (*appsv1.Deployment, error) {
-
 	const kubernetesOSLinux = "linux"
 	podAntiAffinity := newPodAntiAffinity(kubevirtLabelKey, kubernetesHostnameTopologyKey, metav1.LabelSelectorOpIn, []string{VirtOperatorName})
 	version = AddVersionSeparatorPrefix(version)
@@ -630,7 +635,7 @@ func NewOperatorDeployment(namespace, repository, imagePrefix, version, verbosit
 	return deployment, nil
 }
 
-func NewExportProxyDeployment(namespace, repository, imagePrefix, version, productName, productVersion, productComponent, image string, pullPolicy corev1.PullPolicy, imagePullSecrets []corev1.LocalObjectReference, verbosity string, extraEnv map[string]string) (*appsv1.Deployment, error) {
+func NewExportProxyDeployment(namespace, repository, imagePrefix, version, productName, productVersion, productComponent, image string, pullPolicy corev1.PullPolicy, imagePullSecrets []corev1.LocalObjectReference, verbosity string, extraEnv map[string]string, shouldOnlyWatchKubevirt bool) (*appsv1.Deployment, error) {
 	podAntiAffinity := newPodAntiAffinity(kubevirtLabelKey, kubernetesHostnameTopologyKey, metav1.LabelSelectorOpIn, []string{VirtAPIName})
 	deploymentName := VirtExportProxyName
 	imageName := fmt.Sprintf("%s%s", imagePrefix, deploymentName)
@@ -659,6 +664,10 @@ func NewExportProxyDeployment(namespace, repository, imagePrefix, version, produ
 		"8443",
 		"-v",
 		verbosity,
+	}
+
+	if shouldOnlyWatchKubevirt {
+		container.Command = append(container.Command, "--kubevirt-namespace-only=false")
 	}
 	container.Ports = []corev1.ContainerPort{
 		{

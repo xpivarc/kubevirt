@@ -48,7 +48,7 @@ func RenderPrHelperContainer(image string, pullPolicy corev1.PullPolicy) corev1.
 	}
 }
 
-func NewHandlerDaemonSet(namespace, repository, imagePrefix, version, launcherVersion, prHelperVersion, productName, productVersion, productComponent, image, launcherImage, prHelperImage string, pullPolicy corev1.PullPolicy, imagePullSecrets []corev1.LocalObjectReference, migrationNetwork *string, verbosity string, extraEnv map[string]string, enablePrHelper bool) (*appsv1.DaemonSet, error) {
+func NewHandlerDaemonSet(namespace, repository, imagePrefix, version, launcherVersion, prHelperVersion, productName, productVersion, productComponent, image, launcherImage, prHelperImage string, pullPolicy corev1.PullPolicy, imagePullSecrets []corev1.LocalObjectReference, migrationNetwork *string, verbosity string, extraEnv map[string]string, enablePrHelper, shouldOnlyWatchKubevirt bool) (*appsv1.DaemonSet, error) {
 
 	deploymentName := VirtHandlerName
 	imageName := fmt.Sprintf("%s%s", imagePrefix, deploymentName)
@@ -184,6 +184,9 @@ func NewHandlerDaemonSet(namespace, repository, imagePrefix, version, launcherVe
 		fmt.Sprintf("%d", handlerGracePeriod),
 		"-v",
 		verbosity,
+	}
+	if !shouldOnlyWatchKubevirt {
+		container.Args = append(container.Args, "--kubevirt-namespace-only=false")
 	}
 	container.Ports = []corev1.ContainerPort{
 		{

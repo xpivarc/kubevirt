@@ -183,7 +183,7 @@ func Execute() {
 	}
 
 	if *dumpInstallStrategy {
-		err = install.DumpInstallStrategyToConfigMap(app.clientSet, app.operatorNamespace)
+		err = install.DumpInstallStrategyToConfigMap(app.clientSet, app.operatorNamespace, app.KubevirtNamespaceOnly)
 		if err != nil {
 			golog.Fatal(err)
 		}
@@ -294,7 +294,7 @@ func Execute() {
 	app.prepareCertManagers()
 
 	app.kubeVirtRecorder = app.getNewRecorder(k8sv1.NamespaceAll, VirtOperator)
-	app.kubeVirtController, err = NewKubeVirtController(app.clientSet, app.aggregatorClient.ApiregistrationV1().APIServices(), app.kubeVirtInformer, app.kubeVirtRecorder, app.stores, app.informers, app.operatorNamespace)
+	app.kubeVirtController, err = NewKubeVirtController(app.clientSet, app.aggregatorClient.ApiregistrationV1().APIServices(), app.kubeVirtInformer, app.kubeVirtRecorder, app.stores, app.informers, app.operatorNamespace, app.KubevirtNamespaceOnly)
 	if err != nil {
 		panic(err)
 	}

@@ -73,6 +73,8 @@ type KubeVirtController struct {
 	operatorNamespace    string
 	aggregatorClient     install.APIServiceInterface
 	statusUpdater        *status.KVStatusUpdater
+
+	shouldOnlyWatchKubevirt bool
 }
 
 func NewKubeVirtController(
@@ -83,6 +85,7 @@ func NewKubeVirtController(
 	stores util.Stores,
 	informers util.Informers,
 	operatorNamespace string,
+	shouldOnlyWatchKubevirt bool,
 ) (*KubeVirtController, error) {
 
 	rl := workqueue.NewMaxOfRateLimiter(
@@ -127,6 +130,8 @@ func NewKubeVirtController(
 		delayedQueueAdder: func(key interface{}, queue workqueue.RateLimitingInterface) {
 			queue.AddAfter(key, defaultAddDelay)
 		},
+
+		shouldOnlyWatchKubevirt: shouldOnlyWatchKubevirt,
 	}
 
 	_, err := c.kubeVirtInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -856,7 +861,7 @@ func (c *KubeVirtController) loadInstallStrategy(kv *v1.KubeVirt) (*install.Stra
 	}
 
 	// 4. execute a job to generate the install strategy for the target version of KubeVirt that's being installed/updated
-	job, err := c.generateInstallStrategyJob(kv.Spec.Infra, config)
+	job, err := c.generateInstallStrategyJob(kv.Spec.Infra, config, c.shouldOnlyWatchKubevirt)
 	if err != nil {
 		return nil, true, err
 	}

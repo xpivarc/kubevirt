@@ -17,7 +17,7 @@ import (
 	operatorutil "kubevirt.io/kubevirt/pkg/virt-operator/util"
 )
 
-func (c *KubeVirtController) generateInstallStrategyJob(infraPlacement *v1.ComponentConfig, config *operatorutil.KubeVirtDeploymentConfig) (*batchv1.Job, error) {
+func (c *KubeVirtController) generateInstallStrategyJob(infraPlacement *v1.ComponentConfig, config *operatorutil.KubeVirtDeploymentConfig, shouldOnlyWatchKubevirt bool) (*batchv1.Job, error) {
 
 	operatorImage := config.VirtOperatorImage
 	if operatorImage == "" {
@@ -96,6 +96,10 @@ func (c *KubeVirtController) generateInstallStrategyJob(infraPlacement *v1.Compo
 				},
 			},
 		},
+	}
+
+	if !shouldOnlyWatchKubevirt {
+		job.Spec.Template.Spec.Containers[0].Command = append(job.Spec.Template.Spec.Containers[0].Command, "--kubevirt-namespace-only=false")
 	}
 
 	apply.InjectPlacementMetadata(infraPlacement, &job.Spec.Template.Spec)

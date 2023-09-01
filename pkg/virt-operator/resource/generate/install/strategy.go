@@ -242,8 +242,8 @@ func decodeManifests(strategy []byte) (string, error) {
 	return decodedStrategy.String(), nil
 }
 
-func NewInstallStrategyConfigMap(config *operatorutil.KubeVirtDeploymentConfig, monitorNamespace string, operatorNamespace string) (*corev1.ConfigMap, error) {
-	strategy, err := GenerateCurrentInstallStrategy(config, monitorNamespace, operatorNamespace)
+func NewInstallStrategyConfigMap(config *operatorutil.KubeVirtDeploymentConfig, monitorNamespace string, operatorNamespace string, shouldOnlyWatchKubevirt bool) (*corev1.ConfigMap, error) {
+	strategy, err := GenerateCurrentInstallStrategy(config, monitorNamespace, operatorNamespace, shouldOnlyWatchKubevirt)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func getMonitorNamespace(clientset k8coresv1.CoreV1Interface, config *operatorut
 	return "", nil
 }
 
-func DumpInstallStrategyToConfigMap(clientset kubecli.KubevirtClient, operatorNamespace string) error {
+func DumpInstallStrategyToConfigMap(clientset kubecli.KubevirtClient, operatorNamespace string, shouldOnlyWatchKubevirt bool) error {
 
 	config, err := util.GetConfigFromEnv()
 	if err != nil {
@@ -304,7 +304,7 @@ func DumpInstallStrategyToConfigMap(clientset kubecli.KubevirtClient, operatorNa
 		return err
 	}
 
-	configMap, err := NewInstallStrategyConfigMap(config, monitorNamespace, operatorNamespace)
+	configMap, err := NewInstallStrategyConfigMap(config, monitorNamespace, operatorNamespace, shouldOnlyWatchKubevirt)
 	if err != nil {
 		return err
 	}
@@ -391,7 +391,7 @@ func dumpInstallStrategyToBytes(strategy *Strategy) []byte {
 	return b.Bytes()
 }
 
-func GenerateCurrentInstallStrategy(config *operatorutil.KubeVirtDeploymentConfig, monitorNamespace string, operatorNamespace string) (*Strategy, error) {
+func GenerateCurrentInstallStrategy(config *operatorutil.KubeVirtDeploymentConfig, monitorNamespace string, operatorNamespace string, shouldOnlyWatchKubevirt bool) (*Strategy, error) {
 
 	strategy := &Strategy{}
 
@@ -492,13 +492,13 @@ func GenerateCurrentInstallStrategy(config *operatorutil.KubeVirtDeploymentConfi
 	strategy.services = append(strategy.services, components.NewApiServerService(config.GetNamespace()))
 	strategy.services = append(strategy.services, components.NewOperatorWebhookService(operatorNamespace))
 	strategy.services = append(strategy.services, components.NewExportProxyService(config.GetNamespace()))
-	apiDeployment, err := components.NewApiServerDeployment(config.GetNamespace(), config.GetImageRegistry(), config.GetImagePrefix(), config.GetApiVersion(), productName, productVersion, productComponent, config.VirtApiImage, config.GetImagePullPolicy(), config.GetImagePullSecrets(), config.GetVerbosity(), config.GetExtraEnv())
+	apiDeployment, err := components.NewApiServerDeployment(config.GetNamespace(), config.GetImageRegistry(), config.GetImagePrefix(), config.GetApiVersion(), productName, productVersion, productComponent, config.VirtApiImage, config.GetImagePullPolicy(), config.GetImagePullSecrets(), config.GetVerbosity(), config.GetExtraEnv(), shouldOnlyWatchKubevirt)
 	if err != nil {
 		return nil, fmt.Errorf("error generating virt-apiserver deployment %v", err)
 	}
 	strategy.deployments = append(strategy.deployments, apiDeployment)
 
-	controller, err := components.NewControllerDeployment(config.GetNamespace(), config.GetImageRegistry(), config.GetImagePrefix(), config.GetControllerVersion(), config.GetLauncherVersion(), config.GetExportServerVersion(), productName, productVersion, productComponent, config.VirtControllerImage, config.VirtLauncherImage, config.VirtExportServerImage, config.GetImagePullPolicy(), config.GetImagePullSecrets(), config.GetVerbosity(), config.GetExtraEnv())
+	controller, err := components.NewControllerDeployment(config.GetNamespace(), config.GetImageRegistry(), config.GetImagePrefix(), config.GetControllerVersion(), config.GetLauncherVersion(), config.GetExportServerVersion(), productName, productVersion, productComponent, config.VirtControllerImage, config.VirtLauncherImage, config.VirtExportServerImage, config.GetImagePullPolicy(), config.GetImagePullSecrets(), config.GetVerbosity(), config.GetExtraEnv(), shouldOnlyWatchKubevirt)
 	if err != nil {
 		return nil, fmt.Errorf("error generating virt-controller deployment %v", err)
 	}
@@ -506,13 +506,13 @@ func GenerateCurrentInstallStrategy(config *operatorutil.KubeVirtDeploymentConfi
 
 	strategy.configMaps = append(strategy.configMaps, components.NewCAConfigMaps(operatorNamespace)...)
 
-	exportProxyDeployment, err := components.NewExportProxyDeployment(config.GetNamespace(), config.GetImageRegistry(), config.GetImagePrefix(), config.GetExportProxyVersion(), productName, productVersion, productComponent, config.VirtExportProxyImage, config.GetImagePullPolicy(), config.GetImagePullSecrets(), config.GetVerbosity(), config.GetExtraEnv())
+	exportProxyDeployment, err := components.NewExportProxyDeployment(config.GetNamespace(), config.GetImageRegistry(), config.GetImagePrefix(), config.GetExportProxyVersion(), productName, productVersion, productComponent, config.VirtExportProxyImage, config.GetImagePullPolicy(), config.GetImagePullSecrets(), config.GetVerbosity(), config.GetExtraEnv(), shouldOnlyWatchKubevirt)
 	if err != nil {
 		return nil, fmt.Errorf("error generating export proxy deployment %v", err)
 	}
 	strategy.deployments = append(strategy.deployments, exportProxyDeployment)
 
-	handler, err := components.NewHandlerDaemonSet(config.GetNamespace(), config.GetImageRegistry(), config.GetImagePrefix(), config.GetHandlerVersion(), config.GetLauncherVersion(), config.GetPrHelperVersion(), productName, productVersion, productComponent, config.VirtHandlerImage, config.VirtLauncherImage, config.PrHelperImage, config.GetImagePullPolicy(), config.GetImagePullSecrets(), config.GetMigrationNetwork(), config.GetVerbosity(), config.GetExtraEnv(), config.PersistentReservationEnabled())
+	handler, err := components.NewHandlerDaemonSet(config.GetNamespace(), config.GetImageRegistry(), config.GetImagePrefix(), config.GetHandlerVersion(), config.GetLauncherVersion(), config.GetPrHelperVersion(), productName, productVersion, productComponent, config.VirtHandlerImage, config.VirtLauncherImage, config.PrHelperImage, config.GetImagePullPolicy(), config.GetImagePullSecrets(), config.GetMigrationNetwork(), config.GetVerbosity(), config.GetExtraEnv(), config.PersistentReservationEnabled(), shouldOnlyWatchKubevirt)
 	if err != nil {
 		return nil, fmt.Errorf("error generating virt-handler deployment %v", err)
 	}
