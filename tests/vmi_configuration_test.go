@@ -2157,11 +2157,12 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 			tests.AddEphemeralDisk(vmi, "ephemeral-disk1", v1.DiskBusVirtio, cd.ContainerDiskFor(cd.ContainerDiskCirros))
 			vmi.Spec.Domain.Devices.Disks[0].Cache = v1.CacheNone
 
-			// disk[1]:  Block, no user-input, cache=none
-			tests.AddPVCDisk(vmi, "block-pvc", v1.DiskBusVirtio, dataVolume.Name)
-
-			// disk[2]: File, not-sparsed, no user-input, cache=none
-			tests.AddPVCDisk(vmi, "hostpath-pvc", v1.DiskBusVirtio, tests.DiskAlpineHostPath)
+			libvmi.Apply(vmi,
+				// disk[1]:  Block, no user-input, cache=none
+				libvmi.WithPersistentVolumeClaim("block-pvc", dataVolume.Name),
+				// disk[2]: File, not-sparsed, no user-input, cache=none
+				libvmi.WithPersistentVolumeClaim("hostpath-pvc", tests.DiskAlpineHostPath),
+			)
 
 			// disk[3]:  File, sparsed, user-input=threads, cache=none
 			tests.AddEphemeralDisk(vmi, "ephemeral-disk2", v1.DiskBusVirtio, cd.ContainerDiskFor(cd.ContainerDiskCirros))
