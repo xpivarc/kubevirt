@@ -533,7 +533,7 @@ func NewRandomVirtualMachineInstanceWithFileDisk(imageUrl, namespace string, acc
 	return NewRandomVirtualMachineInstanceWithDisk(imageUrl, namespace, sc, accessMode, k8sv1.PersistentVolumeFilesystem)
 }
 
-func NewRandomVirtualMachineInstanceWithBlockDisk(imageUrl, namespace string, accessMode k8sv1.PersistentVolumeAccessMode) (*v1.VirtualMachineInstance, *cdiv1.DataVolume) {
+func NewRandomVirtualMachineInstanceWithBlockDisk(imageUrl, namespace string, accessMode k8sv1.PersistentVolumeAccessMode, options ...libvmi.Option) (*v1.VirtualMachineInstance, *cdiv1.DataVolume) {
 	if !libstorage.HasCDI() {
 		Skip("Skip DataVolume tests when CDI is not present")
 	}
@@ -545,7 +545,11 @@ func NewRandomVirtualMachineInstanceWithBlockDisk(imageUrl, namespace string, ac
 		Skip("Skip test when Block storage is not present")
 	}
 
-	return NewRandomVirtualMachineInstanceWithDisk(imageUrl, namespace, sc, accessMode, k8sv1.PersistentVolumeBlock)
+	vmi, dv := NewRandomVirtualMachineInstanceWithDisk(imageUrl, namespace, sc, accessMode, k8sv1.PersistentVolumeBlock)
+	for _, option := range options {
+		option(vmi)
+	}
+	return vmi, dv
 }
 
 func NewRandomVMI() *v1.VirtualMachineInstance {
@@ -739,28 +743,7 @@ func AddPVCDisk(vmi *v1.VirtualMachineInstance, name string, bus v1.DiskBus, cla
 	return vmi
 }
 
-func AddEphemeralCdrom(vmi *v1.VirtualMachineInstance, name string, bus v1.DiskBus, image string) *v1.VirtualMachineInstance {
-	vmi.Spec.Domain.Devices.Disks = append(vmi.Spec.Domain.Devices.Disks, v1.Disk{
-		Name: name,
-		DiskDevice: v1.DiskDevice{
-			CDRom: &v1.CDRomTarget{
-				Bus: bus,
-			},
-		},
-	})
-	vmi.Spec.Volumes = append(vmi.Spec.Volumes, v1.Volume{
-		Name: name,
-		VolumeSource: v1.VolumeSource{
-			ContainerDisk: &v1.ContainerDiskSource{
-				Image: image,
-			},
-		},
-	})
-
-	return vmi
-}
-
-func NewRandomFedoraVMI(opts ...libvmi.Option) *v1.VirtualMachineInstance {
+func NewRandomFedoraVMI() *v1.VirtualMachineInstance {
 	networkData := libnet.CreateDefaultCloudInitNetworkData()
 
 	return libvmi.NewFedora(append([]libvmi.Option{
@@ -782,7 +765,15 @@ func NewRandomFedoraVMIWithBlacklistGuestAgent(commands string) *v1.VirtualMachi
 	)
 }
 
-func NewRandomFedoraVMIWithEphemeralDiskHighMemory() *v1.VirtualMachineInstance {
+func NewRandomFedoraVMIWithDmidecode(options ...libvmi.Option) *v1.VirtualMachineInstance {
+	vmi := NewRandomVMIWithEphemeralDiskHighMemory(cd.ContainerDiskFor(cd.ContainerDiskFedoraTestTooling))
+	for _, option := range options {
+		option(vmi)
+	}
+	return vmi
+}
+
+func NewRandomFedoraVMIWithVirtWhatCpuidHelper() *v1.VirtualMachineInstance {
 	vmi := NewRandomVMIWithEphemeralDiskHighMemory(cd.ContainerDiskFor(cd.ContainerDiskFedoraTestTooling))
 	return vmi
 }

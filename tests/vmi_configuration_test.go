@@ -81,6 +81,8 @@ import (
 	"kubevirt.io/kubevirt/tests/libwait"
 	"kubevirt.io/kubevirt/tests/testsuite"
 	"kubevirt.io/kubevirt/tests/watcher"
+
+	gomegatypes "github.com/onsi/gomega/types"
 )
 
 var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
@@ -2990,29 +2992,21 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 	})
 
 	Context("With ephemeral CD-ROM", func() {
-		var vmi *v1.VirtualMachineInstance
 		var DiskBusIDE v1.DiskBus = "ide"
 
-		BeforeEach(func() {
-			vmi = tests.NewRandomFedoraVMIWithEphemeralDiskHighMemory()
-		})
-
-		DescribeTable("For various bus types", func(bus v1.DiskBus, errMsg string) {
-			tests.AddEphemeralCdrom(vmi, "cdrom-0", bus, cd.ContainerDiskFor(cd.ContainerDiskCirros))
+		DescribeTable("For various bus types", func(bus v1.DiskBus, matcher gomegatypes.GomegaMatcher) {
+			vmi := tests.NewRandomFedoraVMIWithDmidecode(
+				libvmi.WithCDRomContainerDisk("cdrom-0", bus, cd.ContainerDiskFor(cd.ContainerDiskCirros)),
+			)
 
 			By(fmt.Sprintf("Starting a VMI with a %s CD-ROM", bus))
 			_, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(vmi)).Create(context.Background(), vmi)
-			if errMsg == "" {
-				Expect(err).ToNot(HaveOccurred())
-			} else {
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(errMsg))
-			}
+			Expect(err).To(matcher)
 		},
-			Entry("[test_id:3777] Should be accepted when using sata", v1.DiskBusSATA, ""),
-			Entry("[test_id:3809] Should be accepted when using scsi", v1.DiskBusSCSI, ""),
-			Entry("[test_id:3776] Should be rejected when using virtio", v1.DiskBusVirtio, "Bus type virtio is invalid"),
-			Entry("[test_id:3808] Should be rejected when using ide", DiskBusIDE, "IDE bus is not supported"),
+			Entry("[test_id:3777] Should be accepted when using sata", v1.DiskBusSATA, Not(HaveOccurred())),
+			Entry("[test_id:3809] Should be accepted when using scsi", v1.DiskBusSCSI, Not(HaveOccurred())),
+			Entry("[test_id:3776] Should be rejected when using virtio", v1.DiskBusVirtio, MatchError(ContainSubstring("Bus type virtio is invalid"))),
+			Entry("[test_id:3808] Should be rejected when using ide", DiskBusIDE, MatchError(ContainSubstring("IDE bus is not supported"))),
 		)
 	})
 

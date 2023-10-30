@@ -77,6 +77,27 @@ func WithCDRom(cdRomName string, bus v1.DiskBus, claimName string) Option {
 	}
 }
 
+func WithCDRomContainerDisk(name string, bus v1.DiskBus, image string) Option {
+	return func(vmi *v1.VirtualMachineInstance) {
+		vmi.Spec.Domain.Devices.Disks = append(vmi.Spec.Domain.Devices.Disks, v1.Disk{
+			Name: name,
+			DiskDevice: v1.DiskDevice{
+				CDRom: &v1.CDRomTarget{
+					Bus: bus,
+				},
+			},
+		})
+		vmi.Spec.Volumes = append(vmi.Spec.Volumes, v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				ContainerDisk: &v1.ContainerDiskSource{
+					Image: image,
+				},
+			},
+		})
+	}
+}
+
 // WithFilesystemPVC specifies a filesystem backed by a PVC to be used.
 func WithFilesystemPVC(claimName string) Option {
 	return func(vmi *v1.VirtualMachineInstance) {

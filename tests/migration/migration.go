@@ -455,11 +455,13 @@ var _ = SIGMigrationDescribe("VM Live Migration", func() {
 			})
 
 			It("[test_id:6970]should migrate vmi with cdroms on various bus types", func() {
+				options := []libvmi.Option{
+					libvmi.WithCDRomContainerDisk("cdrom-0", v1.DiskBusSATA, cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
+					libvmi.WithCDRomContainerDisk("cdrom-1", v1.DiskBusSCSI, cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
+				}
 				vmi := libvmi.NewAlpineWithTestTooling(
-					libvmi.WithMasqueradeNetworking()...,
+					append(options, libvmi.WithMasqueradeNetworking()...)...,
 				)
-				tests.AddEphemeralCdrom(vmi, "cdrom-0", v1.DiskBusSATA, cd.ContainerDiskFor(cd.ContainerDiskAlpine))
-				tests.AddEphemeralCdrom(vmi, "cdrom-1", v1.DiskBusSCSI, cd.ContainerDiskFor(cd.ContainerDiskAlpine))
 
 				By("Starting the VirtualMachineInstance")
 				vmi = tests.RunVMIAndExpectLaunch(vmi, 240)
@@ -499,12 +501,20 @@ var _ = SIGMigrationDescribe("VM Live Migration", func() {
 			})
 
 			It("should migrate vmi and use Live Migration method with read-only disks", func() {
-				By("Defining a VMI with PVC disk and read-only CDRoms")
-				vmi, _ := tests.NewRandomVirtualMachineInstanceWithBlockDisk(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine), testsuite.GetTestNamespace(nil), k8sv1.ReadWriteMany)
-				vmi.Spec.Hostname = string(cd.ContainerDiskAlpine)
+				options := []libvmi.Option{
+					libvmi.WithCDRomContainerDisk("cdrom-0", v1.DiskBusSATA, cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
+					libvmi.WithCDRomContainerDisk("cdrom-1", v1.DiskBusSCSI, cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
+				}
 
-				tests.AddEphemeralCdrom(vmi, "cdrom-0", v1.DiskBusSATA, cd.ContainerDiskFor(cd.ContainerDiskAlpine))
-				tests.AddEphemeralCdrom(vmi, "cdrom-1", v1.DiskBusSCSI, cd.ContainerDiskFor(cd.ContainerDiskAlpine))
+				By("Defining a VMI with PVC disk and read-only CDRoms")
+				vmi, _ := tests.NewRandomVirtualMachineInstanceWithBlockDisk(
+					cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine),
+					testsuite.GetTestNamespace(nil),
+					k8sv1.ReadWriteMany,
+					options...,
+				)
+				// TODO
+				vmi.Spec.Hostname = string(cd.ContainerDiskAlpine)
 
 				By("Starting the VirtualMachineInstance")
 				vmi = tests.RunVMIAndExpectLaunch(vmi, 240)
