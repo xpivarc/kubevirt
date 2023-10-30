@@ -742,7 +742,7 @@ var _ = Describe("[Serial][sig-operator]Operator", Serial, decorators.SigOperato
 				tests.CreateConfigMap(configMapName, vmi.Namespace, config_data)
 				tests.CreateSecret(secretName, vmi.Namespace, secret_data)
 
-				tests.AddUserData(vmi, "cloud-init", "#!/bin/bash\necho 'hello'\n")
+				libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData("#!/bin/bash\necho 'hello'\n", true))
 				tests.AddConfigMapDisk(vmi, configMapName, configMapName)
 				tests.AddSecretDisk(vmi, secretName, secretName)
 				tests.AddServiceAccountDisk(vmi, "default")

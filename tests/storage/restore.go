@@ -1822,7 +1822,8 @@ var _ = SIGDescribe("VirtualMachineRestore Tests", func() {
 					)
 
 					vmi := tests.NewRandomVMIWithDataVolume(dataVolume.Name)
-					tests.AddUserData(vmi, "cloud-init", bashHelloScript)
+					libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData(bashHelloScript, true))
+
 					vm := tests.NewRandomVirtualMachine(vmi, false)
 					libstorage.AddDataVolumeTemplate(vm, dataVolume)
 					return vm

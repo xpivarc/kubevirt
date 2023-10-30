@@ -117,7 +117,7 @@ var _ = SIGDescribe("DataVolume Integration", func() {
 				Skip("Skip when volume expansion storage class not available")
 			}
 			vmi, dataVolume := tests.NewRandomVirtualMachineInstanceWithDisk(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros), testsuite.GetTestNamespace(nil), sc, k8sv1.ReadWriteOnce, volumeMode)
-			tests.AddUserData(vmi, "cloud-init", "#!/bin/bash\necho 'hello'\n")
+			libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData("#!/bin/bash\necho 'hello'\n", true))
 			vmi = tests.RunVMIAndExpectLaunch(vmi, 500)
 
 			By("Expecting the VirtualMachineInstance console")
@@ -1147,7 +1147,7 @@ var _ = SIGDescribe("DataVolume Integration", func() {
 			vmi := tests.NewRandomVMIWithDataVolume(dataVolume.Name)
 			vmi.Spec.Domain.Resources.Requests[k8sv1.ResourceMemory] = resource.MustParse("512M")
 			vmi.Spec.Domain.Devices.Disks[0].DiskDevice.Disk.Bus = "scsi"
-			tests.AddUserData(vmi, "cloud-init", "#!/bin/bash\n echo hello\n")
+			libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData("#!/bin/bash\n echo hello\n", true))
 
 			dataVolume, err = virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dataVolume, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())

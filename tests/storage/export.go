@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
+	"kubevirt.io/kubevirt/tests/libvmi"
 
 	"kubevirt.io/kubevirt/tests/exec"
 	"kubevirt.io/kubevirt/tests/testsuite"
@@ -1866,7 +1867,7 @@ var _ = SIGDescribe("Export", func() {
 		blankDv = createDataVolume(blankDv)
 
 		vmi := tests.NewRandomVMIWithDataVolume(dataVolume.Name)
-		tests.AddUserData(vmi, "cloud-init", bashHelloScript)
+		libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData(bashHelloScript, true))
 		vm := tests.NewRandomVirtualMachine(vmi, false)
 		addDataVolumeDisk(vm, "blankdisk", blankDv.Name)
 		vm.Spec.Running = pointer.Bool(true)

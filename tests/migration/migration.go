@@ -286,7 +286,7 @@ var _ = SIGMigrationDescribe("VM Live Migration", func() {
 					mkdir /mnt/servacc
 					mount /dev/$(lsblk --nodeps -no name,serial | grep %s | cut -f1 -d' ') /mnt/servacc
 				`, secretDiskSerial)
-			tests.AddUserData(vmi, "cloud-init", mountSvcAccCommands)
+			libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData(mountSvcAccCommands, true))
 
 			tests.AddServiceAccountDisk(vmi, "default")
 			disks := vmi.Spec.Domain.Devices.Disks
@@ -1177,7 +1177,7 @@ var _ = SIGMigrationDescribe("VM Live Migration", func() {
 				// Start the VirtualMachineInstance with the PVC attached
 
 				vmi, _ := tests.NewRandomVirtualMachineInstanceWithBlockDisk(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros), testsuite.GetTestNamespace(nil), k8sv1.ReadWriteMany)
-				tests.AddUserData(vmi, "cloud-init", "#!/bin/bash\necho 'hello'\n")
+				libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData("#!/bin/bash\necho 'hello'\n", true))
 				vmi.Spec.Hostname = fmt.Sprintf("%s", cd.ContainerDiskCirros)
 				vmi = tests.RunVMIAndExpectLaunch(vmi, 180)
 
@@ -1243,7 +1243,7 @@ var _ = SIGMigrationDescribe("VM Live Migration", func() {
 				vmi.Spec.Domain.Resources.Requests[k8sv1.ResourceMemory] = resource.MustParse(fedoraVMSize)
 				vmi.Spec.Domain.Devices.Rng = &v1.Rng{}
 
-				tests.AddUserData(vmi, "cloud-init", "#!/bin/bash\n echo hello\n")
+				libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData("#!/bin/bash\n echo hello\n", true))
 				vmi = tests.RunVMIAndExpectLaunchIgnoreWarnings(vmi, 180)
 
 				By("Checking guest agent")
@@ -2157,7 +2157,7 @@ var _ = SIGMigrationDescribe("VM Live Migration", func() {
 				Expect(err).ToNot(HaveOccurred())
 				libstorage.EventuallyDV(dv, 600, HaveSucceeded())
 				vmi := tests.NewRandomVMIWithDataVolume(dv.Name)
-				tests.AddUserData(vmi, "disk1", "#!/bin/bash\n echo hello\n")
+				libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData("#!/bin/bash\n echo hello\n", true))
 				return vmi
 			}
 

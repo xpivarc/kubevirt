@@ -628,7 +628,7 @@ func NewRandomVMWithDataVolume(imageUrl string, namespace string) (*v1.VirtualMa
 
 func NewRandomVMWithDataVolumeAndUserData(dataVolume *cdiv1.DataVolume, userData string) *v1.VirtualMachine {
 	vmi := NewRandomVMIWithDataVolume(dataVolume.Name)
-	AddUserData(vmi, "cloud-init", userData)
+	libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData(userData, true))
 	vm := NewRandomVirtualMachine(vmi, false)
 
 	libstorage.AddDataVolumeTemplate(vm, dataVolume)
@@ -786,7 +786,7 @@ func GetFedoraToolsGuestAgentBlacklistUserData(commands string) string {
 
 func NewRandomVMIWithEphemeralDiskAndUserdata(containerImage string, userData string) *v1.VirtualMachineInstance {
 	vmi := NewRandomVMIWithEphemeralDisk(containerImage)
-	AddUserData(vmi, "disk1", userData)
+	libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData(userData, true))
 	return vmi
 }
 
@@ -806,10 +806,6 @@ func NewRandomVMIWithEphemeralDiskAndConfigDriveUserdataNetworkData(containerIma
 	vmi := NewRandomVMIWithEphemeralDisk(containerImage)
 	AddCloudInitConfigDriveData(vmi, "disk1", userData, networkData, b64encode)
 	return vmi
-}
-
-func AddUserData(vmi *v1.VirtualMachineInstance, name string, userData string) {
-	AddCloudInitNoCloudData(vmi, name, userData, "", true)
 }
 
 func AddCloudInitNoCloudData(vmi *v1.VirtualMachineInstance, name, userData, networkData string, b64encode bool) {
@@ -870,7 +866,7 @@ func NewRandomVMIWithPVCAndUserData(claimName, userData string) *v1.VirtualMachi
 	vmi := NewRandomVMI()
 
 	vmi = AddPVCDisk(vmi, "disk0", v1.DiskBusVirtio, claimName)
-	AddUserData(vmi, "disk1", userData)
+	libvmi.Apply(vmi, libvmi.WithCloudInitNoCloudUserData(userData, true))
 	return vmi
 }
 

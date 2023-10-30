@@ -1183,7 +1183,7 @@ var _ = SIGDescribe("Hotplug", func() {
 				By("start VM with disk mutation sidecar")
 				vmi := tests.NewRandomVMIWithDataVolume(dv.Name)
 				vmi.ObjectMeta.Annotations = renderSidecar()
-				tests.AddUserData(vmi, "cloud-init", "#!/bin/bash\necho 'hello'\n")
+				libvmi.Apply(vmi, libvmi.WithCloudInitConfigDriveData("#!/bin/bash\necho 'hello'\n", true))
 
 				vm := tests.NewRandomVirtualMachine(vmi, true)
 				vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm)
