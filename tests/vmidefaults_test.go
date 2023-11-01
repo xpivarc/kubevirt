@@ -146,28 +146,6 @@ var _ = Describe("[Serial][sig-compute]VMIDefaults", Serial, decorators.SigCompu
 				},
 			}),
 		)
-
-		It("[test_id:4559]Should not be present in domain ", func() {
-			By("Creating a virtual machine with autoAttachmemballoon set to false")
-			f := false
-			vmi.Spec.Domain.Devices.AutoattachMemBalloon = &f
-			vmi, err = virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(context.Background(), vmi)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("Waiting for successful start")
-			libwait.WaitForSuccessfulVMIStart(vmi)
-
-			By("Getting domain of vmi")
-			domain, err := tests.GetRunningVMIDomainSpec(vmi)
-			Expect(err).ToNot(HaveOccurred())
-
-			expected := api.MemBalloon{
-				Model: "none",
-			}
-			Expect(domain.Devices.Ballooning).ToNot(BeNil(), "There should be memballoon device")
-			Expect(*domain.Devices.Ballooning).To(Equal(expected))
-		})
-
 	})
 
 	Context("Input defaults", func() {

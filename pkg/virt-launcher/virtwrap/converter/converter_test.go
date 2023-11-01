@@ -695,17 +695,21 @@ var _ = Describe("Converter", func() {
 			Entry("when context define 0 period on memballoon device for arm64", "arm64", convertedDomainarm64With0Period, uint(0)),
 		)
 
-		DescribeTable("should be converted to a libvirt Domain", func(arch string, domain string) {
+		DescribeTable("should be converted to a libvirt Domain", func(arch string, autoattachMemBalloon *bool, domain string) {
 			v1.SetObjectDefaults_VirtualMachineInstance(vmi)
 			vmi.Spec.Domain.Devices.Rng = &v1.Rng{}
-			vmi.Spec.Domain.Devices.AutoattachMemBalloon = False()
+			vmi.Spec.Domain.Devices.AutoattachMemBalloon = autoattachMemBalloon
 			c.Architecture = arch
+			c.MemBalloonStatsPeriod = 5
 			vmiArchMutate(arch, vmi, c)
 			Expect(vmiToDomainXML(vmi, c)).To(Equal(domain))
 		},
-			Entry("when Autoattach memballoon device is false for amd64", "amd64", convertedDomainWithFalseAutoattach),
-			Entry("when Autoattach memballoon device is false for ppc64le", "ppc64le", convertedDomainppc64leWithFalseAutoattach),
-			Entry("when Autoattach memballoon device is false for arm64", "arm64", convertedDomainarm64WithFalseAutoattach),
+			Entry("when Autoattach memballoon device is false for amd64", "amd64", False(), convertedDomainWithFalseAutoattach),
+			Entry("when Autoattach memballoon device is false for ppc64le", "ppc64le", False(), convertedDomainppc64leWithFalseAutoattach),
+			Entry("when Autoattach memballoon device is false for arm64", "arm64", False(), convertedDomainarm64WithFalseAutoattach),
+			Entry("when Autoattach memballoon device is true for amd64", "amd64", True(), convertedDomainWith5Period),
+			Entry("when Autoattach memballoon device is true for ppc64le", "ppc64le", True(), convertedDomainppc64leWith5Period),
+			Entry("when Autoattach memballoon device is true for arm64", "arm64", True(), convertedDomainarm64With5Period),
 		)
 
 		It("should use kvm if present", func() {
