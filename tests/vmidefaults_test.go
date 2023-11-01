@@ -40,10 +40,7 @@ import (
 )
 
 var _ = Describe("[Serial][sig-compute]VMIDefaults", Serial, decorators.SigCompute, func() {
-	var err error
 	var virtClient kubecli.KubevirtClient
-
-	var vmi *v1.VirtualMachineInstance
 
 	BeforeEach(func() {
 		virtClient = kubevirt.Client()
@@ -55,20 +52,22 @@ var _ = Describe("[Serial][sig-compute]VMIDefaults", Serial, decorators.SigCompu
 			By("Creating a VirtualMachine with AutoattachInputDevice enabled")
 			vm := tests.NewRandomVirtualMachine(libvmi.NewCirros(), false)
 			vm.Spec.Template.Spec.Domain.Devices.AutoattachInputDevice = pointer.Bool(true)
-			vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm)
+			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Starting VirtualMachine")
 			vm = tests.StartVMAndExpectRunning(virtClient, vm)
 
 			By("Getting VirtualMachineInstance")
-			vmi, err = virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(vm)).Get(context.Background(), vm.Name, &metav1.GetOptions{})
+			vmi, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(vm)).Get(context.Background(), vm.Name, &metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(vmi.Spec.Domain.Devices.Inputs).ToNot(BeEmpty(), "There should be input devices")
-			Expect(vmi.Spec.Domain.Devices.Inputs[0].Name).To(Equal("default-0"))
-			Expect(vmi.Spec.Domain.Devices.Inputs[0].Type).To(Equal(v1.InputTypeTablet))
-			Expect(vmi.Spec.Domain.Devices.Inputs[0].Bus).To(Equal(v1.InputBusUSB))
+			inputs := vmi.Spec.Domain.Devices.Inputs
+
+			Expect(inputs).ToNot(BeEmpty(), "There should be input devices")
+			Expect(inputs[0].Name).To(Equal("default-0"))
+			Expect(inputs[0].Type).To(Equal(v1.InputTypeTablet))
+			Expect(inputs[0].Bus).To(Equal(v1.InputBusUSB))
 		})
 
 	})
