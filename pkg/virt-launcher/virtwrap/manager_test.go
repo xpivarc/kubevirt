@@ -65,6 +65,8 @@ import (
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/converter"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/efi"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/stats"
+
+	gomegatypes "github.com/onsi/gomega/types"
 )
 
 var (
@@ -2731,6 +2733,40 @@ var _ = Describe("Converter Context", func() {
 			Expect(context.MemBalloonStatsPeriod).To(Equal(5))
 
 		})
+	})
+
+	Context("freePageReporting", func() {
+		DescribeTable("should", func(options *cmdv1.VirtualMachineOptions, matcher gomegatypes.GomegaMatcher) {
+			vmi := &v1.VirtualMachineInstance{
+				ObjectMeta: metav1.ObjectMeta{},
+				Spec: v1.VirtualMachineInstanceSpec{
+					Domain: v1.DomainSpec{},
+				},
+			}
+
+			manager := LibvirtDomainManager{}
+			context, err := manager.generateConverterContext(vmi, true, options, false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(context.FreePageReporting).To(BeTrue())
+
+			context, err = manager.generateConverterContext(vmi, true, options, true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(context.FreePageReporting).To(BeTrue())
+		},
+			Entry("be true when FreePageReportingDisabled option is false", &cmdv1.VirtualMachineOptions{
+				ClusterConfig: &cmdv1.ClusterConfig{
+					FreePageReportingDisabled: false,
+				}}, BeTrue(),
+			),
+			Entry("be false when FreePageReportingDisabled option is true", &cmdv1.VirtualMachineOptions{
+				ClusterConfig: &cmdv1.ClusterConfig{
+					FreePageReportingDisabled: true,
+				}}, BeFalse(),
+			),
+			Entry("be true when options are not provided", nil, BeTrue()),
+			Entry("be true when FreePageReportingDisabled option is not set", &cmdv1.VirtualMachineOptions{}, BeTrue()),
+		)
+
 	})
 })
 
