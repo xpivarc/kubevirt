@@ -33,7 +33,9 @@ import (
 	"path/filepath"
 	"time"
 
+	v1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/kubevirt/tests/decorators"
+	"kubevirt.io/kubevirt/tests/libvmi"
 
 	"github.com/mitchellh/go-vnc"
 
@@ -45,7 +47,6 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/rest"
 
-	v1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/client-go/kubecli"
 	"kubevirt.io/client-go/log"
 	"kubevirt.io/client-go/subresources"
@@ -59,17 +60,19 @@ import (
 
 var _ = Describe("[rfe_id:127][crit:medium][arm64][vendor:cnv-qe@redhat.com][level:component][sig-compute]VNC", decorators.SigCompute, func() {
 
-	var err error
 	var virtClient kubecli.KubevirtClient
 	var vmi *v1.VirtualMachineInstance
 
+	BeforeEach(func() {
+		virtClient = kubevirt.Client()
+	})
+
 	Describe("[rfe_id:127][crit:medium][vendor:cnv-qe@redhat.com][level:component]A new VirtualMachineInstance", func() {
 		BeforeEach(func() {
-			virtClient = kubevirt.Client()
-
-			vmi = tests.NewRandomVMI()
-			Expect(virtClient.RestClient().Post().Resource("virtualmachineinstances").Namespace(testsuite.GetTestNamespace(vmi)).Body(vmi).Do(context.Background()).Error()).To(Succeed())
-			libwait.WaitForSuccessfulVMIStart(vmi)
+			vmi = libvmi.New()
+			vmi, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(vmi)).Create(context.TODO(), vmi)
+			Expect(err).ToNot(HaveOccurred())
+			vmi = libwait.WaitForSuccessfulVMIStart(vmi)
 		})
 
 		Context("with VNC connection", func() {
@@ -121,7 +124,7 @@ var _ = Describe("[rfe_id:127][crit:medium][arm64][vendor:cnv-qe@redhat.com][lev
 					// communicate.
 					By("Checking the response from VNC server")
 					Expect(response).To(Equal("RFB 003.008\n"))
-				case err = <-k8ResChan:
+				case err := <-k8ResChan:
 					Expect(err).ToNot(HaveOccurred())
 				case <-time.After(45 * time.Second):
 					Fail("Timout reached while waiting for valid VNC server response")
