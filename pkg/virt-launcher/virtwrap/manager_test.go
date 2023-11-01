@@ -2708,6 +2708,32 @@ var _ = Describe("Manager helper functions", func() {
 
 })
 
+var _ = Describe("Converter Context", func() {
+	Context("MemBalloonStatsPeriod", func() {
+		It("should be set if present in options", func() {
+			vmi := &v1.VirtualMachineInstance{
+				ObjectMeta: metav1.ObjectMeta{},
+				Spec: v1.VirtualMachineInstanceSpec{
+					Domain: v1.DomainSpec{},
+				},
+			}
+
+			options := &cmdv1.VirtualMachineOptions{
+				MemBalloonStatsPeriod: 5,
+			}
+			manager := LibvirtDomainManager{}
+			context, err := manager.generateConverterContext(vmi, true, options, false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(context.MemBalloonStatsPeriod).To(Equal(5))
+
+			context, err = manager.generateConverterContext(vmi, true, options, true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(context.MemBalloonStatsPeriod).To(Equal(5))
+
+		})
+	})
+})
+
 func newVMI(namespace, name string) *v1.VirtualMachineInstance {
 	vmi := api2.NewMinimalVMIWithNS(namespace, name)
 	v1.SetObjectDefaults_VirtualMachineInstance(vmi)
