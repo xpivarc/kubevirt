@@ -42,6 +42,8 @@ import (
 var _ = Describe("[Serial][sig-compute]VMIDefaults", Serial, decorators.SigCompute, func() {
 	var virtClient kubecli.KubevirtClient
 
+	// TODO create one test to verify webhook is called and some mutating is done
+
 	BeforeEach(func() {
 		virtClient = kubevirt.Client()
 	})
