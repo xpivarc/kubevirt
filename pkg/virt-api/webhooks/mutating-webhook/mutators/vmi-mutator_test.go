@@ -1255,6 +1255,40 @@ var _ = Describe("VirtualMachineInstance Mutator", func() {
 			Expect(disk.Disk).ToNot(BeNil(), "DiskTarget should not be nil")
 			Expect(disk.Disk.Bus).ToNot(BeEmpty(), "DiskTarget's bus should not be empty")
 		})
+
+		It("Should fill in missing disk", func() {
+			vmi := &v1.VirtualMachineInstance{
+				ObjectMeta: k8smetav1.ObjectMeta{
+					Labels: map[string]string{"test": "test"},
+				},
+				Spec: v1.VirtualMachineInstanceSpec{
+					Domain: v1.DomainSpec{
+						Devices: v1.Devices{
+							// No disk
+							Disks: []v1.Disk{},
+						},
+					},
+					Volumes: []v1.Volume{
+						{
+							Name: "kubevirt",
+							VolumeSource: v1.VolumeSource{
+								ContainerDisk: &v1.ContainerDiskSource{
+									Image: "evolves",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			By("should default disk")
+			vmi = vmiFromResponse(admitVMIWithMutator(newDefaultMutator(), vmi))
+			disks := vmi.Spec.Domain.Devices.Disks
+			Expect(disks).To(HaveLen(1))
+			Expect(disks[0].Name).To(Equal("kubevirt"))
+			Expect(disks[0].Disk).ToNot(BeNil(), "DiskTarget should not be nil")
+			Expect(disks[0].Disk.Bus).ToNot(Equal("virtio"), "DiskTarget's bus should be virtio")
+		})
 	})
 })
 

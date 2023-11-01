@@ -24,8 +24,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	k8sv1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 
@@ -52,55 +50,6 @@ var _ = Describe("[Serial][sig-compute]VMIDefaults", Serial, decorators.SigCompu
 
 	BeforeEach(func() {
 		virtClient = kubevirt.Client()
-	})
-
-	Context("Disk defaults", func() {
-		BeforeEach(func() {
-			// create VMI with missing disk target
-			vmi = tests.NewRandomVMI()
-			vmi.Spec = v1.VirtualMachineInstanceSpec{
-				Domain: v1.DomainSpec{
-					Devices: v1.Devices{
-						Disks: []v1.Disk{
-							{Name: "testdisk"},
-						},
-					},
-					Resources: v1.ResourceRequirements{
-						Requests: k8sv1.ResourceList{
-							k8sv1.ResourceMemory: resource.MustParse("8192Ki"),
-						},
-					},
-				},
-				Volumes: []v1.Volume{
-					{
-						Name: "testdisk",
-						VolumeSource: v1.VolumeSource{
-							ContainerDisk: &v1.ContainerDiskSource{
-								Image: "dummy",
-							},
-						},
-					},
-				},
-			}
-		})
-
-		It("[test_id:]Should be applied to any auto attached volume disks", func() {
-
-			// Drop the disks to ensure they are added in by setDefaultVolumeDisk
-			vmi.Spec.Domain.Devices.Disks = []v1.Disk{}
-
-			_, err = virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(context.Background(), vmi)
-			Expect(err).ToNot(HaveOccurred())
-
-			newVMI, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Get(context.Background(), vmi.Name, &metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(newVMI.Spec.Domain.Devices.Disks).To(HaveLen(1))
-			Expect(newVMI.Spec.Domain.Devices.Disks[0].Name).To(Equal(vmi.Spec.Volumes[0].Name))
-			Expect(newVMI.Spec.Domain.Devices.Disks[0].Disk).ToNot(BeNil(), "DiskTarget should not be nil")
-			Expect(newVMI.Spec.Domain.Devices.Disks[0].Disk.Bus).ToNot(BeEmpty(), "DiskTarget's bus should not be empty")
-		})
-
 	})
 
 	Context("MemBalloon defaults", func() {
