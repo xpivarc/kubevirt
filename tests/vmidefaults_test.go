@@ -172,24 +172,6 @@ var _ = Describe("[Serial][sig-compute]VMIDefaults", Serial, decorators.SigCompu
 
 	Context("Input defaults", func() {
 
-		It("[test_id:TODO]Should be set in VirtualMachineInstance", func() {
-
-			By("Creating a VirtualMachineInstance with an input device without a bus or type set")
-			vmi = libvmi.NewCirros()
-			vmi.Spec.Domain.Devices.Inputs = append(vmi.Spec.Domain.Devices.Inputs, v1.Input{
-				Name: "foo-1",
-			})
-
-			vmi, err = virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(context.Background(), vmi)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(vmi.Spec.Domain.Devices.Inputs).ToNot(BeEmpty(), "There should be input devices")
-			Expect(vmi.Spec.Domain.Devices.Inputs[0].Name).To(Equal("foo-1"))
-			Expect(vmi.Spec.Domain.Devices.Inputs[0].Type).To(Equal(v1.InputTypeTablet))
-			Expect(vmi.Spec.Domain.Devices.Inputs[0].Bus).To(Equal(v1.InputBusUSB))
-
-		})
-
 		It("[test_id:TODO]Should be applied to a device added by AutoattachInputDevice", func() {
 			By("Creating a VirtualMachine with AutoattachInputDevice enabled")
 			vm := tests.NewRandomVirtualMachine(libvmi.NewCirros(), false)

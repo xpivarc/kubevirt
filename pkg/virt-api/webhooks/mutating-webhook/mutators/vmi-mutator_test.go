@@ -493,18 +493,6 @@ var _ = Describe("VirtualMachineInstance Mutator", func() {
 		Expect(vmiSpec.Domain.Devices.Disks[1].Name).To(Equal(missingVolumeName))
 	})
 
-	It("should set defaults for input devices", func() {
-		vmi.Spec.Domain.Devices.Inputs = []v1.Input{{
-			Name: "default-0",
-		}}
-
-		_, vmiSpec, _ := getMetaSpecStatusFromAdmit(rt.GOARCH)
-		Expect(vmiSpec.Domain.Devices.Inputs).To(HaveLen(1))
-		Expect(vmiSpec.Domain.Devices.Inputs[0].Name).To(Equal("default-0"))
-		Expect(vmiSpec.Domain.Devices.Inputs[0].Bus).To(Equal(v1.InputBusUSB))
-		Expect(vmiSpec.Domain.Devices.Inputs[0].Type).To(Equal(v1.InputTypeTablet))
-	})
-
 	It("should not override specified properties with defaults on VMI create", func() {
 		testutils.UpdateFakeKubeVirtClusterConfig(kvInformer, &v1.KubeVirt{
 			Spec: v1.KubeVirtSpec{
@@ -1288,6 +1276,33 @@ var _ = Describe("VirtualMachineInstance Mutator", func() {
 			Expect(disks[0].Name).To(Equal("kubevirt"))
 			Expect(disks[0].Disk).ToNot(BeNil(), "DiskTarget should not be nil")
 			Expect(disks[0].Disk.Bus).ToNot(Equal("virtio"), "DiskTarget's bus should be virtio")
+		})
+	})
+
+	Context("Input devices", func() {
+		It("Should be set in VirtualMachineInstance", func() {
+			vmi := &v1.VirtualMachineInstance{
+				ObjectMeta: k8smetav1.ObjectMeta{
+					Labels: map[string]string{"test": "test"},
+				},
+				Spec: v1.VirtualMachineInstanceSpec{
+					Domain: v1.DomainSpec{
+						Devices: v1.Devices{
+							Inputs: []v1.Input{
+								{Name: "source"},
+							},
+						},
+					},
+				},
+			}
+			By("should default input device")
+			vmi = vmiFromResponse(admitVMIWithMutator(newDefaultMutator(), vmi))
+			inputs := vmi.Spec.Domain.Devices.Inputs
+			Expect(inputs).ToNot(BeEmpty(), "There should be input devices")
+			Expect(inputs[0].Name).To(Equal("source"), "Should have same name")
+			Expect(inputs[0].Type).To(Equal(v1.InputTypeTablet), "Should default type to tablet")
+			Expect(inputs[0].Bus).To(Equal(v1.InputBusUSB), "Should use USB bus")
+
 		})
 	})
 })
