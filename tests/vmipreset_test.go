@@ -50,7 +50,6 @@ import (
 )
 
 var _ = Describe("[rfe_id:609][crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-compute]VMIPreset", decorators.SigCompute, func() {
-	var err error
 	var virtClient kubecli.KubevirtClient
 
 	var vmi *v1.VirtualMachineInstance
@@ -133,8 +132,7 @@ var _ = Describe("[rfe_id:609][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 
 			reviewResponse := &k8smetav1.Status{}
 			body, _ := result.Raw()
-			err = json.Unmarshal(body, reviewResponse)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(json.Unmarshal(body, reviewResponse)).To(Succeed())
 
 			Expect(reviewResponse.Details.Causes).To(HaveLen(1))
 			Expect(reviewResponse.Details.Causes[0].Field).To(Equal("spec.domain.devices.disks[1]"))
