@@ -1275,7 +1275,7 @@ var _ = Describe("VirtualMachineInstance Mutator", func() {
 			Expect(disks).To(HaveLen(1))
 			Expect(disks[0].Name).To(Equal("kubevirt"))
 			Expect(disks[0].Disk).ToNot(BeNil(), "DiskTarget should not be nil")
-			Expect(disks[0].Disk.Bus).ToNot(Equal("virtio"), "DiskTarget's bus should be virtio")
+			Expect(disks[0].Disk.Bus).ToNot(Equal(v1.DiskBus("virtio")), "DiskTarget's bus should be virtio")
 		})
 	})
 

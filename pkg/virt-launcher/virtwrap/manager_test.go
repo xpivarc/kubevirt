@@ -2726,11 +2726,11 @@ var _ = Describe("Converter Context", func() {
 			manager := LibvirtDomainManager{}
 			context, err := manager.generateConverterContext(vmi, true, options, false)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(context.MemBalloonStatsPeriod).To(Equal(5))
+			Expect(context.MemBalloonStatsPeriod).To(Equal(uint(5)))
 
 			context, err = manager.generateConverterContext(vmi, true, options, true)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(context.MemBalloonStatsPeriod).To(Equal(5))
+			Expect(context.MemBalloonStatsPeriod).To(Equal(uint(5)))
 
 		})
 	})
@@ -2747,11 +2747,11 @@ var _ = Describe("Converter Context", func() {
 			manager := LibvirtDomainManager{}
 			context, err := manager.generateConverterContext(vmi, true, options, false)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(context.FreePageReporting).To(BeTrue())
+			Expect(context.FreePageReporting).To(matcher)
 
 			context, err = manager.generateConverterContext(vmi, true, options, true)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(context.FreePageReporting).To(BeTrue())
+			Expect(context.FreePageReporting).To(matcher)
 		},
 			Entry("be true when FreePageReportingDisabled option is false", &cmdv1.VirtualMachineOptions{
 				ClusterConfig: &cmdv1.ClusterConfig{

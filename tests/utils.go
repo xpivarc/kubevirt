@@ -731,7 +731,7 @@ func NewRandomFedoraVMI() *v1.VirtualMachineInstance {
 		libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 		libvmi.WithNetwork(v1.DefaultPodNetwork()),
 		libvmi.WithCloudInitNoCloudNetworkData(networkData)},
-		opts...)...,
+	/*opts...*/)...,
 	)
 }
 
