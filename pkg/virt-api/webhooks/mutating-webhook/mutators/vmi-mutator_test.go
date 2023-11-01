@@ -1213,4 +1213,96 @@ var _ = Describe("VirtualMachineInstance Mutator", func() {
 		Expect(*status.Memory.GuestCurrent).To(Equal(memory))
 		Expect(*status.Memory.GuestRequested).To(Equal(memory))
 	})
+
+	Context("Disk", func() {
+		It("Should apply default bus if missing", func() {
+			vmi := &v1.VirtualMachineInstance{
+				ObjectMeta: k8smetav1.ObjectMeta{
+					Labels: map[string]string{"test": "test"},
+				},
+				Spec: v1.VirtualMachineInstanceSpec{
+					Domain: v1.DomainSpec{
+						Devices: v1.Devices{
+							Disks: []v1.Disk{
+								{
+									Name: "past",
+									DiskDevice: v1.DiskDevice{
+										Disk: &v1.DiskTarget{
+											// No bus
+											Bus: "",
+										},
+									},
+								},
+							},
+						},
+					},
+					Volumes: []v1.Volume{
+						{
+							Name: "past",
+							VolumeSource: v1.VolumeSource{
+								ContainerDisk: &v1.ContainerDiskSource{
+									Image: "memories",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			By("should default bus")
+			vmi = vmiFromResponse(admitVMIWithMutator(newDefaultMutator(), vmi))
+			disk := vmi.Spec.Domain.Devices.Disks[0]
+			Expect(disk.Disk).ToNot(BeNil(), "DiskTarget should not be nil")
+			Expect(disk.Disk.Bus).ToNot(BeEmpty(), "DiskTarget's bus should not be empty")
+		})
+	})
 })
+
+func vmiFromResponse(response *admissionv1.AdmissionResponse) *v1.VirtualMachineInstance {
+	ExpectWithOffset(1, response.Allowed).To(BeTrue(), "Should be allowed")
+
+	vmiSpec := &v1.VirtualMachineInstanceSpec{}
+	vmiMeta := &k8smetav1.ObjectMeta{}
+	vmiStatus := &v1.VirtualMachineInstanceStatus{}
+	patchOps := []patch.PatchOperation{
+		{Value: vmiSpec},
+		{Value: vmiMeta},
+		{Value: vmiStatus},
+	}
+	err := json.Unmarshal(response.Patch, &patchOps)
+	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Should be able to retrive ObjectMeta, Spec and Status")
+	ExpectWithOffset(1, patchOps).NotTo(BeEmpty(), "Mutator should generate patch")
+	return &v1.VirtualMachineInstance{
+		ObjectMeta: *vmiMeta,
+		Spec:       *vmiSpec,
+		Status:     *vmiStatus,
+	}
+}
+
+func admitVMIWithMutator(mutator *VMIsMutator, vmi *v1.VirtualMachineInstance) *admissionv1.AdmissionResponse {
+	bytes, err := json.Marshal(vmi)
+	Expect(err).ToNot(HaveOccurred())
+	ar := &admissionv1.AdmissionReview{
+		Request: &admissionv1.AdmissionRequest{
+			Namespace: vmi.Namespace,
+			Operation: admissionv1.Create,
+			Resource:  k8smetav1.GroupVersionResource{Group: v1.VirtualMachineInstanceGroupVersionKind.Group, Version: v1.VirtualMachineInstanceGroupVersionKind.Version, Resource: "virtualmachineinstances"},
+			Object: runtime.RawExtension{
+				Raw: bytes,
+			},
+		},
+	}
+	return mutator.Mutate(ar)
+}
+
+func newDefaultMutator() *VMIsMutator {
+	presetInformer, _ := testutils.NewFakeInformerFor(&v1.VirtualMachineInstancePreset{})
+	emptyClusterConfig, _, _ := testutils.NewFakeClusterConfigUsingKVConfig(&v1.KubeVirtConfiguration{})
+
+	mutator := &VMIsMutator{
+		ClusterConfig:     emptyClusterConfig,
+		VMIPresetInformer: presetInformer,
+	}
+
+	return mutator
+}
