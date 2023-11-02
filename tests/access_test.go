@@ -163,7 +163,6 @@ func (r rights) list() (e []rightsEntry) {
 var _ = Describe("[rfe_id:500][crit:high][arm64][vendor:cnv-qe@redhat.com][level:component][sig-compute]User Access", decorators.SigCompute, func() {
 
 	var k8sClient string
-	var authClient *authClientV1.AuthorizationV1Client
 
 	doSarRequest := func(group string, resource string, subresource string, namespace string, role string, verb string, expected, clusterWide bool) {
 		roleToUser := map[string]string{
@@ -191,6 +190,9 @@ var _ = Describe("[rfe_id:500][crit:high][arm64][vendor:cnv-qe@redhat.com][level
 			sar.Spec.ResourceAttributes.Namespace = namespace
 		}
 
+		authClient, err := authClientV1.NewForConfig(kubevirt.Client().Config())
+		Expect(err).ToNot(HaveOccurred())
+
 		result, err := authClient.SubjectAccessReviews().Create(context.Background(), sar, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		Expect(result.Status.Allowed).To(Equal(expected), fmt.Sprintf("access check for user '%v' on resource '%v' with subresource '%v' for verb '%v' should have returned '%v'. Gave reason %s.",
@@ -206,10 +208,6 @@ var _ = Describe("[rfe_id:500][crit:high][arm64][vendor:cnv-qe@redhat.com][level
 	BeforeEach(func() {
 		k8sClient = clientcmd.GetK8sCmdClient()
 		clientcmd.SkipIfNoCmd(k8sClient)
-		virtClient := kubevirt.Client()
-		var err error
-		authClient, err = authClientV1.NewForConfig(virtClient.Config())
-		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Describe("With default kubevirt service accounts", func() {
