@@ -28,7 +28,6 @@ import (
 	"kubevirt.io/kubevirt/tests/decorators"
 	"kubevirt.io/kubevirt/tests/testsuite"
 
-	"kubevirt.io/kubevirt/tests/framework/checks"
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -47,7 +46,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("[Serial][sig-operator]virt-handler canary upgrade", Serial, decorators.SigOperator, func() {
+var _ = Describe("[Serial][sig-operator]virt-handler canary upgrade", Serial, decorators.SigOperator, decorators.RequiresTwoSchedulableNodes, func() {
 
 	var virtCli kubecli.KubevirtClient
 
@@ -59,14 +58,9 @@ var _ = Describe("[Serial][sig-operator]virt-handler canary upgrade", Serial, de
 	)
 
 	BeforeEach(func() {
-		if !checks.HasAtLeastTwoNodes() {
-			Skip("this test requires at least 2 nodes")
-		}
-
 		virtCli = kubevirt.Client()
 
 		lastObservedEvent = ""
-
 	})
 
 	AfterEach(func() {
