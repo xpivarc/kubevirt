@@ -249,11 +249,11 @@ func WithPasstInterfaceWithPort() Option {
 	return WithInterface(InterfaceDeviceWithPasstBinding([]v1.Port{{Port: 1234, Protocol: "TCP"}}...))
 }
 
-func WithNodeAffinityFor(node *k8sv1.Node) Option {
+func WithNodeAffinityFor(nodeName string) Option {
 	return func(vmi *v1.VirtualMachineInstance) {
 		nodeSelectorTerm := k8sv1.NodeSelectorTerm{
 			MatchExpressions: []k8sv1.NodeSelectorRequirement{
-				{Key: "kubernetes.io/hostname", Operator: k8sv1.NodeSelectorOpIn, Values: []string{node.Name}},
+				{Key: "kubernetes.io/hostname", Operator: k8sv1.NodeSelectorOpIn, Values: []string{nodeName}},
 			},
 		}
 
