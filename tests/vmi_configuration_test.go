@@ -2884,7 +2884,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 	Context("[rfe_id:2926][crit:medium][vendor:cnv-qe@redhat.com][level:component]Check Chassis value", func() {
 
 		It("[Serial][test_id:2927]Test Chassis value in a newly created VM", Serial, func() {
-			vmi := tests.NewRandomFedoraVMIWithEphemeralDiskHighMemory()
+			vmi := libvmi.NewFedora()
 			vmi.Spec.Domain.Chassis = &v1.Chassis{
 				Asset: "Test-123",
 			}
@@ -2916,7 +2916,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 		var vmi *v1.VirtualMachineInstance
 
 		BeforeEach(func() {
-			vmi = tests.NewRandomFedoraVMIWithEphemeralDiskHighMemory()
+			vmi = libvmi.NewFedora()
 		})
 
 		It("[test_id:2751]test default SMBios", func() {
@@ -3101,7 +3101,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 		BeforeEach(func() {
 			checks.SkipIfRunningOnKindInfra("Skip KVM MSR prescence test on kind")
 
-			vmi = tests.NewRandomFedoraVMIWithEphemeralDiskHighMemory()
+			vmi = libvmi.NewFedora()
 		})
 
 		It("[test_id:5271]test cpuid hidden", func() {

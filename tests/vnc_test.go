@@ -34,6 +34,7 @@ import (
 	"time"
 
 	v1 "kubevirt.io/api/core/v1"
+
 	"kubevirt.io/kubevirt/tests/decorators"
 	"kubevirt.io/kubevirt/tests/libvmi"
 
@@ -70,7 +71,8 @@ var _ = Describe("[rfe_id:127][crit:medium][arm64][vendor:cnv-qe@redhat.com][lev
 	Describe("[rfe_id:127][crit:medium][vendor:cnv-qe@redhat.com][level:component]A new VirtualMachineInstance", func() {
 		BeforeEach(func() {
 			vmi = libvmi.New()
-			vmi, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(vmi)).Create(context.TODO(), vmi)
+			var err error
+			vmi, err = virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(vmi)).Create(context.TODO(), vmi)
 			Expect(err).ToNot(HaveOccurred())
 			vmi = libwait.WaitForSuccessfulVMIStart(vmi)
 		})

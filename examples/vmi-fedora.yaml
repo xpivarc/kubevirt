@@ -8,6 +8,7 @@ metadata:
 spec:
   domain:
     devices:
+      autoattachVSOCK: true
       disks:
       - disk:
           bus: virtio

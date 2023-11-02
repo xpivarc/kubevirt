@@ -112,6 +112,7 @@ func AdjustKubeVirtResource() {
 		virtconfig.VMPersistentState,
 		virtconfig.VMLiveUpdateFeaturesGate,
 		virtconfig.AutoResourceLimitsGate,
+		virtconfig.VSOCKGate,
 	)
 	if flags.DisableCustomSELinuxPolicy {
 		kv.Spec.Configuration.DeveloperConfiguration.FeatureGates = append(kv.Spec.Configuration.DeveloperConfiguration.FeatureGates,

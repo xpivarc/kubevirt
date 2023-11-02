@@ -724,14 +724,14 @@ func AddBootOrderToDisk(vmi *v1.VirtualMachineInstance, diskName string, bootord
 	return vmi
 }
 
-func NewRandomFedoraVMI() *v1.VirtualMachineInstance {
+func NewRandomFedoraVMI(opts ...libvmi.Option) *v1.VirtualMachineInstance {
 	networkData := libnet.CreateDefaultCloudInitNetworkData()
 
 	return libvmi.NewFedora(append([]libvmi.Option{
 		libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 		libvmi.WithNetwork(v1.DefaultPodNetwork()),
 		libvmi.WithCloudInitNoCloudNetworkData(networkData)},
-	/*opts...*/)...,
+		opts...)...,
 	)
 }
 
