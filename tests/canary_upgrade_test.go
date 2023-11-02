@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"kubevirt.io/kubevirt/tests/decorators"
+	"kubevirt.io/kubevirt/tests/testsuite"
 
 	"kubevirt.io/kubevirt/tests/framework/checks"
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
@@ -48,10 +49,8 @@ import (
 
 var _ = Describe("[Serial][sig-operator]virt-handler canary upgrade", Serial, decorators.SigOperator, func() {
 
-	var originalKV *v1.KubeVirt
 	var virtCli kubecli.KubevirtClient
-	var dsInformer cache.SharedIndexInformer
-	var stopCh chan struct{}
+
 	var lastObservedEvent string
 
 	const (
@@ -66,27 +65,16 @@ var _ = Describe("[Serial][sig-operator]virt-handler canary upgrade", Serial, de
 
 		virtCli = kubevirt.Client()
 
-		originalKV = util.GetCurrentKv(virtCli).DeepCopy()
-
-		stopCh = make(chan struct{})
 		lastObservedEvent = ""
 
-		informerFactory := informers.NewSharedInformerFactoryWithOptions(virtCli, 0, informers.WithNamespace(flags.KubeVirtInstallNamespace), informers.WithTweakListOptions(func(opts *metav1.ListOptions) {
-			opts.LabelSelector = "kubevirt.io=virt-handler"
-		}))
-		dsInformer = informerFactory.Apps().V1().DaemonSets().Informer()
 	})
 
 	AfterEach(func() {
-		close(stopCh)
 
-		retry.RetryOnConflict(retry.DefaultRetry, func() error {
-			_, err := virtCli.KubeVirt(flags.KubeVirtInstallNamespace).Update(originalKV)
-			return err
-		})
+		testsuite.RestoreKubeVirtResource()
 
 		Eventually(func() bool {
-			ds, err := virtCli.AppsV1().DaemonSets(originalKV.Namespace).Get(context.Background(), "virt-handler", metav1.GetOptions{})
+			ds, err := virtCli.AppsV1().DaemonSets(flags.KubeVirtInstallNamespace).Get(context.Background(), "virt-handler", metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			return ds.Status.DesiredNumberScheduled == ds.Status.NumberReady && ds.Spec.UpdateStrategy.RollingUpdate.MaxUnavailable.IntValue() == 1
 		}, 60*time.Second, 1*time.Second).Should(BeTrue(), "waiting for virt-handler to be ready")
@@ -99,21 +87,21 @@ var _ = Describe("[Serial][sig-operator]virt-handler canary upgrade", Serial, de
 	}
 
 	updateVirtHandler := func() error {
-		kv := util.GetCurrentKv(virtCli)
-
 		patch := fmt.Sprintf(`{"spec": { "template": {"metadata": {"annotations": {"%s": "test"}}}}}`,
 			e2eCanaryTestAnnotation)
-		kv.Spec.CustomizeComponents = v1.CustomizeComponents{
-			Patches: []v1.CustomizeComponentsPatch{
-				{
-					ResourceName: "virt-handler",
-					ResourceType: "DaemonSet",
-					Type:         v1.StrategicMergePatchType,
-					Patch:        patch,
-				},
-			},
-		}
+
 		return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			kv := util.GetCurrentKv(virtCli)
+			kv.Spec.CustomizeComponents = v1.CustomizeComponents{
+				Patches: []v1.CustomizeComponentsPatch{
+					{
+						ResourceName: "virt-handler",
+						ResourceType: "DaemonSet",
+						Type:         v1.StrategicMergePatchType,
+						Patch:        patch,
+					},
+				},
+			}
 			_, err := virtCli.KubeVirt(flags.KubeVirtInstallNamespace).Update(kv)
 			return err
 		})
@@ -188,6 +176,11 @@ var _ = Describe("[Serial][sig-operator]virt-handler canary upgrade", Serial, de
 		nodesToUpdate := ds.Status.DesiredNumberScheduled
 		Expect(nodesToUpdate).To(BeNumerically(">", 0))
 
+		dsInformer := informers.NewSharedInformerFactoryWithOptions(virtCli, 0, informers.WithNamespace(flags.KubeVirtInstallNamespace), informers.WithTweakListOptions(func(opts *metav1.ListOptions) {
+			opts.LabelSelector = "kubevirt.io=virt-handler"
+		})).Apps().V1().DaemonSets().Informer()
+		stopCh := make(chan struct{})
+		DeferCleanup(func() { close(stopCh) })
 		go dsInformer.Run(stopCh)
 		cache.WaitForCacheSync(stopCh, dsInformer.HasSynced)
 
