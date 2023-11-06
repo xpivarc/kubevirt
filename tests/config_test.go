@@ -519,7 +519,7 @@ var _ = Describe("[rfe_id:899][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 					&expect.BSnd{S: "mount /dev/sda /mnt\n"},
 					&expect.BExp{R: console.PromptExpression},
 					&expect.BSnd{S: "echo $?\n"},
-					&expect.BExp{R: console.RetValue("0")},
+					&expect.BExp{R: console.ShellSuccess},
 					&expect.BSnd{S: "grep -c \"PRIVATE KEY\" /mnt/ssh-privatekey\n"},
 					&expect.BExp{R: console.RetValue(`[1-9]\d*`)},
 					&expect.BSnd{S: "grep -c ssh-rsa /mnt/ssh-publickey\n"},
@@ -534,9 +534,11 @@ var _ = Describe("[rfe_id:899][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 		downwardAPIName := "downwardapi-" + uuid.NewRandom().String()
 		downwardAPIPath := config.GetDownwardAPISourcePath(downwardAPIName)
 
-		testLabelKey := "kubevirt.io.testdownwardapi"
-		testLabelVal := "downwardAPIValue"
-		expectedOutput := testLabelKey + "=" + "\"" + testLabelVal + "\""
+		const (
+			testLabelKey   = "kubevirt.io.testdownwardapi"
+			testLabelVal   = "downwardAPIValue"
+			expectedOutput = testLabelKey + "=" + "\"" + testLabelVal + "\""
+		)
 
 		It("[test_id:790]Should be the namespace and token the same for a pod and vmi", func() {
 			By("Running VMI")
@@ -566,7 +568,7 @@ var _ = Describe("[rfe_id:899][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				// mount iso DownwardAPI image
 				&expect.BSnd{S: "mount /dev/sda /mnt\n"},
 				&expect.BSnd{S: "echo $?\n"},
-				&expect.BExp{R: console.RetValue("0")},
+				&expect.BExp{R: console.ShellSuccess},
 				&expect.BSnd{S: "grep " + testLabelKey + " /mnt/labels\n"},
 				&expect.BExp{R: expectedOutput},
 			}, 200*time.Second)).To(Succeed())

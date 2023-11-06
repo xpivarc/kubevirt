@@ -437,6 +437,7 @@ func (f *kubeInformerFactory) VMI() cache.SharedIndexInformer {
 	})
 }
 
+// How does this work?
 func (f *kubeInformerFactory) VMISourceHost(hostName string) cache.SharedIndexInformer {
 	labelSelector, err := labels.Parse(fmt.Sprintf(kubev1.NodeNameLabel+" in (%s)", hostName))
 	if err != nil {

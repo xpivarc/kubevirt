@@ -59,6 +59,7 @@ func WithServiceAccountDisk(name string) Option {
 	}
 }
 
+// Passthrough labels
 func WithDownwardAPIDisk(name string) Option {
 	return func(vmi *v1.VirtualMachineInstance) {
 		vmi.Spec.Volumes = append(vmi.Spec.Volumes, newDownwardAPIVolume(name))
