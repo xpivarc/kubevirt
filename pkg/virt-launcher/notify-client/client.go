@@ -65,6 +65,8 @@ type libvirtEvent struct {
 	AgentEvent *libvirt.DomainEventAgentLifecycle
 }
 
+// legacySocketPath can be removed because new Launchers
+// doesn't get the hostdir anymore
 func NewNotifier(virtShareDir string) *Notifier {
 	return &Notifier{
 		pipeSocketPath:   filepath.Join(virtShareDir, "domain-notify-pipe.sock"),
