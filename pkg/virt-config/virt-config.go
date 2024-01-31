@@ -465,11 +465,8 @@ func (c *ClusterConfig) IsVMRolloutStrategyLiveUpdate() bool {
 		return false
 	}
 	liveConfig := c.GetConfig().VMRolloutStrategy
-	if liveConfig == nil {
-		return DefaultVMRolloutStrategyLiveUpdate
-	}
 
-	return liveConfig.LiveUpdate != nil
+	return liveConfig != nil && liveConfig.LiveUpdate != nil
 }
 
 func (c *ClusterConfig) GetNetworkBindings() map[string]v1.InterfaceBindingPlugin {
