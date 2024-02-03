@@ -5556,6 +5556,7 @@ var _ = Describe("VirtualMachine", func() {
 
 				By("Executing the controller again expecting the RestartRequired condition to appear")
 				expectControllerRevisionDelete()
+				expectVMUpdate()
 				controller.Execute()
 				syncCaches()
 				expectRestartRequired(true)
