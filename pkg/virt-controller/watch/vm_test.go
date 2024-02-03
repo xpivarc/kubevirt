@@ -5540,7 +5540,7 @@ var _ = Describe("VirtualMachine", func() {
 				expectControllerRevisionCreation()
 				controller.Execute()
 				syncCaches()
-				expectRestartRequired(false)
+				Expect(restartRequired).To(BeFalse(), "restart required")
 				markAsReady(vmi)
 				vmiFeeder.Add(vmi)
 
@@ -5554,7 +5554,7 @@ var _ = Describe("VirtualMachine", func() {
 				expectVMUpdate()
 				controller.Execute()
 				syncCaches()
-				expectRestartRequired(true)
+				Expect(restartRequired).To(BeTrue(), "restart required")
 			})
 
 			It("should appear when VM doesn't specify maxSockets and sockets go above cluster-wide maxSockets", func() {
@@ -5576,7 +5576,7 @@ var _ = Describe("VirtualMachine", func() {
 				expectControllerRevisionCreation()
 				controller.Execute()
 				syncCaches()
-				expectRestartRequired(false)
+				Expect(restartRequired).To(BeFalse(), "restart required")
 				markAsReady(vmi)
 				vmiFeeder.Add(vmi)
 
@@ -5590,7 +5590,8 @@ var _ = Describe("VirtualMachine", func() {
 				expectControllerRevisionDelete()
 				controller.Execute()
 				syncCaches()
-				expectRestartRequired(true)
+				Expect(restartRequired).To(BeTrue(), "restart required")
+				// expectRestartRequired(true)
 			})
 
 			It("should appear when VM doesn't specify maxGuest and guest memory goes above cluster-wide maxGuest", func() {
@@ -5612,7 +5613,8 @@ var _ = Describe("VirtualMachine", func() {
 				expectControllerRevisionCreation()
 				controller.Execute()
 				syncCaches()
-				expectRestartRequired(false)
+				// expectRestartRequired(false)
+				Expect(restartRequired).To(BeFalse(), "restart required")
 				markAsReady(vmi)
 				vmi.Status.Memory = &virtv1.MemoryStatus{
 					GuestAtBoot:  &maxGuest,
@@ -5631,7 +5633,8 @@ var _ = Describe("VirtualMachine", func() {
 				expectControllerRevisionDelete()
 				controller.Execute()
 				syncCaches()
-				expectRestartRequired(true)
+				Expect(restartRequired).To(BeTrue(), "restart required")
+				// expectRestartRequired(true)
 			})
 
 			DescribeTable("when changing a live-updatable field", func(fgs []string, strat *virtv1.VMRolloutStrategy, expectCond bool) {
@@ -5652,7 +5655,8 @@ var _ = Describe("VirtualMachine", func() {
 				controller.Execute()
 				syncCaches()
 				Expect(crFor(string(vm.ObjectMeta.UID))).To(ContainSubstring(fmt.Sprintf("%s-%d", vm.ObjectMeta.UID, 1)))
-				expectRestartRequired(false)
+				// expectRestartRequired(false)
+				Expect(restartRequired).To(BeFalse(), "restart required")
 				markAsReady(vmi)
 				vmiFeeder.Add(vmi)
 
@@ -5666,10 +5670,14 @@ var _ = Describe("VirtualMachine", func() {
 				if !expectCond {
 					expectVMIPatch()
 				}
+				if expectCond {
+					expectVMUpdate()
+				}
 				controller.Execute()
 				syncCaches()
 				Expect(crFor(string(vm.ObjectMeta.UID))).To(ContainSubstring(fmt.Sprintf("%s-%d", vm.ObjectMeta.UID, 1)))
-				expectRestartRequired(expectCond)
+				// expectRestartRequired(expectCond)
+				Expect(restartRequired).To(Equal(expectCond), "restart required")
 			},
 				Entry("should appear if the feature gate is not set",
 					[]string{}, &liveUpdate, true),
