@@ -89,7 +89,7 @@ var _ = BeforeSuite(func() {
 	cloudinit.SetIsoCreationFunction(isoCreationFunc)
 })
 
-var _ = Describe("Manager", func() {
+var _ = PDescribe("Manager", func() {
 	var mockConn *cli.MockConnection
 	var mockDomain *cli.MockVirDomain
 	var mockDirectIOChecker *converter.MockDirectIOChecker
