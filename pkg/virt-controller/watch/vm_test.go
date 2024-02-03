@@ -5406,15 +5406,27 @@ var _ = Describe("VirtualMachine", func() {
 			var crList appsv1.ControllerRevisionList
 			var crListLock sync.Mutex
 
+			restartRequired := false
+
 			expectVMUpdate := func() {
-				vmInterface.EXPECT().Update(context.Background(), gomock.Any()).DoAndReturn(func(ctx context.Context, arg interface{}) (interface{}, error) {
-					return arg, nil
+				vmInterface.EXPECT().Update(context.Background(), gomock.Any()).DoAndReturn(func(ctx context.Context, vm *virtv1.VirtualMachine) (interface{}, error) {
+					for _, condition := range vm.Status.Conditions {
+						if condition.Type == virtv1.VirtualMachineRestartRequired {
+							restartRequired = condition.Status == k8sv1.ConditionTrue
+						}
+					}
+					return vm, nil
 				}).AnyTimes()
 			}
 
 			expectVMStatusUpdate := func() {
-				vmInterface.EXPECT().UpdateStatus(context.Background(), gomock.Any()).DoAndReturn(func(ctx context.Context, arg interface{}) (interface{}, error) {
-					return arg, nil
+				vmInterface.EXPECT().UpdateStatus(context.Background(), gomock.Any()).DoAndReturn(func(ctx context.Context, vm *virtv1.VirtualMachine) (interface{}, error) {
+					for _, condition := range vm.Status.Conditions {
+						if condition.Type == virtv1.VirtualMachineRestartRequired {
+							restartRequired = condition.Status == k8sv1.ConditionTrue
+						}
+					}
+					return vm, nil
 				}).AnyTimes()
 			}
 
@@ -5470,24 +5482,6 @@ var _ = Describe("VirtualMachine", func() {
 				})
 			}
 
-			expectRestartRequired := func(shouldExpect bool) {
-				list, err := vmSource.List(metav1.ListOptions{})
-				Expect(err).NotTo(HaveOccurred())
-				vms, ok := list.(*k8sv1.List)
-				Expect(ok).To(BeTrue())
-				Expect(vms.Items).To(HaveLen(1))
-				vm, ok := vms.Items[0].Object.(*virtv1.VirtualMachine)
-				Expect(ok).To(BeTrue())
-				found := false
-				for _, cond := range vm.Status.Conditions {
-					if cond.Type == virtv1.VirtualMachineRestartRequired {
-						found = true
-						break
-					}
-				}
-				ExpectWithOffset(1, found).To(Equal(shouldExpect), "bad restartRequired condition status in #%v", vm.Status.Conditions)
-			}
-
 			crFor := func(uid string) string {
 				crListLock.Lock()
 				defer crListLock.Unlock()
@@ -5524,6 +5518,7 @@ var _ = Describe("VirtualMachine", func() {
 						},
 					},
 				}
+				restartRequired = false
 			})
 
 			AfterEach(func() {
