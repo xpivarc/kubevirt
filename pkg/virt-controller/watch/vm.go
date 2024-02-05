@@ -2829,11 +2829,21 @@ func (c *VMController) trimDoneVolumeRequests(vm *virtv1.VirtualMachine) {
 }
 
 func (c *VMController) sync(vm *virtv1.VirtualMachine, vmi *virtv1.VirtualMachineInstance, key string, dataVolumes []*cdiv1.DataVolume) (*virtv1.VirtualMachine, syncError, error) {
-	var syncErr syncError
-	var err error
+	var (
+		err            error
+		syncErr        syncError
+		lastSeenVMSpec *virtv1.VirtualMachineSpec
+	)
 
 	if !c.needsSync(key) {
 		return vm, nil, nil
+	}
+
+	if vmi != nil {
+		lastSeenVMSpec, err = c.getLastVMRevisionSpec(vm)
+		if err != nil {
+			log.Log.Object(vm).Reason(err).Infof("no revision found")
+		}
 	}
 
 	conditionManager := controller.NewVirtualMachineConditionManager()
