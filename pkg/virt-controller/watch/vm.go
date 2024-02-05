@@ -631,10 +631,6 @@ func (c *VMController) VMICPUsPatch(vm *virtv1.VirtualMachine, vmi *virtv1.Virtu
 }
 
 func (c *VMController) handleCPUChangeRequest(vm *virtv1.VirtualMachine, vmi *virtv1.VirtualMachineInstance) error {
-	if !c.clusterConfig.IsVMRolloutStrategyLiveUpdate() {
-		return nil
-	}
-
 	if vmi == nil || vmi.DeletionTimestamp != nil {
 		return nil
 	}
