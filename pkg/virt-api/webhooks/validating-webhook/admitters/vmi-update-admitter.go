@@ -40,7 +40,6 @@ type VMIUpdateAdmitter struct {
 }
 
 func (admitter *VMIUpdateAdmitter) Admit(ar *admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
-
 	if resp := webhookutils.ValidateSchema(v1.VirtualMachineInstanceGroupVersionKind, ar.Request.Object.Raw); resp != nil {
 		return resp
 	}
@@ -52,6 +51,22 @@ func (admitter *VMIUpdateAdmitter) Admit(ar *admissionv1.AdmissionReview) *admis
 
 	// Reject VMI update if VMI spec changed
 	if !equality.Semantic.DeepEqual(newVMI.Spec, oldVMI.Spec) {
+		if admitter.ClusterConfig.NodeRestrictionEnabled() && webhooks.IsKubeVirtHandlerServiceAccount(ar.Request.UserInfo.Username) {
+			nodeName, exist := ar.Request.UserInfo.Extra["authentication.kubernetes.io/node-name"]
+			if exist {
+				if nodeName[0] != newVMI.Status.NodeName || (newVMI.Status.MigrationState != nil &&
+					nodeName[0] != newVMI.Status.MigrationState.TargetNode) {
+					return webhookutils.ToAdmissionResponse([]metav1.StatusCause{
+						{
+							Type:    metav1.CauseTypeFieldValueInvalid,
+							Message: "node restriction",
+						},
+					})
+				}
+			}
+			//TODO
+		}
+
 		// Only allow the KubeVirt SA to modify the VMI spec, since that means it went through the sub resource.
 		if webhooks.IsKubeVirtServiceAccount(ar.Request.UserInfo.Username) {
 			hotplugResponse := admitHotplug(oldVMI, newVMI, admitter.ClusterConfig)

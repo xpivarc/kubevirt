@@ -91,8 +91,20 @@ func IsKubeVirtServiceAccount(serviceAccount string) bool {
 
 	prefix := fmt.Sprintf("system:serviceaccount:%s", ns)
 	return serviceAccount == fmt.Sprintf("%s:%s", prefix, components.ApiServiceAccountName) ||
-		serviceAccount == fmt.Sprintf("%s:%s", prefix, components.HandlerServiceAccountName) ||
+		IsKubeVirtHandlerServiceAccount(serviceAccount) ||
 		serviceAccount == fmt.Sprintf("%s:%s", prefix, components.ControllerServiceAccountName)
+}
+
+func IsKubeVirtHandlerServiceAccount(serviceAccount string) bool {
+	ns, err := clientutil.GetNamespace()
+	logger := log.DefaultLogger()
+
+	if err != nil {
+		logger.Info("Failed to get namespace. Fallback to default: 'kubevirt'")
+		ns = "kubevirt"
+	}
+	prefix := fmt.Sprintf("system:serviceaccount:%s", ns)
+	return serviceAccount == fmt.Sprintf("%s:%s", prefix, components.HandlerServiceAccountName)
 }
 
 func IsARM64(vmiSpec *v1.VirtualMachineInstanceSpec) bool {
