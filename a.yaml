@@ -1,0 +1,50 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "kubevirt-node-restriction"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups:   [""]
+        apiVersions: ["*"]
+        operations:  ["UPDATE"]
+        resources:   ["nodes"]
+  variables:
+    - name: hasNodeName
+      expression: ('authentication.kubernetes.io/node-name' in request.userInfo.extra)
+    - name: isPartitionedServiceAccount
+      expression: request.userInfo.username == "system:serviceaccount:kubevirt:kubevirt-handler"
+    - name: oldNotAllowedLabels
+      expression: oldObject.metadata.labels.filter(k, !k.startsWith("cpu-feature.node.kubevirt.io/") && !k.startsWith("cpu-model-migration.node.kubevirt.io/") && k != "cpu-timer.node.kubevirt.io/tsc-frequency" && k != "cpu-timer.node.kubevirt.io/tsc-scalable" && k != "cpumanager" && !k.startsWith("cpu-vendor.node.kubevirt.io/") && !k.startsWith("host-model-cpu.node.kubevirt.io/") && !k.startsWith("host-model-required-features.node.kubevirt.io/") && !k.startsWith("hyperv.node.kubevirt.io/") && !k.startsWith("cpu-model.node.kubevirt.io") && k != "kubevirt.io/ksm-enabled" && k != "kubevirt.io/schedulable")
+    - name: oldLabels
+      expression: oldObject.metadata.labels
+    - name: newNotAllowedLabels
+      expression: object.metadata.labels.filter(k, !k.startsWith("cpu-feature.node.kubevirt.io/") && !k.startsWith("cpu-model-migration.node.kubevirt.io/") && k != "cpu-timer.node.kubevirt.io/tsc-frequency" && k != "cpu-timer.node.kubevirt.io/tsc-scalable" && k != "cpumanager" && !k.startsWith("cpu-vendor.node.kubevirt.io/") && !k.startsWith("host-model-cpu.node.kubevirt.io/") && !k.startsWith("host-model-required-features.node.kubevirt.io/") && !k.startsWith("hyperv.node.kubevirt.io/") && !k.startsWith("cpu-model.node.kubevirt.io") && k != "kubevirt.io/ksm-enabled" && k != "kubevirt.io/schedulable")
+    - name: newLabels
+      expression: object.metadata.labels
+    - name: oldNotAllowedAnnotations
+      expression: oldObject.metadata.annotations.filter(k, !k.startsWith("kubevirt.io/heartbeat") && !!k.startsWith("kubevirt.io/ksm-handler-managed"))
+    - name: newNotAllowedAnnotations
+      expression: object.metadata.annotations.filter(k, !k.startsWith("kubevirt.io/heartbeat") && !!k.startsWith("kubevirt.io/ksm-handler-managed"))
+    - name: oldAnnotations
+      expression: oldObject.metadata.annotations
+    - name: newAnnotations
+      expression: object.metadata.annotations
+  validations:
+    - expression: "!variables.isPartitionedServiceAccount || (!variables.hasNodeName) || object.metadata.name == request.userInfo.extra[\"authentication.kubernetes.io/node-name\"][0]"
+      message: "this user may only modify nodes that belong to the pod is running on"
+    - expression: "object.spec == oldObject.spec"
+      message: "this user cannot modify spec of the nodes"
+    - expression: "object.status == oldObject.status"
+      message: "this user cannot modify spec of the nodes"
+    - expression: size(variables.newNotAllowedLabels) == size(variables.oldNotAllowedLabels)
+      message: "this user cannot add or delete arbitrary labels"
+    - expression: variables.newNotAllowedLabels.all(k, k in variables.oldNotAllowedLabels && variables.newLabels[k] == variables.oldLabels[k])
+      message: "this user is only allowed to change subset of labels"
+    - expression: size(variables.newNotAllowedAnnotations) == size(variables.oldNotAllowedAnnotations)
+      message: "this user cannot add or delete arbitrary annotations"
+    - expression: variables.newNotAllowedAnnotations.all(k, k in variables.oldNotAllowedAnnotations && variables.newAnnotations[k] == variables.newAnnotations[k])
+      message: "this user is only allowed to change subset of annotations"
+    - expression:  oldObject.metadata.filter(k, k != "labels" && k != "annotations" && k != "managedFields" && k != "resourceVersion").all(k, oldObject.metadata[k] == object.metadata[k])
+      message: "this user is only allowed to change subset of labels but not other fields"

@@ -1,0 +1,5 @@
+package validationpolicies
+
+func GetNodeRestrictionValidationPolicies() {
+
+}
