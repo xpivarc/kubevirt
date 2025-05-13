@@ -65,10 +65,6 @@ func (converterS390X) IsUSBNeeded(_ *v1.VirtualMachineInstance) bool {
 	return false
 }
 
-func (converterS390X) SupportCPUHotplug() bool {
-	return true
-}
-
 func (converterS390X) IsSMBiosNeeded() bool {
 	return false
 }

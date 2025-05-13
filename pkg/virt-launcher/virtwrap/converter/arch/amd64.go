@@ -89,10 +89,6 @@ func (converterAMD64) IsUSBNeeded(vmi *v1.VirtualMachineInstance) bool {
 	return false
 }
 
-func (converterAMD64) SupportCPUHotplug() bool {
-	return true
-}
-
 func (converterAMD64) IsSMBiosNeeded() bool {
 	return true
 }

@@ -57,10 +57,6 @@ func (converterPPC64) IsUSBNeeded(_ *v1.VirtualMachineInstance) bool {
 	return true
 }
 
-func (converterPPC64) SupportCPUHotplug() bool {
-	return true
-}
-
 func (converterPPC64) IsSMBiosNeeded() bool {
 	// SMBios option does not work in Power, attempting to set it will result in the following error message:
 	// "Option not supported for this target" issued by qemu-system-ppc64, so don't set it in case GOARCH is ppc64le

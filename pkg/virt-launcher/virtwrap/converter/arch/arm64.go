@@ -71,10 +71,6 @@ func (converterARM64) IsUSBNeeded(_ *v1.VirtualMachineInstance) bool {
 	return true
 }
 
-func (converterARM64) SupportCPUHotplug() bool {
-	return false
-}
-
 func (converterARM64) IsSMBiosNeeded() bool {
 	// ARM64 use UEFI boot by default, set SMBios is unnecessary.
 	return false
