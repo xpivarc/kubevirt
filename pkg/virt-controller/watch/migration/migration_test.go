@@ -27,6 +27,7 @@ import (
 	"time"
 
 	cdiv1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/priorityqueue"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -2279,6 +2280,51 @@ var _ = Describe("Migration watcher", func() {
 				Expect(priority).To(Equal(0))
 				Expect(shutdown).To(BeFalse())
 			}
+			item, priority, shutdown := controller.Queue.GetWithPriority()
+			Expect(item).To(Equal("default/testmigrationpending"))
+			Expect(priority).To(Equal(-100))
+			Expect(shutdown).To(BeFalse())
+
+		})
+
+		FIt("should not jump in priority with Add", func() {
+			controller.Queue.AddWithOpts(priorityqueue.AddOpts{
+				Priority: -100,
+			}, "default/testmigrationpending")
+
+			// Simulating what we do with informer handler
+			controller.Queue.Add("default/testmigrationpending")
+			item, priority, shutdown := controller.Queue.GetWithPriority()
+			Expect(item).To(Equal("default/testmigrationpending"))
+			Expect(priority).To(Equal(-100))
+			Expect(shutdown).To(BeFalse())
+		})
+
+		FIt("should have priority", func() {
+			controller.Queue.AddWithOpts(priorityqueue.AddOpts{
+				Priority: -100,
+			}, "default/testmigrationpending")
+			item, priority, shutdown := controller.Queue.GetWithPriority()
+			Expect(item).To(Equal("default/testmigrationpending"))
+			Expect(priority).To(Equal(-100))
+			Expect(shutdown).To(BeFalse())
+		})
+
+		FIt("should get items in order based on priority", func() {
+			controller.Queue.AddWithOpts(priorityqueue.AddOpts{
+				Priority: -100,
+			}, "default/testmigrationpending")
+			for i := range 5 {
+				controller.Queue.Add(fmt.Sprintf("default/active%d", i))
+			}
+
+			for i := range 5 {
+				item, priority, shutdown := controller.Queue.GetWithPriority()
+				Expect(item).To(BeEquivalentTo(fmt.Sprintf("default/active%d", i)))
+				Expect(priority).To(Equal(0))
+				Expect(shutdown).To(BeFalse())
+			}
+
 			item, priority, shutdown := controller.Queue.GetWithPriority()
 			Expect(item).To(Equal("default/testmigrationpending"))
 			Expect(priority).To(Equal(-100))
