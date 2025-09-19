@@ -20,10 +20,20 @@
 package components_test
 
 import (
+	"context"
 	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	k8sv1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apiserver/pkg/admission"
+	"k8s.io/apiserver/pkg/admission/plugin/policy/validating"
+	celconfig "k8s.io/apiserver/pkg/apis/cel"
+	"k8s.io/apiserver/pkg/authentication/user"
+	api "k8s.io/kubernetes/pkg/apis/core"
 
 	"kubevirt.io/kubevirt/pkg/virt-operator/resource/generate/components"
 )
@@ -50,4 +60,49 @@ var _ = Describe("Validation Admission Policy", func() {
 			Expect(validatingAdmissionPolicyBinding.Kind).ToNot(BeEmpty())
 		})
 	})
+})
+
+var _ = Describe("Validation Admission Policy Validator", func() {
+
+	It("test", func() {
+		const userName = "system:serviceaccount:kubevirt-ns:kubevirt-handler"
+		validatingAdmissionPolicy := components.NewHandlerV1ValidatingAdmissionPolicy(userName)
+		validator := CompilePolicy(validatingAdmissionPolicy)
+
+		oldNode := &k8sv1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "one",
+				Annotations: map[string]string{
+					"random": "true",
+				},
+				Labels: map[string]string{
+					"needed": "yes",
+				},
+			},
+		}
+		node := oldNode.DeepCopy()
+		node.Labels["kubevirt.io/new"] = "true"
+
+		attributes := admission.NewAttributesRecord(node, oldNode, api.Kind("Node").WithVersion("v1"), "", "one",
+			api.Resource("Nodes").WithVersion("v1"), "", admission.Update, &metav1.CreateOptions{}, false,
+			&user.DefaultInfo{
+				Name: userName,
+				Extra: map[string][]string{
+					"authentication.kubernetes.io/node-name": []string{"one"},
+				},
+			})
+		scheme := runtime.NewScheme()
+		Expect(k8sv1.AddToScheme(scheme)).NotTo(HaveOccurred())
+		o := admission.NewObjectInterfacesFromScheme(scheme)
+		versionedAttributes, err := admission.NewVersionedAttributes(attributes, attributes.GetKind(), o)
+		Expect(err).NotTo(HaveOccurred())
+
+		result := validator.Validate(context.Background(), schema.GroupVersionResource{"", "v1", "nodes"}, versionedAttributes,
+			nil, nil, celconfig.RuntimeCELCostBudget, nil)
+
+		for _, decision := range result.Decisions {
+			Expect(decision.Action).To(Equal(validating.ActionAdmit), decision.Message)
+		}
+	})
+
 })
