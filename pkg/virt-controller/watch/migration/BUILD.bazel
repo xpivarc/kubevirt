@@ -45,6 +45,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
+        "migration_bench_test.go",
         "migration_suite_test.go",
         "migration_test.go",
     ],
@@ -85,4 +86,14 @@ go_test(
         "//vendor/kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1:go_default_library",
         "//vendor/sigs.k8s.io/controller-runtime/pkg/controller/priorityqueue:go_default_library",
     ],
+)
+
+go_test(
+    name = "go_bench_test",
+    srcs = [
+        "migration_bench_test.go",
+    ],
+    embed = [":go_default_library"],
+    tags = ["bench"],
+    deps = [],
 )
