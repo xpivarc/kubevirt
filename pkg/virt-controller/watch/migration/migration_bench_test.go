@@ -20,6 +20,10 @@ func setup(podCount int) (*Controller, *v1.VirtualMachineInstance, *v1.VirtualMa
 		podIndexer: informer.GetIndexer(),
 	}
 
+	if err := addTargetPodIndexer(controller.podIndexer); err != nil {
+		panic(err)
+	}
+
 	migration := v1.VirtualMachineInstanceMigration{
 		ObjectMeta: metav1.ObjectMeta{
 			UID:       types.UID("something"),
