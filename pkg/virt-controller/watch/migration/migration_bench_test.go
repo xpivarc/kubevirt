@@ -108,3 +108,31 @@ func benchmarkListMatchingTargetPods(b *testing.B, count int) {
 	}
 
 }
+func BenchmarkListMatchingTargetPodsParallel1000(b *testing.B) {
+	benchmarkListMatchingTargetPodsParallel(b, 1000)
+}
+func BenchmarkListMatchingTargetPodsParallel10000(b *testing.B) {
+	benchmarkListMatchingTargetPodsParallel(b, 10000)
+}
+
+func benchmarkListMatchingTargetPodsParallel(b *testing.B, count int) {
+	controller, vmi, migration, pod := setup(count)
+
+	b.ResetTimer()
+
+	b.RunParallel(func(p *testing.PB) {
+		for p.Next() {
+			pods, err := controller.listMatchingTargetPods(migration, vmi)
+			if err != nil {
+				panic(err)
+			}
+			if len(pods) != 1 {
+				panic("hi")
+
+			}
+			if pods[0] != pod {
+				panic("hi")
+			}
+		}
+	})
+}
