@@ -7,8 +7,10 @@ import (
 	k8sv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/cache"
 	v1 "kubevirt.io/api/core/v1"
 
+	"kubevirt.io/kubevirt/pkg/controller"
 	"kubevirt.io/kubevirt/pkg/testutils"
 )
 
@@ -135,4 +137,97 @@ func benchmarkListMatchingTargetPodsParallel(b *testing.B, count int) {
 			}
 		}
 	})
+}
+
+func setup2(migCount int) *Controller {
+	informer, _ := testutils.NewFakeInformerFor(&k8sv1.Pod{})
+	informerMig, _ := testutils.NewFakeInformerFor(&v1.VirtualMachineInstanceMigration{})
+	informerVMI, _ := testutils.NewFakeInformerFor(&v1.VirtualMachineInstance{})
+	c := Controller{
+		podIndexer:       informer.GetIndexer(),
+		migrationIndexer: informerMig.GetIndexer(),
+		vmiStore:         informerVMI.GetStore(),
+	}
+
+	indexer := controller.GetVirtualMachineInstanceMigrationInformerIndexers()
+	delete(indexer, cache.NamespaceIndex)
+	err := c.migrationIndexer.AddIndexers(indexer)
+	if err != nil {
+		panic(err)
+	}
+
+	for i := range migCount {
+		vmi := v1.VirtualMachineInstance{
+			ObjectMeta: metav1.ObjectMeta{
+				UID:       types.UID(fmt.Sprintf("something%d", i)),
+				Namespace: "vm-debug",
+				Name:      fmt.Sprintf("name%d", i),
+			},
+		}
+		err := c.vmiStore.Add(&vmi)
+		if err != nil {
+			panic(err)
+		}
+
+		migration := v1.VirtualMachineInstanceMigration{
+			ObjectMeta: metav1.ObjectMeta{
+				UID:       types.UID(fmt.Sprintf("something%d", i)),
+				Namespace: "vm-debug",
+				Name:      fmt.Sprintf("name%d", i),
+			},
+			Spec: v1.VirtualMachineInstanceMigrationSpec{
+				VMIName: vmi.Name,
+			},
+		}
+		err = c.migrationIndexer.Add(&migration)
+		if err != nil {
+			panic(err)
+		}
+
+		pod := k8sv1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				UID:       types.UID(fmt.Sprintf("something%d", i)),
+				Namespace: "vm-debug",
+				Name:      fmt.Sprintf("name%d", i),
+				Labels: map[string]string{
+					"kubevirt.io":            "virt-launcher",
+					"kubevirt.io/created-by": string(vmi.UID),
+					"kubevirt.io/domain":     "rhel9",
+					// "kubevirt.io/migrationJobUID":         string(migration.UID),
+					// "kubevirt.io/migrationTargetNodeName": "e28-h03-000-r650",
+					"kubevirt.io/nodeName": "e28-h03-000-r650",
+					"vm.kubevirt.io/name":  "rhel9-2236",
+				},
+			},
+		}
+		err = c.podIndexer.Add(&pod)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return &c
+}
+
+func BenchmarkFindRunningMigrations1000(b *testing.B) {
+	benchmarkFindRunningMigrations(b, 1000)
+}
+
+func BenchmarkFindRunningMigrations10000(b *testing.B) {
+	benchmarkFindRunningMigrations(b, 10000)
+}
+
+func benchmarkFindRunningMigrations(b *testing.B, migCount int) {
+	c := setup2(migCount)
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		migrations, err := c.findRunningMigrations()
+		if err != nil {
+			panic(err)
+		}
+		if len(migrations) != 0 {
+			panic("hi")
+		}
+	}
 }
