@@ -153,6 +153,10 @@ func setup2(migCount int) *Controller {
 		vmiStore:         informerVMI.GetStore(),
 	}
 
+	if err := addTargetPodIndexer(c.podIndexer); err != nil {
+		panic(err)
+	}
+
 	indexer := controller.GetVirtualMachineInstanceMigrationInformerIndexers()
 	delete(indexer, cache.NamespaceIndex)
 	err := c.migrationIndexer.AddIndexers(indexer)
