@@ -76,7 +76,8 @@ func newListWatchFromNotify(virtShareDir string, watchdogTimeout int, recorder r
 
 func (d *domainWatcher) worker() {
 	defer d.wg.Done()
-
+	defer close(d.eventChan)
+	// defer d.Stop()
 	resyncTicker := time.NewTicker(d.resyncPeriod)
 	resyncTickerChan := resyncTicker.C
 	defer resyncTicker.Stop()
@@ -105,6 +106,10 @@ func (d *domainWatcher) worker() {
 		case err := <-srvErr:
 			if err != nil {
 				log.Log.Reason(err).Errorf("Unexpected err encountered with Domain Notify aggregation server")
+				d.eventChan <- watch.Event{
+					Type:   watch.Error,
+					Object: &metav1.Status{Status: metav1.StatusFailure, Message: err.Error()},
+				}
 			}
 
 			// server exited so this goroutine is done.
@@ -335,7 +340,7 @@ func (d *domainWatcher) Stop() {
 	close(d.stopChan)
 	d.wg.Wait()
 	d.backgroundWatcherStarted = false
-	close(d.eventChan)
+	// close(d.eventChan) The stopChan should trigger closure of the channel
 }
 
 func (d *domainWatcher) ResultChan() <-chan watch.Event {
