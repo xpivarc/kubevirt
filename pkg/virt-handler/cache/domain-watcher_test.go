@@ -134,6 +134,21 @@ var _ = Describe("Domain Watcher", func() {
 			}
 		}
 
+		It("should not panic when Stop is called twice", func() {
+			d := &domainWatcher{
+				backgroundWatcherStarted: false,
+				virtShareDir:             shareDir,
+				watchdogTimeout:          10,
+				unresponsiveSockets:      make(map[string]int64),
+				resyncPeriod:             1 * time.Hour,
+				runServer:                notifyserver.RunServer,
+			}
+
+			Expect(d.startBackground()).To(Succeed())
+			d.Stop()
+			Expect(func() { d.Stop() }).ToNot(Panic())
+		})
+
 		It("should recover from server crash and continue receiving events", func() {
 			cs := newCrashableServer()
 
