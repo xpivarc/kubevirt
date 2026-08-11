@@ -19,6 +19,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -87,8 +88,13 @@ func (d *domainWatcher) worker() {
 	defer d.wg.Done()
 	defer d.onWorkerExit()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		<-d.stopChan
+		cancel()
+	}()
+
 	resyncTicker := time.NewTicker(d.resyncPeriod)
-	resyncTickerChan := resyncTicker.C
 	defer resyncTicker.Stop()
 
 	// Divide the watchdogTimeout by 3 for our ticker.
@@ -96,8 +102,6 @@ func (d *domainWatcher) worker() {
 	// in a row before we mark the socket as unavailable (which results in shutdown of VMI)
 	expiredWatchdogTicker := time.NewTicker(time.Duration((d.watchdogTimeout/3)+1) * time.Second)
 	defer expiredWatchdogTicker.Stop()
-
-	expiredWatchdogTickerChan := expiredWatchdogTicker.C
 
 	startedAt := time.Now()
 	srvErr := make(chan error)
@@ -109,21 +113,21 @@ func (d *domainWatcher) worker() {
 
 	for {
 		select {
-		case <-resyncTickerChan:
-			d.handleResync()
-		case <-expiredWatchdogTickerChan:
-			d.handleStaleSocketConnections()
+		case <-resyncTicker.C:
+			d.handleResync(ctx)
+		case <-expiredWatchdogTicker.C:
+			d.handleStaleSocketConnections(ctx, d.watchdogTimeout)
 		case err := <-srvErr:
 			if err != nil {
 				log.Log.Reason(err).Errorf("Domain notify server exited unexpectedly")
 				d.panicOnConsecutiveFailures(err, startedAt)
-				d.eventChan <- watch.Event{
+				d.send(ctx, watch.Event{
 					Type: watch.Error,
 					Object: &metav1.Status{
 						Status:  metav1.StatusFailure,
 						Message: fmt.Sprintf("domain notify server error: %v", err),
 					},
-				}
+				})
 			}
 			return
 		}
@@ -135,6 +139,18 @@ func (d *domainWatcher) onWorkerExit() {
 	defer d.lock.Unlock()
 	d.backgroundWatcherStarted = false
 	close(d.eventChan)
+}
+
+// send delivers event on d.eventChan, but gives up once ctx is done. Without
+// this, a worker shutting down after the informer has already stopped
+// reading ResultChan() would block on this send forever, hanging Stop().
+func (d *domainWatcher) send(ctx context.Context, event watch.Event) bool {
+	select {
+	case d.eventChan <- event:
+		return true
+	case <-ctx.Done():
+		return false
+	}
 }
 
 func (d *domainWatcher) panicOnConsecutiveFailures(err error, startedAt time.Time) {
@@ -181,7 +197,7 @@ func (d *domainWatcher) startBackground() error {
 	return nil
 }
 
-func (d *domainWatcher) handleResync() {
+func (d *domainWatcher) handleResync(ctx context.Context) {
 	socketFiles, err := listSockets(GhostRecordGlobalStore.list())
 	if err != nil {
 		log.Log.Reason(err).Error("failed to list sockets")
@@ -211,11 +227,13 @@ func (d *domainWatcher) handleResync() {
 			continue
 		}
 
-		d.eventChan <- watch.Event{Type: watch.Modified, Object: domain}
+		if !d.send(ctx, watch.Event{Type: watch.Modified, Object: domain}) {
+			return
+		}
 	}
 }
 
-func (d *domainWatcher) handleStaleSocketConnections() error {
+func (d *domainWatcher) handleStaleSocketConnections(ctx context.Context, watchdogTimeout int) error {
 	var unresponsive []string
 
 	socketFiles, err := listSockets(GhostRecordGlobalStore.list())
@@ -279,7 +297,9 @@ func (d *domainWatcher) handleStaleSocketConnections() error {
 				now := metav1.Now()
 				domain.ObjectMeta.DeletionTimestamp = &now
 				log.Log.Object(domain).Warningf("detected unresponsive virt-launcher command socket (%s) for domain", key)
-				d.eventChan <- watch.Event{Type: watch.Modified, Object: domain}
+				if !d.send(ctx, watch.Event{Type: watch.Modified, Object: domain}) {
+					return ctx.Err()
+				}
 
 				err := cmdclient.MarkSocketUnresponsive(key)
 				if err != nil {
