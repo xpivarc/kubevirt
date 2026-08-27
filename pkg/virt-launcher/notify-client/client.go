@@ -482,119 +482,11 @@ func (n *Notifier) StartDomainNotifier(
 			qemuAgentFSFreezeStatusInterval,
 		), agentStore, nonRoot, n, domainName)
 
-	domainEventLifecycleCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventLifecycle) {
-
-		log.Log.Infof("DomainLifecycle event %s with event id %d reason %d received", event.String(), event.Event, event.Detail)
-		name, err := d.GetName()
-		if err != nil {
-			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
-		}
-		select {
-		case eventChan <- libvirtEvent{Event: event, Domain: name}:
-		default:
-			log.Log.Infof(libvirtEventChannelFull)
-		}
-	}
-
-	domainEventDeviceAddedCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventDeviceAdded) {
-		log.Log.Infof("Domain Device Added event received")
-		name, err := d.GetName()
-		if err != nil {
-			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
-		}
-		select {
-		case eventChan <- libvirtEvent{Domain: name}:
-		default:
-			log.Log.Infof(libvirtEventChannelFull)
-		}
-	}
-
-	domainEventDeviceRemovedCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventDeviceRemoved) {
-		log.Log.Infof("Domain Device Removed event received")
-		name, err := d.GetName()
-		if err != nil {
-			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
-		}
-
-		select {
-		case eventChan <- libvirtEvent{Domain: name}:
-		default:
-			log.Log.Infof(libvirtEventChannelFull)
-		}
-	}
-
-	domainEventMemoryDeviceSizeChange := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventMemoryDeviceSizeChange) {
-		log.Log.Infof("Domain Memory Device size-change event received")
-		name, err := d.GetName()
-		if err != nil {
-			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
-		}
-
-		select {
-		case eventChan <- libvirtEvent{Domain: name}:
-		default:
-			log.Log.Infof(libvirtEventChannelFull)
-		}
-	}
-	domainEventJobCompletedCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventJobCompleted) {
-		log.Log.Infof("Domain Job Completed event type %v received. Job operation: %v, succeeded: %t", event.Info.Type, event.Info.Operation, event.Info.JobSuccess)
-		name, err := d.GetName()
-		if err != nil {
-			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
-		}
-		select {
-		case eventChan <- libvirtEvent{JobCompletedEvent: event, Domain: name}:
-		default:
-			log.Log.Infof(libvirtEventChannelFull)
-		}
-	}
-
-	err := domainConn.DomainEventLifecycleRegister(domainEventLifecycleCallback)
-	if err != nil {
-		log.Log.Reason(err).Errorf("failed to register event callback with libvirt")
+	if err := registerLibvirtCallbacks(domainConn, eventChan); err != nil {
 		return err
 	}
-
-	err = domainConn.DomainEventDeviceAddedRegister(domainEventDeviceAddedCallback)
-	if err != nil {
-		log.Log.Reason(err).Errorf("failed to register device added event callback with libvirt")
-		return err
-	}
-	err = domainConn.DomainEventDeviceRemovedRegister(domainEventDeviceRemovedCallback)
-	if err != nil {
-		log.Log.Reason(err).Errorf("failed to register device removed event callback with libvirt")
-		return err
-	}
-	err = domainConn.DomainEventMemoryDeviceSizeChangeRegister(domainEventMemoryDeviceSizeChange)
-	if err != nil {
-		log.Log.Reason(err).Errorf("failed to register memory device size change event callback with libvirt")
-		return err
-	}
-	err = domainConn.DomainEventJobCompletedRegister(domainEventJobCompletedCallback)
-	if err != nil {
-		log.Log.Reason(err).Errorf("failed to register event job completed callback with libvirt")
-		return err
-	}
-
-	agentEventLifecycleCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventAgentLifecycle) {
-		log.Log.Infof("GuestAgentLifecycle event state %d with reason %d received", event.State, event.Reason)
-		name, err := d.GetName()
-		if err != nil {
-			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
-		}
-		select {
-		case eventChan <- libvirtEvent{AgentEvent: event, Domain: name}:
-		default:
-			log.Log.Infof(libvirtEventChannelFull)
-		}
-	}
-	err = domainConn.AgentEventLifecycleRegister(agentEventLifecycleCallback)
-	if err != nil {
-		log.Log.Reason(err).Errorf("failed to register event callback with libvirt")
-		return err
-	}
-
 	log.Log.Infof("Registered libvirt event notify callback")
+
 	return nil
 }
 
@@ -807,4 +699,120 @@ func worker(eventChan chan libvirtEvent, metadataCache *metadata.Cache, domainCo
 			}
 		}
 	}
+}
+
+func registerLibvirtCallbacks(domainConn cli.Connection, eventChan chan libvirtEvent) error {
+	domainEventLifecycleCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventLifecycle) {
+
+		log.Log.Infof("DomainLifecycle event %s with event id %d reason %d received", event.String(), event.Event, event.Detail)
+		name, err := d.GetName()
+		if err != nil {
+			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
+		}
+		select {
+		case eventChan <- libvirtEvent{Event: event, Domain: name}:
+		default:
+			log.Log.Infof(libvirtEventChannelFull)
+		}
+	}
+
+	domainEventDeviceAddedCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventDeviceAdded) {
+		log.Log.Infof("Domain Device Added event received")
+		name, err := d.GetName()
+		if err != nil {
+			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
+		}
+		select {
+		case eventChan <- libvirtEvent{Domain: name}:
+		default:
+			log.Log.Infof(libvirtEventChannelFull)
+		}
+	}
+
+	domainEventDeviceRemovedCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventDeviceRemoved) {
+		log.Log.Infof("Domain Device Removed event received")
+		name, err := d.GetName()
+		if err != nil {
+			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
+		}
+
+		select {
+		case eventChan <- libvirtEvent{Domain: name}:
+		default:
+			log.Log.Infof(libvirtEventChannelFull)
+		}
+	}
+
+	domainEventMemoryDeviceSizeChange := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventMemoryDeviceSizeChange) {
+		log.Log.Infof("Domain Memory Device size-change event received")
+		name, err := d.GetName()
+		if err != nil {
+			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
+		}
+
+		select {
+		case eventChan <- libvirtEvent{Domain: name}:
+		default:
+			log.Log.Infof(libvirtEventChannelFull)
+		}
+	}
+	domainEventJobCompletedCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventJobCompleted) {
+		log.Log.Infof("Domain Job Completed event type %v received. Job operation: %v, succeeded: %t", event.Info.Type, event.Info.Operation, event.Info.JobSuccess)
+		name, err := d.GetName()
+		if err != nil {
+			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
+		}
+		select {
+		case eventChan <- libvirtEvent{JobCompletedEvent: event, Domain: name}:
+		default:
+			log.Log.Infof(libvirtEventChannelFull)
+		}
+	}
+
+	err := domainConn.DomainEventLifecycleRegister(domainEventLifecycleCallback)
+	if err != nil {
+		log.Log.Reason(err).Errorf("failed to register event callback with libvirt")
+		return err
+	}
+
+	err = domainConn.DomainEventDeviceAddedRegister(domainEventDeviceAddedCallback)
+	if err != nil {
+		log.Log.Reason(err).Errorf("failed to register device added event callback with libvirt")
+		return err
+	}
+	err = domainConn.DomainEventDeviceRemovedRegister(domainEventDeviceRemovedCallback)
+	if err != nil {
+		log.Log.Reason(err).Errorf("failed to register device removed event callback with libvirt")
+		return err
+	}
+	err = domainConn.DomainEventMemoryDeviceSizeChangeRegister(domainEventMemoryDeviceSizeChange)
+	if err != nil {
+		log.Log.Reason(err).Errorf("failed to register memory device size change event callback with libvirt")
+		return err
+	}
+	err = domainConn.DomainEventJobCompletedRegister(domainEventJobCompletedCallback)
+	if err != nil {
+		log.Log.Reason(err).Errorf("failed to register event job completed callback with libvirt")
+		return err
+	}
+
+	agentEventLifecycleCallback := func(c *libvirt.Connect, d *libvirt.Domain, event *libvirt.DomainEventAgentLifecycle) {
+		log.Log.Infof("GuestAgentLifecycle event state %d with reason %d received", event.State, event.Reason)
+		name, err := d.GetName()
+		if err != nil {
+			log.Log.Reason(err).Info(cantDetermineLibvirtDomainName)
+		}
+		select {
+		case eventChan <- libvirtEvent{AgentEvent: event, Domain: name}:
+		default:
+			log.Log.Infof(libvirtEventChannelFull)
+		}
+	}
+	err = domainConn.AgentEventLifecycleRegister(agentEventLifecycleCallback)
+	if err != nil {
+		log.Log.Reason(err).Errorf("failed to register event callback with libvirt")
+		return err
+	}
+
+	return nil
 }
