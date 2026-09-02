@@ -24,6 +24,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/virt-handler/isolation"
 )
 
+// TODO this seeems dangerous
 func passtSocketDirOnHost(path isolation.IsolationResult) (string, error) {
 	root, err := path.MountRoot()
 	if err != nil {
