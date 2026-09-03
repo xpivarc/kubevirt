@@ -42,7 +42,7 @@ import (
 	storagetypes "kubevirt.io/kubevirt/pkg/storage/types"
 	migrationutils "kubevirt.io/kubevirt/pkg/util/migrations"
 	cmdclient "kubevirt.io/kubevirt/pkg/virt-handler/cmd-client"
-	migrationproxy "kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy"
+	migrationproxy "kubevirt.io/kubevirt/pkg/virt-handler/migration/proxy"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/converter/vcpu"

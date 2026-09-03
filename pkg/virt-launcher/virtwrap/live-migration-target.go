@@ -48,7 +48,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/storage/cbt"
 	"kubevirt.io/kubevirt/pkg/util"
 	"kubevirt.io/kubevirt/pkg/util/net/ip"
-	migrationproxy "kubevirt.io/kubevirt/pkg/virt-handler/migration-proxy"
+	migrationproxy "kubevirt.io/kubevirt/pkg/virt-handler/migration/proxy"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/metadata"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli"
