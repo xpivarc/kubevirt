@@ -552,25 +552,7 @@ func (m *migrationProxy) Start() error {
 
 	fdChan := make(chan net.Conn)
 
-	go func(ln net.Listener, fdChan chan net.Conn, listenErr chan error, stopChan chan struct{}) {
-		for {
-			fd, err := ln.Accept()
-			if err != nil {
-				listenErr <- err
-
-				select {
-				case <-stopChan:
-					// If the stopChan is closed, then this is expected. Log at a lesser debug level
-					m.logger.Reason(err).V(3).Infof("stopChan is closed. Listener exited with expected error.")
-				default:
-					m.logger.Reason(err).Error("proxy unix socket listener returned error.")
-				}
-				break
-			} else {
-				fdChan <- fd
-			}
-		}
-	}(m.listener, fdChan, m.listenErrChan, m.stopChan)
+	go m.listen(fdChan)
 
 	go func(m *migrationProxy) {
 		for {
@@ -588,4 +570,23 @@ func (m *migrationProxy) Start() error {
 
 	m.logger.Infof("proxy started listening")
 	return nil
+}
+
+func (m *migrationProxy) listen(fdChan chan net.Conn) {
+	for {
+		fd, err := m.listener.Accept()
+		if err != nil {
+			m.listenErrChan <- err
+
+			select {
+			case <-m.stopChan:
+				// If the stopChan is closed, then this is expected. Log at a lesser debug level
+				m.logger.Reason(err).V(3).Infof("stopChan is closed. Listener exited with expected error.")
+			default:
+				m.logger.Reason(err).Error("proxy unix socket listener returned error.")
+			}
+			break
+		}
+		fdChan <- fd
+	}
 }
