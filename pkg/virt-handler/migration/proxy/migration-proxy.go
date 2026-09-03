@@ -459,12 +459,7 @@ func (m *migrationProxy) createUnixListener() error {
 }
 
 func (m *migrationProxy) Stop() {
-
 	close(m.stopChan)
-	if m.listener != nil {
-		m.logger.Infof("proxy stopped listening")
-		m.listener.Close()
-	}
 }
 
 func (m *migrationProxy) handleConnection(fd net.Conn) {
@@ -573,6 +568,10 @@ func (m *migrationProxy) Start() error {
 }
 
 func (m *migrationProxy) listen(fdChan chan net.Conn) {
+	defer func() {
+		err := m.listener.Close()
+		m.logger.Reason(err).Info("proxy stopped listening")
+	}()
 	for {
 		fd, err := m.listener.Accept()
 		if err != nil {
