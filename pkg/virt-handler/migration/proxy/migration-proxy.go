@@ -66,7 +66,6 @@ type migrationProxy struct {
 	targetProtocol string
 	stopChan       chan struct{}
 
-	listener           net.Listener
 	serverTLSConfig    *tls.Config
 	migrationTLSConfig *tls.Config
 
@@ -371,7 +370,7 @@ func NewTargetProxy(
 
 }
 
-func (m *migrationProxy) createTcpListener() error {
+func (m *migrationProxy) createTcpListener() (net.Listener, error) {
 	var listener net.Listener
 	var err error
 
@@ -383,7 +382,7 @@ func (m *migrationProxy) createTcpListener() error {
 	}
 	if err != nil {
 		m.logger.Reason(err).Error("failed to create unix socket for proxy service")
-		return err
+		return nil, err
 	}
 
 	if m.tcpBindPort == 0 {
@@ -393,14 +392,13 @@ func (m *migrationProxy) createTcpListener() error {
 		m.logger = m.logger.With("listening", fmt.Sprintf("%s:%d", m.tcpBindAddress, m.tcpBindPort))
 	}
 
-	m.listener = listener
-	return nil
+	return listener, nil
 }
 
-func (m *migrationProxy) createUnixListener() error {
+func (m *migrationProxy) createUnixListener() (net.Listener, error) {
 	if m.mountRoot == nil {
 		m.logger.Error("mount root is unavailable")
-		return fmt.Errorf("mount root is unavailable")
+		return nil, fmt.Errorf("mount root is unavailable")
 	}
 
 	relativeDir := filepath.Dir(m.unixSocketPath)
@@ -411,7 +409,7 @@ func (m *migrationProxy) createUnixListener() error {
 	parentPath, err := safepath.JoinNoFollow(m.mountRoot, parentRelativeDir)
 	if err != nil {
 		m.logger.Reason(err).Error("unable to resolve parent socket directory")
-		return err
+		return nil, err
 	}
 
 	_, err = safepath.JoinNoFollow(parentPath, migrationProxyDirName)
@@ -419,40 +417,39 @@ func (m *migrationProxy) createUnixListener() error {
 		err := safepath.MkdirAtNoFollow(parentPath, migrationProxyDirName, 0755)
 		if err != nil && !errors.Is(err, os.ErrExist) {
 			m.logger.Reason(err).Error("unable to create migrationproxy directory")
-			return err
+			return nil, err
 		}
 	} else if err != nil {
 		m.logger.Reason(err).Error("unable to resolve migrationproxy directory")
-		return err
+		return nil, err
 	}
 
 	dirPath, err := safepath.JoinNoFollow(m.mountRoot, relativeDir)
 	if err != nil {
 		m.logger.Reason(err).Error("unable to resolve socket directory")
-		return err
+		return nil, err
 	}
 
 	listener, err := safepath.ListenUnixNoFollow(dirPath, socketFilename)
 	if err != nil {
 		m.logger.Reason(err).Error("failed to create unix socket for proxy service")
-		return err
+		return nil, err
 	}
 
 	socketPath, err := safepath.JoinNoFollow(dirPath, socketFilename)
 	if err != nil {
 		listener.Close()
 		m.logger.Reason(err).Error("unable to resolve socket path for ownership")
-		return err
+		return nil, err
 	}
 
 	if ownerErr := diskutils.DefaultOwnershipManager.SetFileOwnership(socketPath); ownerErr != nil {
 		listener.Close()
 		m.logger.Reason(ownerErr).Error("failed to change ownership on migration unix socket")
-		return ownerErr
+		return nil, ownerErr
 	}
 
-	m.listener = listener
-	return nil
+	return listener, nil
 }
 
 func (m *migrationProxy) Stop() {
@@ -530,13 +527,16 @@ func (m *migrationProxy) handleConnection(fd net.Conn) {
 
 func (m *migrationProxy) Start() error {
 
+	var listener net.Listener
+	var err error
+
 	if m.unixSocketPath != "" {
-		err := m.createUnixListener()
+		listener, err = m.createUnixListener()
 		if err != nil {
 			return err
 		}
 	} else {
-		err := m.createTcpListener()
+		listener, err = m.createTcpListener()
 		if err != nil {
 			return err
 		}
@@ -545,7 +545,7 @@ func (m *migrationProxy) Start() error {
 	fdChan := make(chan net.Conn)
 	listenErrChan := make(chan error)
 
-	go m.listen(fdChan, listenErrChan)
+	go m.listen(listener, fdChan, listenErrChan)
 
 	go func(m *migrationProxy) {
 		for {
@@ -565,13 +565,13 @@ func (m *migrationProxy) Start() error {
 	return nil
 }
 
-func (m *migrationProxy) listen(fdChan chan net.Conn, listenErrChan chan error) {
+func (m *migrationProxy) listen(listener net.Listener, fdChan chan net.Conn, listenErrChan chan error) {
 	defer func() {
-		err := m.listener.Close()
+		err := listener.Close()
 		m.logger.Reason(err).Info("proxy stopped listening")
 	}()
 	for {
-		fd, err := m.listener.Accept()
+		fd, err := listener.Accept()
 		if err != nil {
 			listenErrChan <- err
 
