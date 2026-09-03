@@ -66,7 +66,6 @@ type migrationProxy struct {
 	targetProtocol string
 	stopChan       chan struct{}
 	listenErrChan  chan error
-	fdChan         chan net.Conn
 
 	listener           net.Listener
 	serverTLSConfig    *tls.Config
@@ -347,7 +346,6 @@ func NewSourceProxy(
 		targetAddress:      tcpTargetAddress,
 		targetProtocol:     "tcp",
 		stopChan:           make(chan struct{}),
-		fdChan:             make(chan net.Conn, 1),
 		listenErrChan:      make(chan error, 1),
 		migrationTLSConfig: migrationTLSConfig,
 		logger:             log.Log.With("uid", vmiUID).With("listening", filepath.Base(unixSocketPath)).With("outbound", tcpTargetAddress),
@@ -369,7 +367,6 @@ func NewTargetProxy(
 		mountRoot:       mountRoot,
 		targetAddress:   targetAddress,
 		stopChan:        make(chan struct{}),
-		fdChan:          make(chan net.Conn, 1),
 		listenErrChan:   make(chan error, 1),
 		serverTLSConfig: serverTLSConfig,
 		logger:          log.Log.With("uid", vmiUID).With("outbound", filepath.Base(targetAddress)),
@@ -553,6 +550,8 @@ func (m *migrationProxy) Start() error {
 		}
 	}
 
+	fdChan := make(chan net.Conn)
+
 	go func(ln net.Listener, fdChan chan net.Conn, listenErr chan error, stopChan chan struct{}) {
 		for {
 			fd, err := ln.Accept()
@@ -571,12 +570,12 @@ func (m *migrationProxy) Start() error {
 				fdChan <- fd
 			}
 		}
-	}(m.listener, m.fdChan, m.listenErrChan, m.stopChan)
+	}(m.listener, fdChan, m.listenErrChan, m.stopChan)
 
 	go func(m *migrationProxy) {
 		for {
 			select {
-			case fd := <-m.fdChan:
+			case fd := <-fdChan:
 				go m.handleConnection(fd)
 			case <-m.stopChan:
 				return
