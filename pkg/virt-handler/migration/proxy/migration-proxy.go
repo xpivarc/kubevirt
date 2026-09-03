@@ -65,7 +65,6 @@ type migrationProxy struct {
 	targetAddress  string
 	targetProtocol string
 	stopChan       chan struct{}
-	listenErrChan  chan error
 
 	listener           net.Listener
 	serverTLSConfig    *tls.Config
@@ -346,7 +345,6 @@ func NewSourceProxy(
 		targetAddress:      tcpTargetAddress,
 		targetProtocol:     "tcp",
 		stopChan:           make(chan struct{}),
-		listenErrChan:      make(chan error, 1),
 		migrationTLSConfig: migrationTLSConfig,
 		logger:             log.Log.With("uid", vmiUID).With("listening", filepath.Base(unixSocketPath)).With("outbound", tcpTargetAddress),
 	}
@@ -367,7 +365,6 @@ func NewTargetProxy(
 		mountRoot:       mountRoot,
 		targetAddress:   targetAddress,
 		stopChan:        make(chan struct{}),
-		listenErrChan:   make(chan error, 1),
 		serverTLSConfig: serverTLSConfig,
 		logger:          log.Log.With("uid", vmiUID).With("outbound", filepath.Base(targetAddress)),
 	}
@@ -546,8 +543,9 @@ func (m *migrationProxy) Start() error {
 	}
 
 	fdChan := make(chan net.Conn)
+	listenErrChan := make(chan error)
 
-	go m.listen(fdChan)
+	go m.listen(fdChan, listenErrChan)
 
 	go func(m *migrationProxy) {
 		for {
@@ -556,7 +554,7 @@ func (m *migrationProxy) Start() error {
 				go m.handleConnection(fd)
 			case <-m.stopChan:
 				return
-			case <-m.listenErrChan:
+			case <-listenErrChan:
 				return
 			}
 		}
@@ -567,7 +565,7 @@ func (m *migrationProxy) Start() error {
 	return nil
 }
 
-func (m *migrationProxy) listen(fdChan chan net.Conn) {
+func (m *migrationProxy) listen(fdChan chan net.Conn, listenErrChan chan error) {
 	defer func() {
 		err := m.listener.Close()
 		m.logger.Reason(err).Info("proxy stopped listening")
@@ -575,7 +573,7 @@ func (m *migrationProxy) listen(fdChan chan net.Conn) {
 	for {
 		fd, err := m.listener.Accept()
 		if err != nil {
-			m.listenErrChan <- err
+			listenErrChan <- err
 
 			select {
 			case <-m.stopChan:
