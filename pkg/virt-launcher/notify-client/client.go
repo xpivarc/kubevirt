@@ -64,8 +64,8 @@ type libvirtEvent struct {
 	JobCompletedEvent *libvirt.DomainEventJobCompleted
 }
 
-func NewNotifyClient(virtShareDir string) notifyClient {
-	return notifyClient{
+func NewNotifyClient(virtShareDir string) *notifyClient {
+	return &notifyClient{
 		pipeSocketPath:  filepath.Join(virtShareDir, "domain-notify-pipe.sock"),
 		intervalTimeout: defaultIntervalTimeout,
 		sendTimeout:     defaultSendTimeout,
@@ -75,6 +75,7 @@ func NewNotifyClient(virtShareDir string) notifyClient {
 
 func NewNotifier(virtShareDir string) *Notifier {
 	return &Notifier{
+		client:      NewNotifyClient(virtShareDir),
 		firstAdd:    &sync.Once{},
 		firstDelete: &sync.Once{},
 	}
@@ -144,6 +145,12 @@ func (n *Notifier) updateEvents(event watch.Event, domain *api.Domain, events ch
 	} else if event.Type == watch.Modified && domain.ObjectMeta.DeletionTimestamp != nil {
 		n.firstDelete.Do(func() { events <- event })
 	}
+}
+
+func (n *Notifier) SetCustomTimeouts(interval, send, total time.Duration) {
+	n.client.(*notifyClient).intervalTimeout = interval
+	n.client.(*notifyClient).sendTimeout = send
+	n.client.(*notifyClient).totalTimeout = total
 }
 
 type eventCaller struct {
