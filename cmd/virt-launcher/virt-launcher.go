@@ -67,6 +67,8 @@ import (
 	virtcli "kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cli"
 	cmdserver "kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/cmd-server"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/util"
+
+	k8sv1 "k8s.io/api/core/v1"
 )
 
 const defaultStartTimeout = 3 * time.Minute
@@ -452,7 +454,6 @@ func main() {
 	var agentStore = agentpoller.NewAsyncAgentStore()
 
 	notifier := notifyclient.NewNotifier(*virtShareDir)
-	defer notifier.Close()
 
 	metadataCache := metadata.NewCache()
 
