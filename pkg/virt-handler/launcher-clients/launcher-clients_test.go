@@ -120,7 +120,7 @@ var _ = Describe("DomainNotifyServer integration", func() {
 			handleDomainNotifyPipe(ctx, listener, notifyDir, vmi)
 			time.Sleep(1)
 
-			client := notifyclient.NewNotifier(pipeDir)
+			client := notifyclient.NewNotifier(notifyclient.NewNotifyClient(pipeDir))
 			defer client.Close()
 
 			err = client.SendK8sEvent(vmi, eventType, eventReason, eventMessage)
@@ -150,7 +150,7 @@ var _ = Describe("DomainNotifyServer integration", func() {
 			pipeDir, pipePath := preparePipe()
 
 			// Client should fail when pipe is offline
-			client := notifyclient.NewNotifier(pipeDir)
+			client := notifyclient.NewNotifier(notifyclient.NewNotifyClient(pipeDir))
 			defer client.Close()
 
 			client.SetCustomTimeouts(1*time.Second, 1*time.Second, 3*time.Second)
@@ -198,7 +198,7 @@ var _ = Describe("DomainNotifyServer integration", func() {
 			handleDomainNotifyPipe(ctx, listener, notifyDir, vmi)
 			time.Sleep(1)
 
-			client := notifyclient.NewNotifier(pipeDir)
+			client := notifyclient.NewNotifier(notifyclient.NewNotifyClient(pipeDir))
 			defer client.Close()
 
 			for range 4 {

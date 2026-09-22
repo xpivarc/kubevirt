@@ -73,9 +73,9 @@ func NewNotifyClient(virtShareDir string) *notifyClient {
 	}
 }
 
-func NewNotifier(virtShareDir string) *Notifier {
+func NewNotifier(client notifierClient) *Notifier {
 	return &Notifier{
-		client:      NewNotifyClient(virtShareDir),
+		client:      client,
 		firstAdd:    &sync.Once{},
 		firstDelete: &sync.Once{},
 	}

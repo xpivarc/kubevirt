@@ -557,7 +557,7 @@ var _ = Describe("Virt remote commands", func() {
 						return err == nil
 					}).WithTimeout(5 * time.Second).WithPolling(500 * time.Millisecond).Should(BeTrue())
 
-					notifier = notifyclient.NewNotifier(notifyShareDir)
+					notifier = notifyclient.NewNotifier(notifyclient.NewNotifyClient(notifyShareDir))
 
 					vmi = libvmi.New(libvmi.WithName("testvmi"), libvmi.WithNamespace(k8sv1.NamespaceDefault))
 					vmi.UID = types.UID("1234")
@@ -608,7 +608,7 @@ var _ = Describe("Virt remote commands", func() {
 
 	Describe("ServerOptions", func() {
 		It("should set notifier and vmi name/namespace/uid", func() {
-			notifier := notifyclient.NewNotifier("")
+			notifier := notifyclient.NewNotifier(notifyclient.NewNotifyClient(""))
 			vmi := v1.NewVMIReferenceFromNameWithNS("testns", "testvmi")
 			vmi.UID = types.UID("test-uid-1234")
 			options := NewServerOptions(true).WithNotifier(notifier).WithVMI(vmi)
