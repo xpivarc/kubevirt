@@ -865,3 +865,8 @@ func (client *Client) DomainEventChan() <-chan *watch.Event {
 func (client *Client) K8SEventChan() <-chan *k8sv1.Event {
 	return client.k8sNotification
 }
+
+func (client *Client) Close() {
+	close(client.domainNotification)
+	close(client.k8sNotification)
+}
