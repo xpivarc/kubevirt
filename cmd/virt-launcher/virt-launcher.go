@@ -453,7 +453,8 @@ func main() {
 
 	var agentStore = agentpoller.NewAsyncAgentStore()
 
-	notifier := notifyclient.NewNotifier(notifyclient.NewNotifyClient(*virtShareDir))
+	client := notifyclient.NewClient()
+	notifier := notifyclient.NewNotifier(&client)
 
 	metadataCache := metadata.NewCache()
 
