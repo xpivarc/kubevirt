@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
+	k8sv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 
@@ -53,6 +54,7 @@ import (
 	virtlauncher "kubevirt.io/kubevirt/pkg/virt-launcher"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/metadata"
 	notifyclient "kubevirt.io/kubevirt/pkg/virt-launcher/notify-client"
+	notifyserver "kubevirt.io/kubevirt/pkg/virt-launcher/notify-server"
 	premigrationhookserver "kubevirt.io/kubevirt/pkg/virt-launcher/premigration-hook-server"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/premigration-hook-server/cpuhook"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/premigration-hook-server/disk"
@@ -85,8 +87,21 @@ func markReady() {
 func startCmdServer(socketPath string,
 	domainManager virtwrap.DomainManager,
 	stopChan chan struct{},
-	options *cmdserver.ServerOptions) chan struct{} {
-	done, err := cmdserver.RunServer(socketPath, domainManager, stopChan, options)
+	options *cmdserver.ServerOptions,
+	watchNotification <-chan *watch.Event, eventNotification <-chan *k8sv1.Event) chan struct{} {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		defer cancel()
+		<-stopChan
+	}()
+
+	if options == nil {
+		options = cmdserver.NewServerOptions(false)
+	}
+	cmdServer := cmdserver.NewLauncher(domainManager, options)
+	notifyServer := notifyserver.NewNotifyServer(watchNotification, eventNotification)
+	done, err := cmdserver.RunServer(ctx, socketPath, cmdServer, notifyServer)
 	if err != nil {
 		log.Log.Reason(err).Error("Failed to start virt-launcher cmd server")
 		panic(err)
@@ -484,7 +499,9 @@ func main() {
 	// to start/stop virtual machines
 	options := cmdserver.NewServerOptions(*allowEmulation).WithVMStatsCollector(*vmStatsCollectorEnabled).WithNotifier(notifier).WithVMI(vmi)
 	cmdclient.SetBaseDir(*virtShareDir)
-	cmdServerDone := startCmdServer(cmdclient.UninitializedSocketOnGuest(), domainManager, stopChan, options)
+
+	cmdServerDone := startCmdServer(cmdclient.UninitializedSocketOnGuest(), domainManager, stopChan, options,
+		nil, nil)
 
 	gracefulShutdownCallback := func() {
 		domainManager.MarkGracefulShutdownVMI()

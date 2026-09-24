@@ -38,6 +38,7 @@ import (
 	"kubevirt.io/client-go/log"
 
 	cmdv1 "kubevirt.io/kubevirt/pkg/handler-launcher-com/cmd/v1"
+	v2 "kubevirt.io/kubevirt/pkg/handler-launcher-com/notify/v2"
 	grpcutil "kubevirt.io/kubevirt/pkg/util/net/grpc"
 	cmdclient "kubevirt.io/kubevirt/pkg/virt-handler/cmd-client"
 	notifyclient "kubevirt.io/kubevirt/pkg/virt-launcher/notify-client"
@@ -681,20 +682,17 @@ func (l *Launcher) GuestPing(ctx context.Context, request *cmdv1.GuestPingReques
 	return resp, nil
 }
 
-func RunServer(socketPath string,
-	domainManager virtwrap.DomainManager,
-	stopChan chan struct{},
-	options *ServerOptions) (chan struct{}, error) {
+func RunServer(ctx context.Context, socketPath string,
+	cmdServer cmdv1.CmdServer, notifyServer v2.NotifyServer) (chan struct{}, error) {
+
 	grpcServer := grpc.NewServer([]grpc.ServerOption{}...)
-	if options == nil {
-		options = NewServerOptions(false)
-	}
-	server := NewLauncher(domainManager, options)
 	registerInfoServer(grpcServer)
 
 	// register more versions as soon as needed
 	// and add them to info.go
-	cmdv1.RegisterCmdServer(grpcServer, server)
+	cmdv1.RegisterCmdServer(grpcServer, cmdServer)
+
+	v2.RegisterNotifyServer(grpcServer, notifyServer)
 
 	sock, err := grpcutil.CreateSocket(socketPath)
 	if err != nil {
@@ -704,7 +702,8 @@ func RunServer(socketPath string,
 	done := make(chan struct{})
 
 	go func() {
-		<-stopChan
+		<-ctx.Done()
+		// TODO
 		log.Log.Info("stopping cmd server")
 		stopped := make(chan struct{})
 		go func() {
