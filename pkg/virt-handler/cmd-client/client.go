@@ -130,6 +130,16 @@ type LauncherClient interface {
 	VirtualMachineBackup(vmi *v1.VirtualMachineInstance, options *backupv1.BackupOptions) error
 	RedefineCheckpoint(vmi *v1.VirtualMachineInstance, checkpoint *backupv1.BackupCheckpoint) (checkpointInvalid bool, err error)
 	GetVMStats(request *cmdv1.VMStatsRequest) (*stats.VMStats, error)
+	DomainEvents(context.Context) (DomainEventsStream, error)
+	KubernetesEvents(context.Context) (KubernetesEventsStream, error)
+}
+
+type DomainEventsStream interface {
+	Recv() (*cmdv1.DomainEventsResponse, error)
+}
+
+type KubernetesEventsStream interface {
+	Recv() (*cmdv1.KubernetesEventsResponse, error)
 }
 
 type VirtLauncherClient struct {
@@ -902,4 +912,22 @@ func (c *VirtLauncherClient) RedefineCheckpoint(vmi *v1.VirtualMachineInstance, 
 		return false, err
 	}
 	return false, nil
+}
+
+func (c *VirtLauncherClient) DomainEvents(ctx context.Context) (DomainEventsStream, error) {
+	response, err := c.v1client.DomainEvents(ctx, &cmdv1.EmptyRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (c *VirtLauncherClient) KubernetesEvents(ctx context.Context) (KubernetesEventsStream, error) {
+	response, err := c.v1client.KubernetesEvents(ctx, &cmdv1.EmptyRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
