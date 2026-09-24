@@ -17,6 +17,42 @@ import (
 	grpc "google.golang.org/grpc"
 )
 
+// MockisDomainEventsResponse_Type is a mock of isDomainEventsResponse_Type interface.
+type MockisDomainEventsResponse_Type struct {
+	ctrl     *gomock.Controller
+	recorder *MockisDomainEventsResponse_TypeMockRecorder
+	isgomock struct{}
+}
+
+// MockisDomainEventsResponse_TypeMockRecorder is the mock recorder for MockisDomainEventsResponse_Type.
+type MockisDomainEventsResponse_TypeMockRecorder struct {
+	mock *MockisDomainEventsResponse_Type
+}
+
+// NewMockisDomainEventsResponse_Type creates a new mock instance.
+func NewMockisDomainEventsResponse_Type(ctrl *gomock.Controller) *MockisDomainEventsResponse_Type {
+	mock := &MockisDomainEventsResponse_Type{ctrl: ctrl}
+	mock.recorder = &MockisDomainEventsResponse_TypeMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockisDomainEventsResponse_Type) EXPECT() *MockisDomainEventsResponse_TypeMockRecorder {
+	return m.recorder
+}
+
+// isDomainEventsResponse_Type mocks base method.
+func (m *MockisDomainEventsResponse_Type) isDomainEventsResponse_Type() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "isDomainEventsResponse_Type")
+}
+
+// isDomainEventsResponse_Type indicates an expected call of isDomainEventsResponse_Type.
+func (mr *MockisDomainEventsResponse_TypeMockRecorder) isDomainEventsResponse_Type() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "isDomainEventsResponse_Type", reflect.TypeOf((*MockisDomainEventsResponse_Type)(nil).isDomainEventsResponse_Type))
+}
+
 // MockCmdClient is a mock of CmdClient interface.
 type MockCmdClient struct {
 	ctrl     *gomock.Controller

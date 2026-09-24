@@ -21,11 +21,14 @@ package launcher_clients
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"time"
 
 	"golang.org/x/sync/singleflight"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/tools/record"
 
 	v1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/client-go/log"
@@ -34,7 +37,13 @@ import (
 	cmdclient "kubevirt.io/kubevirt/pkg/virt-handler/cmd-client"
 	"kubevirt.io/kubevirt/pkg/virt-handler/isolation"
 	"kubevirt.io/kubevirt/pkg/virt-handler/notify-server/pipe"
+	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
 	"kubevirt.io/kubevirt/pkg/vmitrait"
+
+	k8sv1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	cmdv1 "kubevirt.io/kubevirt/pkg/handler-launcher-com/cmd/v1"
 )
 
 type LauncherClientsManager interface {
@@ -50,17 +59,21 @@ type launcherClientsManager struct {
 	connGroup            singleflight.Group
 	launcherClients      virtcache.LauncherClientInfoByVMI
 	podIsolationDetector isolation.PodIsolationDetector
+	directChan           chan<- watch.Event
+	recorder             record.EventRecorder
 }
 
 func NewLauncherClientsManager(
 	virtShareDir string,
 	podIsolationDetector isolation.PodIsolationDetector,
+	directChan chan<- watch.Event,
 ) LauncherClientsManager {
 
 	l := &launcherClientsManager{
 		virtShareDir:         virtShareDir,
 		launcherClients:      virtcache.LauncherClientInfoByVMI{},
 		podIsolationDetector: podIsolationDetector,
+		directChan:           directChan,
 	}
 
 	return l
@@ -109,18 +122,18 @@ func (l *launcherClientsManager) GetLauncherClient(vmi *v1.VirtualMachineInstanc
 			return nil, err
 		}
 
-		domainPipeStopChan := make(chan struct{})
-		err = l.startDomainNotifyPipe(domainPipeStopChan, vmi)
+		domainNotifyStopChan := make(chan struct{})
+		err = l.startDomainNotify(domainNotifyStopChan, vmi, client)
 		if err != nil {
 			client.Close()
-			close(domainPipeStopChan)
+			close(domainNotifyStopChan)
 			return nil, err
 		}
 
 		l.launcherClients.Store(vmi.UID, &virtcache.LauncherClientInfo{
 			Client:              client,
 			SocketFile:          socketFile,
-			DomainPipeStopChan:  domainPipeStopChan,
+			DomainPipeStopChan:  domainNotifyStopChan,
 			NotInitializedSince: time.Now(),
 			Ready:               true,
 		})
@@ -216,7 +229,118 @@ func handleDomainNotifyPipe(ctx context.Context, ln net.Listener, virtShareDir s
 	})
 }
 
-func (l *launcherClientsManager) startDomainNotifyPipe(domainPipeStopChan chan struct{}, vmi *v1.VirtualMachineInstance) error {
+func processDomainEvents(stream cmdclient.DomainEventsStream, directChan chan<- watch.Event) {
+	for {
+		response, err := stream.Recv()
+		if err != nil {
+			// log
+			return
+		}
+
+		switch t := response.Type.(type) {
+		case *cmdv1.DomainEventsResponse_DomainJSON:
+			domain := &api.Domain{}
+			err := json.Unmarshal(t.DomainJSON, domain)
+			if err != nil {
+				log.Log.Errorf("Failed to unmarshal domain json object")
+			}
+			log.Log.Object(domain).V(3).Infof("Received Domain Event of type %s", response.EventType)
+			switch response.EventType {
+			case string(watch.Added):
+				directChan <- watch.Event{Type: watch.Added, Object: domain}
+			case string(watch.Modified):
+				directChan <- watch.Event{Type: watch.Modified, Object: domain}
+			case string(watch.Deleted):
+				directChan <- watch.Event{Type: watch.Deleted, Object: domain}
+			case string(watch.Error):
+				// log.Log.Object(domain).Errorf("Domain error event with message: %s", status.Message)
+			}
+		case *cmdv1.DomainEventsResponse_StatusJSON:
+			status := &metav1.Status{}
+			err := json.Unmarshal(t.StatusJSON, status)
+			if err != nil {
+				log.Log.Errorf("Failed to unmarshal status json object")
+			}
+			log.Log.V(3).Infof("Received Domain Event of type %s", response.EventType)
+			switch response.EventType {
+			case string(watch.Added):
+			case string(watch.Modified):
+			case string(watch.Deleted):
+				// TODO
+			case string(watch.Error):
+				log.Log.Errorf("Domain error event with message: %s", status.Message)
+			}
+		}
+	}
+}
+
+func processKubernetesEvents(stream cmdclient.KubernetesEventsStream, recorder record.EventRecorder, vmi *v1.VirtualMachineInstance) {
+	for {
+		response, err := stream.Recv()
+		if err != nil {
+			// log
+			return
+		}
+
+		// unmarshal k8s event
+		var event k8sv1.Event
+		err = json.Unmarshal(response.EventJSON, &event)
+		if err != nil {
+			// log
+			continue
+		}
+		recorder.Event(vmi, event.Type, event.Reason, event.Message)
+	}
+}
+
+func (l *launcherClientsManager) startDomainNotify(domainPipeStopChan <-chan struct{}, vmi *v1.VirtualMachineInstance,
+	client cmdclient.LauncherClient) error {
+
+	// TODO need to use one ctx
+	ctx := contextFromChan(domainPipeStopChan)
+	stream, err := client.DomainEvents(ctx)
+	if err != nil {
+		if cmdclient.IsUnimplemented(err) {
+			return l.startDomainNotifyPipe(domainPipeStopChan, vmi)
+		}
+		return err
+	}
+
+	go func(stream cmdclient.DomainEventsStream) {
+		for {
+			processDomainEvents(stream, l.directChan)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				newStream, err := client.DomainEvents(ctx)
+				if err != nil {
+					continue
+				}
+				stream = newStream
+			}
+		}
+	}(stream)
+
+	go func() {
+		for {
+			stream, err := client.KubernetesEvents(ctx)
+			if err != nil {
+				continue
+			}
+			processKubernetesEvents(stream, l.recorder, vmi)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+		}
+	}()
+
+	return nil
+}
+
+func (l *launcherClientsManager) startDomainNotifyPipe(domainPipeStopChan <-chan struct{}, vmi *v1.VirtualMachineInstance) error {
 
 	res, err := l.podIsolationDetector.Detect(vmi)
 	if err != nil {
@@ -227,12 +351,17 @@ func (l *launcherClientsManager) startDomainNotifyPipe(domainPipeStopChan chan s
 	if err != nil {
 		return err
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		<-domainPipeStopChan
-		cancel()
-	}()
+	ctx := contextFromChan(domainPipeStopChan)
 	handleDomainNotifyPipe(ctx, listener, l.virtShareDir, vmi)
 
 	return nil
+}
+
+func contextFromChan(c <-chan struct{}) context.Context {
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		<-c
+		cancel()
+	}()
+	return ctx
 }

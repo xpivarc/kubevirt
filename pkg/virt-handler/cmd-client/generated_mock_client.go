@@ -10,6 +10,7 @@
 package cmdclient
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -83,6 +84,21 @@ func (m *MockLauncherClient) DeleteDomain(vmi *v1.VirtualMachineInstance) error 
 func (mr *MockLauncherClientMockRecorder) DeleteDomain(vmi any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDomain", reflect.TypeOf((*MockLauncherClient)(nil).DeleteDomain), vmi)
+}
+
+// DomainEvents mocks base method.
+func (m *MockLauncherClient) DomainEvents(arg0 context.Context) (DomainEventsStream, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DomainEvents", arg0)
+	ret0, _ := ret[0].(DomainEventsStream)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DomainEvents indicates an expected call of DomainEvents.
+func (mr *MockLauncherClientMockRecorder) DomainEvents(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DomainEvents", reflect.TypeOf((*MockLauncherClient)(nil).DomainEvents), arg0)
 }
 
 // Exec mocks base method.
@@ -352,6 +368,21 @@ func (mr *MockLauncherClientMockRecorder) KillVirtualMachine(vmi any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KillVirtualMachine", reflect.TypeOf((*MockLauncherClient)(nil).KillVirtualMachine), vmi)
 }
 
+// KubernetesEvents mocks base method.
+func (m *MockLauncherClient) KubernetesEvents(arg0 context.Context) (KubernetesEventsStream, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "KubernetesEvents", arg0)
+	ret0, _ := ret[0].(KubernetesEventsStream)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// KubernetesEvents indicates an expected call of KubernetesEvents.
+func (mr *MockLauncherClientMockRecorder) KubernetesEvents(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KubernetesEvents", reflect.TypeOf((*MockLauncherClient)(nil).KubernetesEvents), arg0)
+}
+
 // MigrateVirtualMachine mocks base method.
 func (m *MockLauncherClient) MigrateVirtualMachine(vmi *v1.VirtualMachineInstance, options *MigrationOptions) error {
 	m.ctrl.T.Helper()
@@ -575,4 +606,82 @@ func (m *MockLauncherClient) VirtualMachineMemoryDump(vmi *v1.VirtualMachineInst
 func (mr *MockLauncherClientMockRecorder) VirtualMachineMemoryDump(vmi, dumpPath any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VirtualMachineMemoryDump", reflect.TypeOf((*MockLauncherClient)(nil).VirtualMachineMemoryDump), vmi, dumpPath)
+}
+
+// MockDomainEventsStream is a mock of DomainEventsStream interface.
+type MockDomainEventsStream struct {
+	ctrl     *gomock.Controller
+	recorder *MockDomainEventsStreamMockRecorder
+	isgomock struct{}
+}
+
+// MockDomainEventsStreamMockRecorder is the mock recorder for MockDomainEventsStream.
+type MockDomainEventsStreamMockRecorder struct {
+	mock *MockDomainEventsStream
+}
+
+// NewMockDomainEventsStream creates a new mock instance.
+func NewMockDomainEventsStream(ctrl *gomock.Controller) *MockDomainEventsStream {
+	mock := &MockDomainEventsStream{ctrl: ctrl}
+	mock.recorder = &MockDomainEventsStreamMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDomainEventsStream) EXPECT() *MockDomainEventsStreamMockRecorder {
+	return m.recorder
+}
+
+// Recv mocks base method.
+func (m *MockDomainEventsStream) Recv() (*v10.DomainEventsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Recv")
+	ret0, _ := ret[0].(*v10.DomainEventsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Recv indicates an expected call of Recv.
+func (mr *MockDomainEventsStreamMockRecorder) Recv() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Recv", reflect.TypeOf((*MockDomainEventsStream)(nil).Recv))
+}
+
+// MockKubernetesEventsStream is a mock of KubernetesEventsStream interface.
+type MockKubernetesEventsStream struct {
+	ctrl     *gomock.Controller
+	recorder *MockKubernetesEventsStreamMockRecorder
+	isgomock struct{}
+}
+
+// MockKubernetesEventsStreamMockRecorder is the mock recorder for MockKubernetesEventsStream.
+type MockKubernetesEventsStreamMockRecorder struct {
+	mock *MockKubernetesEventsStream
+}
+
+// NewMockKubernetesEventsStream creates a new mock instance.
+func NewMockKubernetesEventsStream(ctrl *gomock.Controller) *MockKubernetesEventsStream {
+	mock := &MockKubernetesEventsStream{ctrl: ctrl}
+	mock.recorder = &MockKubernetesEventsStreamMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockKubernetesEventsStream) EXPECT() *MockKubernetesEventsStreamMockRecorder {
+	return m.recorder
+}
+
+// Recv mocks base method.
+func (m *MockKubernetesEventsStream) Recv() (*v10.KubernetesEventsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Recv")
+	ret0, _ := ret[0].(*v10.KubernetesEventsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Recv indicates an expected call of Recv.
+func (mr *MockKubernetesEventsStreamMockRecorder) Recv() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Recv", reflect.TypeOf((*MockKubernetesEventsStream)(nil).Recv))
 }
