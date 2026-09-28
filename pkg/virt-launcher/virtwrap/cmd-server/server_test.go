@@ -79,7 +79,13 @@ var _ = Describe("Virt remote commands", func() {
 
 		allowEmulation = true
 		options = NewServerOptions(allowEmulation)
-		RunServer(socketPath, domainManager, stop, options)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		go func() {
+			defer cancel()
+			<-stop
+		}()
+		RunServer(ctx, socketPath, NewLauncher(domainManager, options), nil)
 		client, err = cmdclient.NewClient(socketPath)
 		Expect(err).ToNot(HaveOccurred())
 	})

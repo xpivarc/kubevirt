@@ -692,7 +692,9 @@ func RunServer(ctx context.Context, socketPath string,
 	// and add them to info.go
 	cmdv1.RegisterCmdServer(grpcServer, cmdServer)
 
-	v2.RegisterNotifyServer(grpcServer, notifyServer)
+	if notifyServer != nil {
+		v2.RegisterNotifyServer(grpcServer, notifyServer)
+	}
 
 	sock, err := grpcutil.CreateSocket(socketPath)
 	if err != nil {

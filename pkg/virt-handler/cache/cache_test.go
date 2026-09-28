@@ -591,7 +591,14 @@ func runCMDServer(wg *sync.WaitGroup, socketPath string,
 	stopChan chan struct{},
 	options *cmdserver.ServerOptions) {
 	wg.Add(1)
-	done, _ := cmdserver.RunServer(socketPath, domainManager, stopChan, options)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		defer cancel()
+		<-stopChan
+	}()
+
+	done, _ := cmdserver.RunServer(ctx, socketPath, cmdserver.NewLauncher(domainManager, options), nil)
 	go func() {
 		<-done
 		wg.Done()
